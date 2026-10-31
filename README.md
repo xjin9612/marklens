@@ -7,6 +7,10 @@ English | [繁體中文](./README.zh-TW.md)
 
 A lightweight, auditable Markdown reader for Chrome and Edge. Open any `.md` file — local or online — and read it with a sidebar outline, foldable sections, and tables you can actually work with: resize columns, sort, filter, and copy to a spreadsheet.
 
+![Light theme: sidebar outline, GitHub alert, task list and table](docs/screenshots/light.png)
+
+![Dark theme: table sorted by a column with its toolbar, and a Mermaid diagram](docs/screenshots/dark.png)
+
 Inspired by [md-reader 2.x](https://github.com/md-reader/md-reader) (MIT); rewritten from scratch with three goals: **easy to audit, no remote code, no build step**.
 
 ## Install
@@ -104,6 +108,8 @@ src/
 vendor/                  third-party libraries (versions in VERSIONS.md, licenses in licenses/)
 scripts/vendor.mjs       script for upgrading vendor/
 scripts/release.mjs      release helper: version check, release notes, packaging
+scripts/screenshots.mjs  regenerates docs/screenshots/ from docs/demo.md (npm run screenshots)
+docs/                    README screenshots and the demo document they are taken from
 .github/workflows/       CI tests and automated releases
 CHANGELOG.md             release notes (the source for GitHub releases)
 test/                    end-to-end tests and fixtures
