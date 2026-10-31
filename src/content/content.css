@@ -739,3 +739,29 @@ html.marklens .markdown-body .katex-error { color: #d1242f; }
 /* 匯出的 HTML：沒有工具列與目錄，文章置中 */
 html.marklens.ml-export .ml-main { margin: 0; }
 html.marklens.ml-export .ml-body { padding-top: 32px; }
+
+/* 檔案分頁的右鍵選單 */
+html.marklens .ml-files-menu {
+  position: fixed;
+  z-index: 60;
+  min-width: 160px;
+  padding: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  font: 13px/1.4 var(--ml-font);
+}
+html.marklens .ml-files-menu-item {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: var(--fg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+html.marklens .ml-files-menu-item:hover, html.marklens .ml-files-menu-item:focus { background: var(--hover); outline: none; }

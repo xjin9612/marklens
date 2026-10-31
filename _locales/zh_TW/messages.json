@@ -218,6 +218,9 @@
   "filesSearch": {
     "message": "搜尋檔名…"
   },
+  "filesSetRoot": {
+    "message": "以此資料夾為起點"
+  },
   "filesUp": {
     "message": "上一層：$1"
   },

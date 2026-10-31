@@ -80,7 +80,7 @@ const HANDLERS = {
 
   /**
    * 側邊欄「檔案」分頁：列出資料夾的 Markdown 與子資料夾（讀取 Chrome 對 file:// 資料夾產生的清單頁）
-   * root：樹的起點，只能是發出請求的頁面所在資料夾或它的上層；
+   * root：樹的起點（本機資料夾網址，預設為頁面所在資料夾）；只有 MarkLens 自己的程式能發出這個請求，文件內容無法觸發
    * path：從起點往下的資料夾名稱陣列，不接受 .. 等跳脫
    */
   async 'list-dir'(msg, sender) {
@@ -88,7 +88,7 @@ const HANDLERS = {
     if (!url.startsWith('file:')) return { status: 'unsupported' }
     const pageDir = url.slice(0, url.lastIndexOf('/') + 1)
     const root = msg.root ?? pageDir
-    if (typeof root !== 'string' || !root.startsWith('file:///') || !root.endsWith('/') || !pageDir.startsWith(root) || /\/\.\.?\//.test(root)) {
+    if (typeof root !== 'string' || !root.startsWith('file:///') || !root.endsWith('/') || /\/\.\.?\//.test(root)) {
       return { status: 'error', error: 'invalid root' }
     }
     const segs = Array.isArray(msg.path) ? msg.path : []

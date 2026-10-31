@@ -71,5 +71,6 @@ th, td { border: 1px solid var(--border); padding: 4px 12px; text-align: left; }
 th { background: var(--subtle); }
 .features li { margin: 2px 0; }
 footer { color: var(--muted); font-size: 13px; text-align: center; margin: 24px 0; }
-.icon-link { display: inline-flex; align-items: center; gap: 4px; }
-.icon-link .gh { flex: none; }
+footer { display: flex; justify-content: center; align-items: center; gap: 6px; }
+.gh-link { display: inline-flex; color: var(--fg); }
+.gh-link:hover { color: var(--accent); }

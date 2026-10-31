@@ -218,6 +218,9 @@
   "filesSearch": {
     "message": "Search file names…"
   },
+  "filesSetRoot": {
+    "message": "Make this the top folder"
+  },
   "filesUp": {
     "message": "Up to “$1”"
   },
