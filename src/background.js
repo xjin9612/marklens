@@ -7,7 +7,8 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
   if (reason === 'install') chrome.tabs.create({ url: chrome.runtime.getURL('src/welcome/welcome.html') })
 })
 
-chrome.commands.onCommand.addListener(async (command, tab) => {
+/** 瀏覽器快捷鍵（manifest 的 commands）；具名函式方便測試直接呼叫 */
+async function onCommand(command, tab) {
   if (command === 'cycle-theme') {
     // 主題是全域設定，所有分頁同步
     const s = await MarkLens.loadSettings()
@@ -15,8 +16,9 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
     return
   }
   // 其餘指令只作用於目前分頁
-  if (tab?.id != null) chrome.tabs.sendMessage(tab.id, { type: 'command', name: command }).catch(() => {})
-})
+  if (tab?.id != null) await chrome.tabs.sendMessage(tab.id, { type: 'command', name: command }).catch(() => {})
+}
+chrome.commands.onCommand.addListener(onCommand)
 
 chrome.runtime.onMessage.addListener((msg, sender, reply) => {
   if (sender.id !== chrome.runtime.id) return
@@ -31,9 +33,9 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
 const lastRead = new Map()
 const LAST_READ_LIMIT = 20
 
-function rememberRead(url, bytes) {
-  lastRead.delete(url)
-  lastRead.set(url, bytes)
+function rememberRead(key, bytes) {
+  lastRead.delete(key)
+  lastRead.set(key, bytes)
   if (lastRead.size > LAST_READ_LIMIT) lastRead.delete(lastRead.keys().next().value)
 }
 
@@ -51,6 +53,8 @@ const HANDLERS = {
   async 'read-self'(msg, sender) {
     const url = (sender.url || '').split('#')[0]
     if (!url.startsWith('file:')) return { text: null }
+    // 快取以分頁區分：同一個檔案開在兩個分頁時，各自都要拿到變更
+    const cacheKey = `${sender.tab?.id}:${sender.frameId}:${url}`
     let bytes
     try {
       bytes = new Uint8Array(await (await fetch(url, { cache: 'no-store' })).arrayBuffer())
@@ -58,8 +62,8 @@ const HANDLERS = {
       return { text: null }
     }
     // 自動更新：內容與上次相同就不回傳，省下大檔的傳輸與頁面端比對
-    const same = sameBytes(lastRead.get(url), bytes)
-    rememberRead(url, bytes)
+    const same = sameBytes(lastRead.get(cacheKey), bytes)
+    rememberRead(cacheKey, bytes)
     if (msg.ifChanged && same) return { unchanged: true }
     try {
       return { text: new TextDecoder('utf-8', { fatal: true }).decode(bytes) }
@@ -80,7 +84,9 @@ const HANDLERS = {
 
   /**
    * 側邊欄「檔案」分頁：列出資料夾的 Markdown 與子資料夾（讀取 Chrome 對 file:// 資料夾產生的清單頁）
-   * root：樹的起點（本機資料夾網址，預設為頁面所在資料夾）；只有 MarkLens 自己的程式能發出這個請求，文件內容無法觸發
+   * root：樹的起點（本機資料夾網址，預設為頁面所在資料夾），由檔案分頁保存在分頁的 sessionStorage。
+   *   同一分頁中的其他 file:// 頁面理論上能改寫它，所以這裡只接受本機路徑：不接受網路位置（UNC，
+   *   file://主機/… 或 file:////主機/…），避免被誘導去連線其他電腦
    * path：從起點往下的資料夾名稱陣列，不接受 .. 等跳脫
    */
   async 'list-dir'(msg, sender) {
@@ -88,7 +94,7 @@ const HANDLERS = {
     if (!url.startsWith('file:')) return { status: 'unsupported' }
     const pageDir = url.slice(0, url.lastIndexOf('/') + 1)
     const root = msg.root ?? pageDir
-    if (typeof root !== 'string' || !root.startsWith('file:///') || !root.endsWith('/') || /\/\.\.?\//.test(root)) {
+    if (!isLocalFolder(root)) {
       return { status: 'error', error: 'invalid root' }
     }
     const segs = Array.isArray(msg.path) ? msg.path : []
@@ -154,6 +160,26 @@ const HANDLERS = {
   },
 }
 
+/** 本機資料夾網址：file:///X/…/，沒有主機名稱、不是 //主機 開頭的網路路徑、不含 . 或 .. 段落 */
+function isLocalFolder(root) {
+  if (typeof root !== 'string' || !root.startsWith('file:///') || !root.endsWith('/')) return false
+  let u
+  try {
+    u = new URL(root)
+  } catch {
+    return false
+  }
+  if (u.host !== '' || u.pathname.startsWith('//')) return false
+  // URL 會把 . 與 .. 正規化掉，所以檢查原始字串（含 %2e 這類編碼寫法）
+  let path
+  try {
+    path = decodeURIComponent(root.slice('file://'.length))
+  } catch {
+    return false
+  }
+  return !path.split('/').some(s => s === '.' || s === '..') && !path.includes('\\')
+}
+
 const MD_FILE_RE = /\.(md|markdown|mkd|mdx)$/i
 
 /** 「檔案列表略過」設定：逗號或換行分隔，* 為萬用字元，不分大小寫（.* 代表以 . 開頭的名稱） */
@@ -188,12 +214,38 @@ async function toggleTask(msg, sender) {
   const url = (sender.url || '').split('#')[0]
   if (!url.startsWith('file:')) return { status: 'unsupported' }
 
-  const found = await MarkLens.Roots.locate(url)
-  if (!found) return { status: 'no-root' }
-  const perm = await found.root.handle.queryPermission({ mode: 'readwrite' })
-  if (perm !== 'granted') return { status: 'permission', root: found.root.handle.name }
+  const candidates = await MarkLens.Roots.locate(url)
+  if (!candidates.length) return { status: 'no-root' }
+  const granted = []
+  for (const c of candidates) {
+    if ((await c.root.handle.queryPermission({ mode: 'readwrite' })) !== 'granted') continue
+    // 巢狀的授權資料夾（例如 D:\A 與 D:\A\sub）會找到同一個實體檔案，只留一個
+    let dup = false
+    for (const g of granted) if (await g.file.isSameEntry(c.file)) dup = true
+    if (!dup) granted.push(c)
+  }
+  if (!granted.length) return { status: 'permission', root: candidates[0].root.handle.name }
 
-  const bytes = new Uint8Array(await (await found.file.getFile()).arrayBuffer())
+  // 同名的授權資料夾可能不只一個：與頁面實際所在的檔案內容一致的才是同一個檔案
+  const read = async c => new Uint8Array(await (await c.file.getFile()).arrayBuffer())
+  let found = granted[0]
+  let bytes = await read(found)
+  if (granted.length > 1) {
+    let pageBytes
+    try {
+      pageBytes = new Uint8Array(await (await fetch(url, { cache: 'no-store' })).arrayBuffer())
+    } catch {
+      return { status: 'ambiguous' }
+    }
+    const same = []
+    for (const c of granted) {
+      const b = await read(c)
+      if (sameBytes(b, pageBytes)) same.push([c, b])
+    }
+    // 找不到或有兩份內容完全相同的副本：無法確定是哪一個檔案，不寫入
+    if (same.length !== 1) return { status: 'ambiguous' }
+    ;[found, bytes] = same[0]
+  }
   const hasBom = bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf
   let text
   try {

@@ -109,7 +109,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       }
       if (body == null) body = md.utils.escapeHtml(code)
       const cls = lang ? ` language-${md.utils.escapeHtml(lang.replace(/[^\w+#.-]/g, ''))}` : ''
-      return `<pre class="ml-pre"><code class="hljs${cls}">${body}</code></pre>`
+      return `<pre><code class="hljs${cls}">${body}</code></pre>`
     }
   }
 

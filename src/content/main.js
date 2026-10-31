@@ -402,10 +402,6 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
 
     /* ---------- 任務勾選寫回 ---------- */
-    canWriteTasks() {
-      return !this.taskReadonlyReason()
-    }
-
     /** 無法寫回的原因（訊息 key）；可以寫回時回傳 null */
     taskReadonlyReason() {
       if (location.protocol !== 'file:') return 'taskReadonlyRemote'
@@ -490,6 +486,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         case 'not-utf8':
           MarkLens.toast(t('taskNotUtf8'))
           break
+        case 'ambiguous':
+          MarkLens.toast(t('taskAmbiguous'), [{ label: t('authorizeFolder'), fn: openGrant }], 8000)
+          break
         default:
           MarkLens.toast(t('taskError', res?.error || t('unknownError')))
       }
@@ -529,15 +528,23 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
   }
 
+  /** 不接管這一頁：取消 content.css 載入期間對原始文字的隱藏 */
+  function reveal() {
+    document.documentElement.classList.add('ml-off')
+  }
+
   async function boot() {
     const pre = sourcePre()
-    if (!pre) return
+    if (!pre) return reveal()
     const settings = await MarkLens.loadSettings()
     if (!settings.enabled) {
+      reveal()
       // 停用時仍監聽設定，重新啟用後重新整理頁面
       chrome.storage.onChanged.addListener(c => {
         if (c[MarkLens.SETTINGS_KEY]?.newValue?.enabled) location.reload()
       })
+      // 讀取設定到掛上監聽之間若剛好被重新啟用，會漏掉通知：再確認一次
+      if ((await MarkLens.loadSettings()).enabled) location.reload()
       return
     }
     let raw = pre.textContent
@@ -556,5 +563,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     MarkLens.app.mount()
   }
 
-  boot().catch(err => console.error('[MarkLens]', err))
+  boot().catch(err => {
+    reveal()
+    console.error('[MarkLens]', err)
+  })
 })()

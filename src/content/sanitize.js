@@ -125,8 +125,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
    */
   MarkLens.sanitize = function (html, nonce) {
     const taskClass = nonce ? new RegExp(`^ml-(?:task|line)-${nonce}-\\d+$`) : null
-    // 渲染器自己產生的 ml- class：程式碼區塊、任務清單與標題的行號
-    const allowClass = c => c === 'ml-pre' || (taskClass != null && taskClass.test(c))
+    // 渲染器自己產生的 ml- class：任務清單與標題的行號（帶本次渲染的 nonce）
+    const allowClass = c => taskClass != null && taskClass.test(c)
     const tpl = document.createElement('template')
     tpl.innerHTML = html
     walk(tpl.content, allowClass)

@@ -17,9 +17,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
   }
 
-  /** 是否為合法的本機資料夾網址 */
+  /** 保存的起點是否像本機資料夾網址（實際檢查由背景程式負責） */
   function isFolder(root) {
-    return typeof root === 'string' && root.startsWith('file:///') && root.endsWith('/') && !/\/\.\.?\//.test(root)
+    return typeof root === 'string' && root.startsWith('file:///') && root.endsWith('/')
   }
 
   MarkLens.FileTree = class {
@@ -38,6 +38,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.expandToPage()
       this.onChange = onChange
       this.nodes = new Map() // 相對路徑 → { status: 'loading'|'ok'|'error', dirs, files }
+      this.gen = 0 // 每次 init() 加一，用來丟棄起點變更前發出的讀取
       this.query = ''
 
       this.upBtn = h('button', { class: 'ml-files-up', text: '↑', on: { click: () => this.goUp() } })
@@ -53,8 +54,11 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
     /** 目前檔案在起點底下時，自動展開到它所在的資料夾 */
     expandToPage() {
-      if (!this.pageDir.startsWith(this.root)) return
-      const rel = decodeName(this.pageDir.slice(this.root.length)).split('/').filter(Boolean)
+      // 比較解碼後的路徑：頁面網址與自行組出的起點網址，對 + & , 等字元的編碼方式可能不同
+      const page = decodeName(this.pageDir)
+      const root = decodeName(this.root)
+      if (!page.startsWith(root)) return
+      const rel = page.slice(root.length).split('/').filter(Boolean)
       for (let i = 1; i <= rel.length; i++) this.open.add(key(rel.slice(0, i)))
     }
 
@@ -63,9 +67,10 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
 
     get parent() {
+      // 不超過磁碟根目錄：Windows 的 file:///D:/，其他系統的 file:///
+      if (/^file:\/\/\/(?:[A-Za-z]:\/)?$/.test(this.root)) return null
       const p = this.root.replace(/[^/]+\/$/, '')
-      // 不超過磁碟根目錄（file:///D:/ 或 file:///）
-      return p.length >= 'file:///'.length && p !== this.root ? p : null
+      return p !== this.root ? p : null
     }
 
     save() {
@@ -74,19 +79,23 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
     /** 讀取起點，並依序還原展開的子資料夾 */
     async init() {
+      // 起點換了之後，舊的讀取結果全部作廢
+      const gen = ++this.gen
       this.nodes.clear()
-      await this.load([])
+      await this.load([], gen)
+      if (gen !== this.gen) return
       // 由淺到深讀取，父資料夾讀到後才知道子資料夾還在不在
       for (const p of [...this.open].sort((a, b) => a.split('/').length - b.split('/').length)) {
         const segs = p.split('/')
         const parent = this.nodes.get(key(segs.slice(0, -1)))
-        if (parent?.status === 'ok' && parent.dirs.includes(segs.at(-1))) await this.load(segs)
+        if (parent?.status === 'ok' && parent.dirs.includes(segs.at(-1))) await this.load(segs, gen)
         else this.open.delete(p)
+        if (gen !== this.gen) return
       }
       this.render()
     }
 
-    async load(segs) {
+    async load(segs, gen = this.gen) {
       const k = key(segs)
       this.nodes.set(k, { status: 'loading', dirs: [], files: [] })
       this.render()
@@ -96,6 +105,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       } catch {
         res = null
       }
+      if (gen !== this.gen) return
       this.nodes.set(k, res?.status === 'ok' ? { status: 'ok', dirs: res.dirs, files: res.files } : { status: 'error', dirs: [], files: [] })
       this.render()
     }

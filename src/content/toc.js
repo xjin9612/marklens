@@ -233,12 +233,15 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         const up = () => {
           this.resizer.removeEventListener('pointermove', move)
           this.resizer.removeEventListener('pointerup', up)
+          this.resizer.removeEventListener('pointercancel', up)
           document.documentElement.classList.remove('ml-dragging')
           // 同時記成新分頁的預設值（不影響已開的分頁）
           if (MarkLens.alive()) MarkLens.saveSettings({ tocWidth: width }).catch(() => {})
         }
         this.resizer.addEventListener('pointermove', move)
         this.resizer.addEventListener('pointerup', up)
+        // 拖拉被系統中斷（例如切換視窗）時一樣要收尾，否則會一直停在拖拉狀態
+        this.resizer.addEventListener('pointercancel', up)
       })
     }
   }

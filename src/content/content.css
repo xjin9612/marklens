@@ -1,4 +1,23 @@
-/* MarkLens 閱讀器樣式：所有規則都限定在 html.marklens 底下，未接管的頁面不受影響 */
+/*
+ * MarkLens 閱讀器樣式：只套用在 .md 網址（manifest 的 content_scripts）。
+ * 閱讀器本身的規則都限定在 html.marklens 底下；唯一的例外是下方「載入中」的規則，
+ * 只在 MarkLens 接手前暫時隱藏原始文字，決定不接手時（html.ml-off）立即恢復。
+ */
+
+/*
+ * 載入中：Chrome 會先把 .md 當純文字顯示，MarkLens 的程式稍後才接手排版，切換檔案時會閃出一幀未排版的原文。
+ * 樣式表比程式早套用，所以先在這裡藏住原文；接手後（html.marklens）或決定不接手時（html.ml-off）恢復。
+ * 萬一程式出錯沒有接手，1.5 秒後照常顯示原文，不會一直空白。
+ */
+html:not(.marklens):not(.ml-off) > body > pre {
+  visibility: hidden;
+  animation: ml-reveal 0s 1.5s forwards;
+}
+@keyframes ml-reveal { to { visibility: visible; } }
+/* 等待期間的背景跟隨系統深淺色，深色主題切換檔案時不會閃白 */
+@media (prefers-color-scheme: dark) {
+  html:not(.marklens):not(.ml-off) { background: #0d1117; }
+}
 
 /* ---------- 主題變數 ---------- */
 html.marklens {
@@ -214,7 +233,6 @@ html.marklens .ml-side-search {
   background: var(--bg);
   color: var(--muted);
 }
-html.marklens .ml-side-search[hidden] { display: none; }
 html.marklens .ml-toc-search {
   flex: 1;
   min-width: 0;
@@ -257,7 +275,6 @@ html.marklens .ml-files-up {
 html.marklens .ml-files-up:hover:not(:disabled) { background: var(--hover); color: var(--fg); }
 html.marklens .ml-files-up:disabled { opacity: .35; cursor: default; }
 html.marklens .ml-files-summary { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-html.marklens .ml-files[hidden], html.marklens .ml-toc-nav[hidden] { display: none; }
 html.marklens .ml-files-list { list-style: none; margin: 0; padding: 0; }
 html.marklens .ml-files-list li { --indent: calc(var(--depth, 0) * 14px + 8px); }
 html.marklens .ml-files-dir,
