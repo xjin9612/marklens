@@ -33,6 +33,7 @@
 | 語法 | CommonMark + GFM、任務清單、腳註、`==螢光==`、Emoji 短碼（`:tada:`）、GitHub Alert（`> [!NOTE]` 等）、front matter 可收合顯示 |
 | 程式碼 | highlight.js 語法高亮（常用語言）、語言標籤、複製、單一區塊換行切換 |
 | 圖表 | 本機檔案的 [Mermaid](https://mermaid.js.org/) 流程圖、循序圖等。程式庫約 5MB，只在文件有 mermaid 區塊時才載入；圖表跟隨主題、自動更新時不閃爍，可切回原始碼；語法錯誤會顯示訊息與原始碼。`http(s)://` 頁面不繪製（見安全設計） |
+| 數學公式 | 本機檔案的 `$…$`、`$$…$$`、`` $`…`$ `` 與 ` ```math ` 區塊以 [KaTeX](https://katex.org/) 繪製，只在有公式時才載入。`$5 與 $10` 這類金額維持原文。與 Pandoc、GitHub 相同，`$HOME/$USER` 會被當成公式，請放進反引號或寫成 `\$` |
 | 圖片 | 延遲載入、點擊放大（Esc 關閉） |
 | 主題 | 跟隨系統／淺色／深色，可從工具列、`d` 鍵或 popup 切換，所有分頁同步 |
 | 勾選寫回 | 本機檔案的任務清單直接點勾選框，`[ ]`／`[x]` 立即存回原檔，不必開編輯器。支援巢狀、有序清單與引用區塊；程式碼區塊內的不會被改到。提示列可復原；檔案已被其他地方修改時拒絕寫入；保留 CRLF 與 BOM。需先授權資料夾一次（見下方） |
@@ -78,6 +79,7 @@
 ## 安全設計
 
 - **HTML 白名單過濾**（`src/content/sanitize.js`）：允許 `<details>`、`<kbd>`、表格等常用標籤；移除 `<script>`、`<iframe>`、`<svg>`、所有事件屬性、`style`（表格對齊除外），以及 `javascript:`、`data:`（圖片除外）等連結。
+- **數學公式**：KaTeX 以 `trust: false` 繪製（停用 `\href`、`\url`、`\includegraphics` 與 `\html…` 指令），並限制巨集展開次數；與 Mermaid 相同，程式庫只對 `file://` 頁面開放。
 - **不能借用介面**：文件中的 HTML 不能使用 MarkLens 自己的 `ml-` class／id（無法在頁面上蓋出假遮罩或假提示），`name` 屬性只保留給 `<a>`，防止 DOM clobbering。
 - **攻擊樣本測試**：`test/fixtures/security.md` 收錄 60 多種攻擊寫法，測試會渲染後逐一點擊所有連結與圖表節點，任何程式碼執行即失敗。
 - **最小權限**：只要求 `storage`；content script 只匹配 Markdown 副檔名的網址，不要求「讀取所有網站」。
@@ -105,6 +107,7 @@ src/
     markdown.js          markdown-it 設定、==mark==、Alert、front matter
     enhance.js           標題錨點與摺疊、行內內容歸組、任務清單、程式碼區塊、圖片、字數
     mermaid.js           Mermaid 圖表（依需載入）
+    math.js              KaTeX 數學公式（依需載入）
     table.js             表格拖拉欄寬、排序、篩選、複製、全螢幕、狀態保存與還原
     toc.js               側邊目錄
     main.js              進入點：版面組裝、工具列、快捷鍵、分頁狀態、自動更新、勾選寫回
@@ -165,6 +168,8 @@ npm test
 - 分頁：目錄與寬度只影響目前分頁、外觀設定即時同步、新分頁套用預設值
 - 勾選寫回：寫入正確的行（含 front matter）、引用區塊與有序清單、復原、衝突偵測、保留 CRLF 與 BOM、未授權、關閉功能。資料夾授權以瀏覽器私有檔案系統（OPFS）模擬，資料夾選擇視窗需手動測試
 - Mermaid（`test/fixtures/mermaid.md`）：沒有圖表時不載入、繪製、語法錯誤、標籤注入、切換原始碼、主題切換重繪、自動更新不閃爍、http 不繪製、關閉設定
+- 數學公式（`test/fixtures/math.md`）：行內、獨立、` ```math `、表格內，金額與跳脫不轉換、語法錯誤、自動更新、http 不繪製
+- 介面語言：兩份語系檔鍵值一致、英文介面冒煙測試
 - popup 設定寫入
 
 截圖輸出到 `SHOT_DIR` 環境變數指定的目錄（預設為系統暫存目錄）。

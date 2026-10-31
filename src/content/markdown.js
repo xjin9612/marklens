@@ -142,6 +142,116 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     })
   }
 
+  /* ---------- 數學公式：$…$、$$…$$、$`…`$、```math ---------- */
+  // 只負責標出公式並保留 TeX 原文（輸出為 .math-inline／.math-display），實際繪製在 math.js 依需載入 KaTeX。
+  // 為避免把金額當成公式：開頭 $ 後不可為空白，結尾 $ 前不可為空白、後不可接數字（與 GitHub、Pandoc 相同）
+  function mathPlugin(md) {
+    const DOLLAR = 0x24
+
+    function mathInline(state, silent) {
+      const src = state.src
+      const start = state.pos
+      if (src.charCodeAt(start) !== DOLLAR) return false
+
+      // GitHub 的 $`…`$ 寫法
+      if (src[start + 1] === '`') {
+        const end = src.indexOf('`$', start + 2)
+        if (end < 0) return false
+        if (!silent) push(state, 'math_inline', src.slice(start + 2, end))
+        state.pos = end + 2
+        return true
+      }
+
+      // 行內的 $$…$$ 視為獨立公式
+      const display = src.charCodeAt(start + 1) === DOLLAR
+      const open = display ? 2 : 1
+      const first = src[start + open]
+      if (first === undefined || /\s/.test(first)) return false
+      if (!display && start > 0 && src.charCodeAt(start - 1) === DOLLAR) return false
+
+      // 開頭之後第一個未跳脫的 $ 必須能當結尾，否則整段不是公式：
+      // 「價格 $5 與 $10」不會一路吃到後面句子的 $
+      let pos = start + open
+      for (;;) {
+        pos = src.indexOf(display ? '$$' : '$', pos)
+        if (pos < 0) return false
+        let bs = 0
+        for (let i = pos - 1; src[i] === '\\'; i--) bs++
+        if (bs % 2 === 0) break // 未跳脫
+        pos += 1
+      }
+      const prev = src[pos - 1]
+      const next = src[pos + open]
+      if (/\s/.test(prev) || (next >= '0' && next <= '9')) return false
+      const tex = src.slice(start + open, pos)
+      // 公式不會含反引號；含反引號代表跨進了程式碼，例如 $10 … `$x$`
+      if (!tex.trim() || tex.includes('`')) return false
+      if (!silent) push(state, display ? 'math_display' : 'math_inline', tex)
+      state.pos = pos + open
+      return true
+    }
+
+    function push(state, type, tex) {
+      const token = state.push(type, 'math', 0)
+      token.content = tex
+      token.markup = '$'
+    }
+
+    // 獨立成段的 $$ … $$（可跨多行）
+    function mathBlock(state, startLine, endLine, silent) {
+      let pos = state.bMarks[startLine] + state.tShift[startLine]
+      let max = state.eMarks[startLine]
+      if (state.sCount[startLine] - state.blkIndent >= 4) return false
+      if (state.src.slice(pos, pos + 2) !== '$$') return false
+      let first = state.src.slice(pos + 2, max)
+      let line = startLine
+      let body
+      if (first.trim().endsWith('$$') && first.trim().length > 2) {
+        body = first.trim().slice(0, -2)
+      } else {
+        const lines = [first]
+        let found = false
+        while (++line < endLine) {
+          pos = state.bMarks[line] + state.tShift[line]
+          max = state.eMarks[line]
+          if (pos < max && state.sCount[line] < state.blkIndent) break
+          const text = state.src.slice(pos, max)
+          if (text.trim().endsWith('$$')) {
+            lines.push(text.trim().slice(0, -2))
+            found = true
+            break
+          }
+          lines.push(state.src.slice(state.bMarks[line], max))
+        }
+        if (!found) return false
+        body = lines.join('\n')
+      }
+      if (silent) return true
+      const token = state.push('math_block', 'math', 0)
+      token.block = true
+      token.content = body.trim()
+      token.markup = '$$'
+      token.map = [startLine, line + 1]
+      state.line = line + 1
+      return true
+    }
+
+    md.inline.ruler.after('escape', 'math_inline', mathInline)
+    md.block.ruler.before('fence', 'math_block', mathBlock, { alt: ['paragraph', 'reference', 'blockquote', 'list'] })
+
+    const esc = md.utils.escapeHtml
+    md.renderer.rules.math_inline = (tokens, i) => `<span class="math-inline">${esc(tokens[i].content)}</span>`
+    md.renderer.rules.math_display = (tokens, i) => `<span class="math-display">${esc(tokens[i].content)}</span>`
+    md.renderer.rules.math_block = (tokens, i) => `<div class="math-display">${esc(tokens[i].content)}</div>\n`
+    // ```math 區塊
+    const fence = md.renderer.rules.fence
+    md.renderer.rules.fence = (tokens, i, options, env, self) => {
+      const t = tokens[i]
+      if (t.info.trim().toLowerCase() === 'math') return `<div class="math-display">${esc(t.content.trim())}</div>\n`
+      return fence(tokens, i, options, env, self)
+    }
+  }
+
   /* ---------- 任務清單行號（供勾選寫回） ---------- */
   // 在清單項目上標記「原文第幾行」：class 帶入每次建立時隨機產生的 nonce，
   // 文件作者寫的 HTML 無法猜到 nonce，因此無法偽造可寫回的勾選框
@@ -175,6 +285,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     md.use(markPlugin)
     md.use(alertPlugin)
     md.use(gfmAutolinkPlugin)
+    md.use(mathPlugin)
     md.marklensNonce = Array.from(crypto.getRandomValues(new Uint8Array(8)), b => b.toString(16).padStart(2, '0')).join('')
     md.use(taskLinePlugin, md.marklensNonce)
     return md
