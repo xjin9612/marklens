@@ -1,5 +1,8 @@
 # MarkLens
 
+[![Tests](https://github.com/xjin9612/marklens/actions/workflows/ci.yml/badge.svg)](https://github.com/xjin9612/marklens/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/xjin9612/marklens)](https://github.com/xjin9612/marklens/releases/latest)
+
 English | [繁體中文](./README.zh-TW.md)
 
 A lightweight, auditable Markdown reader for Chrome and Edge. Open any `.md` file — local or online — and read it with a sidebar outline, foldable sections, and tables you can actually work with: resize columns, sort, filter, and copy to a spreadsheet.
@@ -8,10 +11,12 @@ Inspired by [md-reader 2.x](https://github.com/md-reader/md-reader) (MIT); rewri
 
 ## Install
 
-1. Open `chrome://extensions` (Edge: `edge://extensions`) and turn on **Developer mode**.
-2. Click **Load unpacked** and select this folder (the one containing `manifest.json`).
-3. For local files: open the extension's **Details** and enable **Allow access to file URLs**.
-4. After editing the source, click the reload icon on the extensions page.
+1. Download `marklens-vX.Y.Z.zip` from the [latest release](https://github.com/xjin9612/marklens/releases/latest) and unzip it (or clone this repository).
+2. Open `chrome://extensions` (Edge: `edge://extensions`) and turn on **Developer mode**.
+3. Click **Load unpacked** and select the unzipped `marklens-vX.Y.Z` folder (the one containing `manifest.json`).
+4. For local files: open the extension's **Details** and enable **Allow access to file URLs**.
+
+To upgrade, replace the folder with the new release and click the reload icon on the extensions page. See [CHANGELOG.md](./CHANGELOG.md) for what changed.
 
 ## Features
 
@@ -95,6 +100,9 @@ src/
   popup/                 settings popup
 vendor/                  third-party libraries (versions in VERSIONS.md, licenses in licenses/)
 scripts/vendor.mjs       script for upgrading vendor/
+scripts/release.mjs      release helper: version check, release notes, packaging
+.github/workflows/       CI tests and automated releases
+CHANGELOG.md             release notes (the source for GitHub releases)
 test/                    end-to-end tests and fixtures
 package.json             dev tooling only (tests, vendor updates); the extension itself needs no build
 ```
@@ -145,6 +153,15 @@ The suite loads the extension into Chromium and opens local and http fixtures (`
 - Popup settings
 
 Screenshots go to the directory in the `SHOT_DIR` environment variable (system temp by default).
+
+## Releasing
+
+1. Add a `## [X.Y.Z] - YYYY-MM-DD` section at the top of `CHANGELOG.md` (move items from *Unreleased*).
+2. Set the same version in `manifest.json` (`version` and `version_name`) and `package.json`.
+3. Check locally: `node scripts/release.mjs check vX.Y.Z`
+4. Commit, then `git tag vX.Y.Z` and `git push origin main --tags`.
+
+The **Release** workflow verifies that the tag, `manifest.json`, `package.json` and `CHANGELOG.md` agree, runs the tests, packages `marklens-vX.Y.Z.zip` (extension files only) and publishes a GitHub release using that CHANGELOG section as the notes. Every push and pull request runs the tests through the **Tests** workflow.
 
 ## Roadmap
 

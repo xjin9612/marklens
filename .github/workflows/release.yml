@@ -1,0 +1,50 @@
+# 發版：推送 vX.Y.Z 標籤時，檢查版本 → 跑測試 → 打包 → 以 CHANGELOG 段落為說明發布 Release
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: read
+
+jobs:
+  # 先做便宜的檢查：標籤、manifest.json、package.json、CHANGELOG.md 版本一致
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: node scripts/release.mjs check "$GITHUB_REF_NAME"
+
+  test:
+    needs: check
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # 建立 Release 與上傳 zip
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: 取出 Release 說明
+        run: node scripts/release.mjs notes "$GITHUB_REF_NAME" "$RUNNER_TEMP/notes.md"
+
+      - name: 打包擴充功能
+        run: node scripts/release.mjs pack "$GITHUB_REF_NAME" dist
+
+      - name: 發布 Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "dist/marklens-${GITHUB_REF_NAME}.zip" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file "$RUNNER_TEMP/notes.md" \
+            --verify-tag

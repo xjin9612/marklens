@@ -1,15 +1,20 @@
 # MarkLens
 
+[![Tests](https://github.com/xjin9612/marklens/actions/workflows/ci.yml/badge.svg)](https://github.com/xjin9612/marklens/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/xjin9612/marklens)](https://github.com/xjin9612/marklens/releases/latest)
+
 [English](./README.md) | 繁體中文
 
 在 Chrome / Edge 直接閱讀 `.md` 檔案的擴充功能。功能參考 [md-reader 2.x](https://github.com/md-reader/md-reader)（MIT），程式碼全部重新撰寫，目標是**可稽核、無遠端依賴、無建置流程**。
 
 ## 安裝
 
-1. 開啟 `chrome://extensions`（Edge：`edge://extensions`），打開右上角「開發人員模式」。
-2. 點「載入未封裝項目」，選擇本目錄（含 `manifest.json` 的資料夾）。
-3. 要看本機檔案：在擴充功能「詳細資料」開啟 **「允許存取檔案網址」**。
-4. 修改程式碼後，在擴充功能頁按重新載入圖示即可生效。
+1. 從[最新 Release](https://github.com/xjin9612/marklens/releases/latest) 下載 `marklens-vX.Y.Z.zip` 並解壓縮（或直接 clone 本 repo）。
+2. 開啟 `chrome://extensions`（Edge：`edge://extensions`），打開右上角「開發人員模式」。
+3. 點「載入未封裝項目」，選擇解壓縮後的 `marklens-vX.Y.Z` 資料夾（含 `manifest.json` 的資料夾）。
+4. 要看本機檔案：在擴充功能「詳細資料」開啟 **「允許存取檔案網址」**。
+
+升級時以新版資料夾取代舊的，再到擴充功能頁按重新載入圖示。各版變更見 [CHANGELOG.md](./CHANGELOG.md)。
 
 ## 功能
 
@@ -93,6 +98,9 @@ src/
   popup/                 設定面板
 vendor/                  第三方程式庫（版本見 VERSIONS.md，授權見 licenses/）
 scripts/vendor.mjs       升級 vendor 用的腳本
+scripts/release.mjs      發版輔助：版本檢查、取出 Release 說明、打包
+.github/workflows/       自動測試與自動發布
+CHANGELOG.md             版本紀錄（GitHub Release 說明的來源）
 test/                    端對端測試與測試文件
 package.json             僅供開發工具使用（測試、更新 vendor），擴充功能本身不需建置
 ```
@@ -143,6 +151,15 @@ npm test
 - popup 設定寫入
 
 截圖輸出到 `SHOT_DIR` 環境變數指定的目錄（預設為系統暫存目錄）。
+
+## 發版流程
+
+1. 在 `CHANGELOG.md` 最上方新增 `## [X.Y.Z] - YYYY-MM-DD` 段落（把 *Unreleased* 的項目移進來）。
+2. 將 `manifest.json`（`version` 與 `version_name`）和 `package.json` 改成相同版本。
+3. 本機檢查：`node scripts/release.mjs check vX.Y.Z`
+4. commit 後執行 `git tag vX.Y.Z`、`git push origin main --tags`。
+
+**Release** workflow 會確認標籤、`manifest.json`、`package.json`、`CHANGELOG.md` 版本一致，跑測試，打包只含擴充功能檔案的 `marklens-vX.Y.Z.zip`，並以該版 CHANGELOG 段落為說明發布 GitHub Release。每次 push 與 pull request 都會由 **Tests** workflow 自動跑測試。
 
 ## 開發計畫
 
