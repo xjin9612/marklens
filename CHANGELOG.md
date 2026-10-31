@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - GitHub Actions: end-to-end tests on every push and pull request; tagging `vX.Y.Z` runs the tests, packages the extension and publishes a release with notes taken from this file
 
 ### Changed
+- New icon: a bold "M" inside focus brackets, designed to stay legible at 16 px; the SVG source is kept in `icons/icon.svg`
 - Large documents: "Fold all" is 10–20× faster (1 MB: 2.3 s → 0.2 s; 3 MB: 24 s → 1.1 s). Documents with more than ~3,000 top-level blocks (roughly 400 KB) now hide folded sections with plain CSS, so Ctrl+F no longer finds text inside folded sections there — unfold first. Smaller documents keep Ctrl+F reveal
 - Live reload no longer transfers the whole file every second when nothing changed (idle CPU on a 3 MB file: ~190 ms/s → ~1 ms/s)
 - Outline highlighting uses a binary search instead of measuring every heading on scroll
