@@ -24,6 +24,12 @@ const PACKAGES = [
     files: [['dist/markdown-it-footnote.min.js', 'markdown-it-footnote.min.js']],
   },
   {
+    // GitHub 的 emoji 短碼表（:tada: → 🎉）
+    name: 'markdown-it-emoji',
+    version: '3.1.0',
+    files: [['dist/markdown-it-emoji.min.js', 'markdown-it-emoji.min.js']],
+  },
+  {
     name: '@highlightjs/cdn-assets',
     version: '11.11.1',
     license: 'highlight.js',
