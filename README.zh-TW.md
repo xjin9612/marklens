@@ -16,7 +16,7 @@
 1. 從[最新 Release](https://github.com/xjin9612/marklens/releases/latest) 下載 `marklens-vX.Y.Z.zip` 並解壓縮（或直接 clone 本 repo）。
 2. 開啟 `chrome://extensions`（Edge：`edge://extensions`），打開右上角「開發人員模式」。
 3. 點「載入未封裝項目」，選擇解壓縮後的 `marklens-vX.Y.Z` 資料夾（含 `manifest.json` 的資料夾）。
-4. 要看本機檔案：在擴充功能「詳細資料」開啟 **「允許存取檔案網址」**。
+4. 要看本機檔案：在擴充功能「詳細資料」開啟 **「允許存取檔案網址」**。安裝後會自動開啟引導頁帶你完成這一步。
 
 升級時以新版資料夾取代舊的，再到擴充功能頁按重新載入圖示。各版變更見 [CHANGELOG.md](./CHANGELOG.md)。
 
@@ -93,6 +93,7 @@ src/
   background.js          快捷鍵、代讀本機檔案
   shared/settings.js     設定預設值與存取（三端共用）
   shared/roots.js        已授權資料夾（僅擴充功能內部使用）
+  welcome/               首次安裝引導頁
   grant/                 資料夾授權頁
   content/
     util.js              小工具、讀取原始內容
