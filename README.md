@@ -79,6 +79,8 @@ Browser-level (change them at `chrome://extensions/shortcuts`):
 ## Security
 
 - **Allow-list HTML sanitizer** (`src/content/sanitize.js`): keeps common tags such as `<details>`, `<kbd>` and tables; drops `<script>`, `<iframe>`, `<svg>`, every event-handler attribute, `style` (except table alignment), and `javascript:` / non-image `data:` URLs.
+- **No borrowing the interface**: HTML in a document cannot use MarkLens's own `ml-` class or id names (so it cannot draw a fake overlay or prompt over the page), and `name` is kept only on `<a>` to prevent DOM clobbering.
+- **Attack suite**: `test/fixtures/security.md` collects 60+ attack samples; the tests render it, click every link and diagram node, and fail if anything runs.
 - **Minimal permissions**: only `storage`. Content scripts match Markdown file extensions only — no "read all sites" permission.
 - **Local file reads** go through the background worker, which only reads the URL of the page that asked.
 - **Writes** happen only when you click a task checkbox: the background worker changes that single line after checking that the file still matches what the page shows. Which lines are writable is decided by the Markdown parser with a per-render random nonce, so HTML inside a document cannot fake a writable checkbox.
@@ -154,7 +156,7 @@ npm test
 The suite loads the extension into Chromium and opens local and http fixtures (`test/fixtures/sample.md`), covering:
 
 - Rendering: GFM, task lists (tight and loose), footnotes, alerts, front matter, code highlighting
-- Security: scripts, event handlers, `javascript:` links, style attributes
+- Security: scripts, event handlers, `javascript:` links, style attributes; plus the attack suite in `test/fixtures/security.md` (dangerous tags and URLs, encoding tricks, DOM clobbering, fake interface, file names, Mermaid)
 - Layout: text column width, wide tables beyond the text column, narrow-screen drawer outline
 - Tables: sorting (numbers / bytes / dates), column resize, filter, state kept across live reload
 - Folding: fold / unfold all, Ctrl+F reveal, outline markers

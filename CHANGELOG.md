@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+- File names such as `README.md` and bare domains such as `example.com` are no longer turned into links (`.md` is a country domain). Autolinks now follow GitHub: `http(s)://`, `www.` and email addresses only
+
+### Security
+- HTML in a document can no longer use MarkLens's own `ml-` class and id names, so it cannot fake a full-screen overlay, a toast or a toolbar on top of the page
+- The `name` attribute is kept only on `<a>`, so elements such as `<img name="querySelector">` cannot overwrite methods on `document` (DOM clobbering)
+- New end-to-end attack suite (`test/fixtures/security.md`, adapted in part from local-markdown-viewer, MIT): scripts, event handlers, `javascript:` / `vbscript:` / `data:` URLs with case, entity and whitespace tricks, iframes, objects, SVG, MathML, forms, `<meta>` / `<base>`, styles, headings, file names and Mermaid diagrams of several types. Every link, node and summary is clicked and nothing may run
+
 ## [1.2.0] - 2026-10-31
 
 ### Added

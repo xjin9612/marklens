@@ -178,7 +178,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       const { frontMatter, body } = MarkLens.splitFrontMatter(src)
       // 去掉 front matter 後的行號要加回偏移，才能對應原文
       const lineOffset = (src.slice(0, src.length - body.length).match(/\n/g) || []).length
-      const frag = MarkLens.sanitize(this.md.render(body, { lineOffset }))
+      const frag = MarkLens.sanitize(this.md.render(body, { lineOffset }), this.md.marklensNonce)
       this.article.textContent = ''
       if (frontMatter != null) {
         this.article.append(
