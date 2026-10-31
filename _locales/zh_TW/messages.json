@@ -1,0 +1,494 @@
+{
+  "extDescription": {
+    "message": "輕量、可稽核的 Markdown 閱讀器：目錄、摺疊、可拖拉排序的表格、Mermaid 圖表，並可直接勾選本機檔案的任務。"
+  },
+  "cmdToggleToc": {
+    "message": "顯示／收合側邊目錄（目前分頁）"
+  },
+  "cmdCycleTheme": {
+    "message": "切換主題（自動 → 淺色 → 深色，所有分頁）"
+  },
+  "cmdCycleWidth": {
+    "message": "切換文字寬度（目前分頁）"
+  },
+  "cmdToggleRaw": {
+    "message": "切換原始文字／渲染結果（目前分頁）"
+  },
+  "headingAnchor": {
+    "message": "連結到此標題"
+  },
+  "foldSection": {
+    "message": "摺疊／展開此段"
+  },
+  "copy": {
+    "message": "複製"
+  },
+  "copied": {
+    "message": "已複製"
+  },
+  "failed": {
+    "message": "失敗"
+  },
+  "wrap": {
+    "message": "換行"
+  },
+  "codeWrapTitle": {
+    "message": "切換此區塊自動換行"
+  },
+  "themeAuto": {
+    "message": "自動"
+  },
+  "themeLight": {
+    "message": "淺色"
+  },
+  "themeDark": {
+    "message": "深色"
+  },
+  "toolToc": {
+    "message": "☰ 目錄"
+  },
+  "toolTocTitle": {
+    "message": "顯示／收合目錄（t）"
+  },
+  "toolWidth": {
+    "message": "⇔ 寬度：$1"
+  },
+  "toolWidthTitle": {
+    "message": "切換文字寬度（w）"
+  },
+  "widthFull": {
+    "message": "滿版"
+  },
+  "toolTheme": {
+    "message": " 主題：$1"
+  },
+  "toolThemeTitle": {
+    "message": "切換主題：自動 → 淺色 → 深色，所有分頁同步（d）"
+  },
+  "toolRaw": {
+    "message": "</> 原始文字"
+  },
+  "toolRawTitle": {
+    "message": "切換原始文字（r）"
+  },
+  "toolBack": {
+    "message": "← 返回閱讀"
+  },
+  "toolTop": {
+    "message": "↑ 頂部"
+  },
+  "toolTopTitle": {
+    "message": "回到頂部"
+  },
+  "toolFoldAll": {
+    "message": "▸ 全部摺疊"
+  },
+  "toolFoldAllTitle": {
+    "message": "全部摺疊（[）"
+  },
+  "toolUnfoldAll": {
+    "message": "▾ 全部展開"
+  },
+  "toolUnfoldAllTitle": {
+    "message": "全部展開（]）"
+  },
+  "taskTitle": {
+    "message": "點擊勾選／取消，並存回原檔"
+  },
+  "taskChecked": {
+    "message": "已勾選並存檔"
+  },
+  "taskUnchecked": {
+    "message": "已取消勾選並存檔"
+  },
+  "undo": {
+    "message": "復原"
+  },
+  "taskNoRoot": {
+    "message": "此檔案所在的資料夾尚未授權寫回"
+  },
+  "authorizeFolder": {
+    "message": "授權資料夾"
+  },
+  "taskPermission": {
+    "message": "需要重新確認「$1」的存取權限"
+  },
+  "goConfirm": {
+    "message": "前往確認"
+  },
+  "taskConflict": {
+    "message": "檔案已在其他地方修改，已重新載入，請再點一次"
+  },
+  "taskNotUtf8": {
+    "message": "此檔案不是 UTF-8 編碼，無法寫回"
+  },
+  "taskError": {
+    "message": "寫回失敗：$1"
+  },
+  "unknownError": {
+    "message": "未知錯誤"
+  },
+  "orphanBefore": {
+    "message": "擴充功能已更新，"
+  },
+  "orphanReload": {
+    "message": "重新整理"
+  },
+  "orphanAfter": {
+    "message": "後套用"
+  },
+  "mermaidChart": {
+    "message": "圖表"
+  },
+  "mermaidSource": {
+    "message": "原始碼"
+  },
+  "mermaidError": {
+    "message": "Mermaid 語法錯誤"
+  },
+  "mermaidLocalOnly": {
+    "message": "Mermaid 圖表只在本機檔案繪製"
+  },
+  "mermaidPending": {
+    "message": "Mermaid 圖表繪製中…"
+  },
+  "mermaidToggleTitle": {
+    "message": "切換圖表／原始碼"
+  },
+  "tableFilter": {
+    "message": "篩選列…"
+  },
+  "tableCopyTitle": {
+    "message": "複製為 TSV（可直接貼到 Excel），套用目前排序與篩選"
+  },
+  "tableFullscreen": {
+    "message": "全螢幕"
+  },
+  "tableFullscreenTitle": {
+    "message": "全螢幕檢視（Esc 離開）"
+  },
+  "tableExitFullscreen": {
+    "message": "離開全螢幕"
+  },
+  "tableReset": {
+    "message": "重設"
+  },
+  "tableResetTitle": {
+    "message": "重設欄寬、排序與篩選"
+  },
+  "tableWrapTitle": {
+    "message": "切換儲存格換行"
+  },
+  "tableSortTitle": {
+    "message": "點擊排序（升冪 → 降冪 → 原順序）"
+  },
+  "tableResizeTitle": {
+    "message": "拖拉調整欄寬，雙擊自動適應"
+  },
+  "tocSearch": {
+    "message": "搜尋標題…"
+  },
+  "tocCloseTitle": {
+    "message": "收合目錄（t）"
+  },
+  "tocResizeTitle": {
+    "message": "拖拉調整寬度"
+  },
+  "tocLabel": {
+    "message": "目錄"
+  },
+  "tocStats": {
+    "message": "約 $1 字 · $2 分鐘"
+  },
+  "popupTitle": {
+    "message": "MarkLens 設定"
+  },
+  "popupEnable": {
+    "message": "啟用"
+  },
+  "popupEnableTitle": {
+    "message": "停用後頁面恢復為純文字"
+  },
+  "popupFileWarning": {
+    "message": "尚未允許存取本機檔案。請到擴充功能「詳細資料」開啟<b>「允許存取檔案網址」</b>。"
+  },
+  "openSettings": {
+    "message": "開啟設定頁"
+  },
+  "secAppearance": {
+    "message": "外觀"
+  },
+  "secAppearanceNote": {
+    "message": "即時套用到所有分頁"
+  },
+  "theme": {
+    "message": "主題"
+  },
+  "themeSystem": {
+    "message": "跟隨系統"
+  },
+  "fontSize": {
+    "message": "字體大小"
+  },
+  "lineHeight": {
+    "message": "行高"
+  },
+  "secLayout": {
+    "message": "版面預設值"
+  },
+  "secLayoutNote": {
+    "message": "新開或重新整理分頁後套用"
+  },
+  "textWidth": {
+    "message": "文字寬度"
+  },
+  "custom": {
+    "message": "自訂…"
+  },
+  "customWidth": {
+    "message": "自訂寬度 (px)"
+  },
+  "tableWidth": {
+    "message": "表格／程式碼寬度"
+  },
+  "tableWidthFull": {
+    "message": "可超出文字欄"
+  },
+  "tableWidthText": {
+    "message": "跟隨文字寬度"
+  },
+  "tocDepth": {
+    "message": "目錄層級"
+  },
+  "all": {
+    "message": "全部"
+  },
+  "optTocHidden": {
+    "message": "預設隱藏目錄"
+  },
+  "optTableWrap": {
+    "message": "表格儲存格換行"
+  },
+  "optCodeWrap": {
+    "message": "程式碼自動換行"
+  },
+  "optRememberScroll": {
+    "message": "記住閱讀位置"
+  },
+  "optLinkNewTab": {
+    "message": "外部連結在新分頁開啟"
+  },
+  "optMermaid": {
+    "message": "繪製 Mermaid 圖表"
+  },
+  "optMath": {
+    "message": "顯示數學公式（$$…$$）"
+  },
+  "localOnlyTitle": {
+    "message": "只在本機檔案繪製"
+  },
+  "secTaskWrite": {
+    "message": "勾選寫回"
+  },
+  "secTaskWriteNote": {
+    "message": "本機檔案的任務清單直接勾選並存檔"
+  },
+  "optTaskWrite": {
+    "message": "啟用勾選寫回"
+  },
+  "manageFolders": {
+    "message": "管理授權資料夾"
+  },
+  "secRefresh": {
+    "message": "自動更新"
+  },
+  "mode": {
+    "message": "模式"
+  },
+  "refreshOff": {
+    "message": "關閉"
+  },
+  "refreshLocal": {
+    "message": "僅本機檔案"
+  },
+  "refreshAll": {
+    "message": "全部"
+  },
+  "refreshInterval": {
+    "message": "檢查間隔 (ms)"
+  },
+  "toggleRaw": {
+    "message": "切換原始文字"
+  },
+  "shortcutSettings": {
+    "message": "快捷鍵設定"
+  },
+  "help": {
+    "message": "使用說明"
+  },
+  "statusOutOfRange": {
+    "message": "數值超出範圍"
+  },
+  "statusSaved": {
+    "message": "已儲存"
+  },
+  "statusSavedReload": {
+    "message": "已儲存，重新整理分頁後套用"
+  },
+  "statusNotMarkdown": {
+    "message": "此分頁不是 Markdown 頁面"
+  },
+  "grantPageTitle": {
+    "message": "MarkLens：檔案寫回授權"
+  },
+  "grantH1": {
+    "message": "檔案寫回授權"
+  },
+  "grantIntro": {
+    "message": "在閱讀頁直接勾選任務清單時，MarkLens 需要這些資料夾的讀寫權限，才能把勾選結果存回原檔。授權只保存在擴充功能內部，一般網頁（包括本機 HTML 檔）無法取得。"
+  },
+  "grantBackNote": {
+    "message": "完成授權後，回到剛才的頁面再勾選一次。"
+  },
+  "grantBack": {
+    "message": "返回原分頁"
+  },
+  "grantFolders": {
+    "message": "已授權的資料夾"
+  },
+  "grantAdd": {
+    "message": "＋ 新增資料夾"
+  },
+  "grantEmpty": {
+    "message": "尚未授權任何資料夾。"
+  },
+  "grantTips": {
+    "message": "說明"
+  },
+  "grantTip1": {
+    "message": "建議授權較上層的資料夾（例如 <code>D:\\Projects</code>），底下所有 .md 都能寫回。"
+  },
+  "grantTip2": {
+    "message": "Chrome 重新啟動後可能需要再確認一次權限；在權限詢問中選擇<b>「每次造訪時允許」</b>即可免除。"
+  },
+  "grantTip3": {
+    "message": "只會修改被點擊的那一行勾選框，寫入前會比對檔案內容，檔案已被其他地方修改時不會寫入。"
+  },
+  "grantStateGranted": {
+    "message": "可寫回"
+  },
+  "grantStatePrompt": {
+    "message": "需要確認"
+  },
+  "grantStateDenied": {
+    "message": "已拒絕"
+  },
+  "grantConfirm": {
+    "message": "確認權限"
+  },
+  "grantAllowed": {
+    "message": "已允許：$1"
+  },
+  "grantNotAllowed": {
+    "message": "未允許：$1"
+  },
+  "grantRemove": {
+    "message": "移除"
+  },
+  "grantRemoved": {
+    "message": "已移除：$1"
+  },
+  "grantError": {
+    "message": "發生錯誤：$1"
+  },
+  "grantAdded": {
+    "message": "已授權：$1"
+  },
+  "welcomeTitle": {
+    "message": "歡迎使用 MarkLens"
+  },
+  "welcomeLead": {
+    "message": "在瀏覽器裡直接閱讀 Markdown：目錄、摺疊、可排序的表格、Mermaid 圖表，還能直接勾選任務存回檔案。"
+  },
+  "step1Title": {
+    "message": "允許存取本機檔案"
+  },
+  "step1Text": {
+    "message": "要閱讀電腦裡的 <code>.md</code>，Chrome 需要你手動開啟一個開關（擴充功能無法自行開啟）。"
+  },
+  "step1Li1": {
+    "message": "按下方按鈕開啟 MarkLens 的設定頁"
+  },
+  "step1Li2": {
+    "message": "找到 <b>「允許存取檔案網址」</b> 並開啟"
+  },
+  "step1Li3": {
+    "message": "回到這一頁，狀態會自動更新"
+  },
+  "checking": {
+    "message": "檢查中…"
+  },
+  "welcomeFileOk": {
+    "message": "✔ 已開啟，可以閱讀本機檔案"
+  },
+  "welcomeFileOff": {
+    "message": "尚未開啟"
+  },
+  "openExtSettings": {
+    "message": "開啟擴充功能設定"
+  },
+  "step2Title": {
+    "message": "打開一份 Markdown"
+  },
+  "step2Text": {
+    "message": "把任一 <code>.md</code> 檔拖進 Chrome 視窗，或在網址列輸入它的路徑（例如 <code>D:\\Projects\\README.md</code>）。網路上的 <code>.md</code> 純文字頁面也會自動接管。"
+  },
+  "step2Tip": {
+    "message": "建議把 MarkLens 釘選在工具列：按右上角拼圖圖示 → MarkLens 旁的圖釘。點圖示可以調整主題、字體與預設版面。"
+  },
+  "step3Title": {
+    "message": "常用操作"
+  },
+  "colKey": {
+    "message": "按鍵"
+  },
+  "colAction": {
+    "message": "功能"
+  },
+  "keyToc": {
+    "message": "顯示／收合目錄"
+  },
+  "keyRaw": {
+    "message": "原始文字／返回閱讀"
+  },
+  "keyWidth": {
+    "message": "切換文字寬度"
+  },
+  "keyTheme": {
+    "message": "切換主題：自動 → 淺色 → 深色"
+  },
+  "keyFold": {
+    "message": "全部摺疊／全部展開"
+  },
+  "featTables": {
+    "message": "<b>表格</b>：拖拉欄寬、點表頭排序、篩選、複製成試算表格式"
+  },
+  "featTasks": {
+    "message": "<b>勾選任務</b>：本機檔案的 <code>- [ ]</code> 可直接點擊存回原檔（第一次會請你授權資料夾）"
+  },
+  "featDiagrams": {
+    "message": "<b>圖表與公式</b>：本機檔案的 <code>```mermaid</code> 區塊與 <code>$$…$$</code> 數學式自動繪製"
+  },
+  "featReload": {
+    "message": "<b>自動更新</b>：用編輯器存檔後，畫面約一秒內更新，保留捲動位置與摺疊"
+  },
+  "step4Title": {
+    "message": "選用：程式碼區塊中英對齊"
+  },
+  "step4Text": {
+    "message": "程式碼中的中文與罫線表格預設已自動調整寬度；想要最佳效果可安裝免費的 <a href=\"https://github.com/be5invis/Sarasa-Gothic/releases\" target=\"_blank\" rel=\"noopener noreferrer\">更紗黑體 Sarasa Mono TC</a>，安裝後完全重新啟動 Chrome（網址列輸入 <code>chrome://restart</code>）。"
+  },
+  "changelog": {
+    "message": "更新紀錄"
+  }
+}

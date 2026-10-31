@@ -1,42 +1,40 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html>
 <head>
   <meta charset="utf-8">
-  <title>MarkLens：檔案寫回授權</title>
+  <title data-i18n="grantPageTitle">MarkLens</title>
   <link rel="stylesheet" href="grant.css">
 </head>
 <body>
   <main>
-    <h1>檔案寫回授權</h1>
-    <p>
-      在閱讀頁直接勾選任務清單時，MarkLens 需要這些資料夾的讀寫權限，才能把勾選結果存回原檔。
-      授權只保存在擴充功能內部，一般網頁（包括本機 HTML 檔）無法取得。
-    </p>
+    <h1 data-i18n="grantH1"></h1>
+    <p data-i18n="grantIntro"></p>
 
     <div id="back-row" class="notice" hidden>
-      <span>完成授權後，回到剛才的頁面再勾選一次。</span>
-      <button type="button" id="back" class="primary">返回原分頁</button>
+      <span data-i18n="grantBackNote"></span>
+      <button type="button" id="back" class="primary" data-i18n="grantBack"></button>
     </div>
 
     <section>
       <div class="row">
-        <h2>已授權的資料夾</h2>
-        <button type="button" id="add" class="primary">＋ 新增資料夾</button>
+        <h2 data-i18n="grantFolders"></h2>
+        <button type="button" id="add" class="primary" data-i18n="grantAdd"></button>
       </div>
       <ul id="roots"></ul>
-      <p id="empty" class="muted" hidden>尚未授權任何資料夾。</p>
+      <p id="empty" class="muted" hidden data-i18n="grantEmpty"></p>
     </section>
 
     <section class="tips">
-      <h2>說明</h2>
+      <h2 data-i18n="grantTips"></h2>
       <ul>
-        <li>建議授權較上層的資料夾（例如 <code>D:\Projects</code>），底下所有 .md 都能寫回。</li>
-        <li>Chrome 重新啟動後可能需要再確認一次權限；在權限詢問中選擇<b>「每次造訪時允許」</b>即可免除。</li>
-        <li>只會修改被點擊的那一行勾選框，寫入前會比對檔案內容，檔案已被其他地方修改時不會寫入。</li>
+        <li data-i18n-html="grantTip1"></li>
+        <li data-i18n-html="grantTip2"></li>
+        <li data-i18n="grantTip3"></li>
       </ul>
     </section>
     <p id="status" class="muted"></p>
   </main>
+  <script src="../shared/i18n.js"></script>
   <script src="../shared/roots.js"></script>
   <script src="grant.js"></script>
 </body>

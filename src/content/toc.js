@@ -3,7 +3,7 @@
 var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
 ;(() => {
-  const { h } = MarkLens
+  const { h, t } = MarkLens
 
   MarkLens.Toc = class {
     constructor(app) {
@@ -16,18 +16,18 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.search = h('input', {
         class: 'ml-toc-search',
         type: 'search',
-        placeholder: '搜尋標題…',
+        placeholder: t('tocSearch'),
         on: { input: () => this.applyFilter() },
       })
       const closeBtn = h('button', {
         class: 'ml-btn ml-toc-close',
         text: '«',
-        title: '收合目錄（t）',
+        title: t('tocCloseTitle'),
         on: { click: () => this.app.toggleToc() },
       })
       this.list = h('ul', { class: 'ml-toc-list' })
-      this.resizer = h('div', { class: 'ml-toc-resizer', title: '拖拉調整寬度' })
-      this.el = h('aside', { class: 'ml-toc', attrs: { 'aria-label': '目錄' } }, [
+      this.resizer = h('div', { class: 'ml-toc-resizer', title: t('tocResizeTitle') })
+      this.el = h('aside', { class: 'ml-toc', attrs: { 'aria-label': t('tocLabel') } }, [
         h('div', { class: 'ml-toc-head' }, [h('div', { class: 'ml-toc-row' }, [this.search, closeBtn]), this.stats]),
         h('nav', { class: 'ml-toc-nav' }, [this.list]),
         this.resizer,
@@ -76,7 +76,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
 
     setStats({ chars, minutes }) {
-      this.stats.textContent = `約 ${chars.toLocaleString()} 字 · ${minutes} 分鐘`
+      this.stats.textContent = t('tocStats', chars.toLocaleString(), minutes)
     }
 
     onClick(e) {

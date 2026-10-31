@@ -3,13 +3,13 @@
 var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
 ;(() => {
-  const { h } = MarkLens
+  const { h, t } = MarkLens
   const CONTENT_TYPES = ['text/plain', 'text/markdown', 'text/x-markdown']
   const POS_KEY = 'marklens:scroll'
   const POS_LIMIT = 300
   const VIEW_KEY = 'marklens:view' // 分頁狀態，存在 sessionStorage
   const NARROW = 900
-  const THEME_LABELS = { auto: ['◐', '自動'], light: ['☀', '淺色'], dark: ['☾', '深色'] }
+  const THEME_LABELS = { auto: ['◐', 'themeAuto'], light: ['☀', 'themeLight'], dark: ['☾', 'themeDark'] }
 
   /** 瀏覽器把純文字顯示成 <body><pre>…</pre></body>，只接管這種頁面 */
   function sourcePre() {
@@ -68,6 +68,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
     mount() {
       const root = document.documentElement
+      // 擴充功能更新後才會用到的提示，先取一次存進快取（屆時 chrome.i18n 已無法使用）
+      for (const k of ['orphanBefore', 'orphanReload', 'orphanAfter']) t(k)
       root.classList.add('marklens')
 
       this.article = h('article', { class: 'ml-body markdown-body' })
@@ -125,17 +127,17 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     /* ---------- 工具列 ---------- */
     buildToolbar() {
       const btn = (cls, text, title, fn) => h('button', { class: `ml-tool ${cls}`, text, title, on: { click: fn } })
-      this.tocBtn = btn('ml-tool-toc', '☰ 目錄', '顯示／收合目錄（t）', () => this.toggleToc())
-      this.widthBtn = btn('ml-tool-width', '', '切換文字寬度（w）', () => this.cycleWidth())
-      this.themeBtn = btn('ml-tool-theme', '', '切換主題：自動 → 淺色 → 深色，所有分頁同步（d）', () => this.cycleTheme())
-      this.rawBtn = btn('ml-tool-raw', '</> 原始文字', '切換原始文字（r）', () => this.toggleRaw())
-      this.topBtn = btn('ml-tool-top', '↑ 頂部', '回到頂部', () => scrollTo({ top: 0 }))
+      this.tocBtn = btn('ml-tool-toc', t('toolToc'), t('toolTocTitle'), () => this.toggleToc())
+      this.widthBtn = btn('ml-tool-width', '', t('toolWidthTitle'), () => this.cycleWidth())
+      this.themeBtn = btn('ml-tool-theme', '', t('toolThemeTitle'), () => this.cycleTheme())
+      this.rawBtn = btn('ml-tool-raw', t('toolRaw'), t('toolRawTitle'), () => this.toggleRaw())
+      this.topBtn = btn('ml-tool-top', t('toolTop'), t('toolTopTitle'), () => scrollTo({ top: 0 }))
       return h('div', { class: 'ml-toolbar', attrs: { role: 'toolbar' } }, [
         this.tocBtn,
         h('span', { class: 'ml-spacer' }),
         h('span', { class: 'ml-reading-only' }, [
-          btn('', '▸ 全部摺疊', '全部摺疊（[）', () => MarkLens.foldAll(this.article)),
-          btn('', '▾ 全部展開', '全部展開（]）', () => MarkLens.unfoldAll(this.article)),
+          btn('', t('toolFoldAll'), t('toolFoldAllTitle'), () => MarkLens.foldAll(this.article)),
+          btn('', t('toolUnfoldAll'), t('toolUnfoldAllTitle'), () => MarkLens.unfoldAll(this.article)),
           this.widthBtn,
         ]),
         this.themeBtn,
@@ -239,7 +241,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       if (this.themeBtn) {
         // 窄螢幕只顯示圖示（文字部分由 CSS 隱藏）
         const [icon, name] = THEME_LABELS[s.theme] || THEME_LABELS.auto
-        this.themeBtn.replaceChildren(icon, h('span', { class: 'ml-tool-label', text: ` 主題：${name}` }))
+        this.themeBtn.replaceChildren(icon, h('span', { class: 'ml-tool-label', text: t('toolTheme', t(name)) }))
       }
       if (this.article) MarkLens.rethemeMermaid(this.article)
     }
@@ -255,7 +257,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       root.classList.toggle('ml-toc-hidden', v.tocHidden)
       root.classList.toggle('ml-code-wrap', this.settings.codeWrap)
       root.classList.toggle('ml-wide-blocks', this.settings.tableWidth !== 'text')
-      this.widthBtn.textContent = `⇔ 寬度：${MarkLens.widthLabel(v.textWidth)}`
+      this.widthBtn.textContent = t('toolWidth', MarkLens.widthLabel(v.textWidth))
       this.tocBtn.classList.toggle('active', !v.tocHidden)
     }
 
@@ -293,7 +295,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     /* ---------- 原始文字 ---------- */
     toggleRaw() {
       const on = document.documentElement.classList.toggle('ml-raw')
-      this.rawBtn.textContent = on ? '← 返回閱讀' : '</> 原始文字'
+      this.rawBtn.textContent = t(on ? 'toolBack' : 'toolRaw')
       this.rawBtn.classList.toggle('active', on)
       scrollTo(0, 0)
     }
@@ -360,7 +362,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       if (!this.canWriteTasks()) return
       for (const box of this.article.querySelectorAll('input.ml-task-box[data-ml-line]')) {
         box.disabled = false
-        box.title = '點擊勾選／取消，並存回原檔'
+        box.title = t('taskTitle')
       }
     }
 
@@ -406,24 +408,24 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           this.pre.textContent = res.text
           box.checked = to === 'x'
           box.dataset.mlState = to
-          MarkLens.toast(to === 'x' ? '已勾選並存檔' : '已取消勾選並存檔', [{ label: '復原', fn: () => this.toggleTask(line) }])
+          MarkLens.toast(t(to === 'x' ? 'taskChecked' : 'taskUnchecked'), [{ label: t('undo'), fn: () => this.toggleTask(line) }])
           break
         }
         case 'no-root':
-          MarkLens.toast('此檔案所在的資料夾尚未授權寫回', [{ label: '授權資料夾', fn: openGrant }], 8000)
+          MarkLens.toast(t('taskNoRoot'), [{ label: t('authorizeFolder'), fn: openGrant }], 8000)
           break
         case 'permission':
-          MarkLens.toast(`需要重新確認「${res.root}」的存取權限`, [{ label: '前往確認', fn: openGrant }], 8000)
+          MarkLens.toast(t('taskPermission', res.root), [{ label: t('goConfirm'), fn: openGrant }], 8000)
           break
         case 'conflict':
           this.update(res.text)
-          MarkLens.toast('檔案已在其他地方修改，已重新載入，請再點一次')
+          MarkLens.toast(t('taskConflict'))
           break
         case 'not-utf8':
-          MarkLens.toast('此檔案不是 UTF-8 編碼，無法寫回')
+          MarkLens.toast(t('taskNotUtf8'))
           break
         default:
-          MarkLens.toast(`寫回失敗：${res?.error || '未知錯誤'}`)
+          MarkLens.toast(t('taskError', res?.error || t('unknownError')))
       }
     }
 
@@ -437,9 +439,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       clearTimeout(this.refreshTimer)
       this.toolbar.prepend(
         h('span', { class: 'ml-orphan' }, [
-          '擴充功能已更新，',
-          h('button', { class: 'ml-tool', text: '重新整理', on: { click: () => location.reload() } }),
-          '後套用',
+          t('orphanBefore'),
+          h('button', { class: 'ml-tool', text: t('orphanReload'), on: { click: () => location.reload() } }),
+          t('orphanAfter'),
         ]),
       )
     }

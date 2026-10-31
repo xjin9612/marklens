@@ -2,7 +2,7 @@
 // 用法：node test/e2e.mjs（需要 playwright；截圖輸出到 SHOT_DIR，預設為系統暫存目錄）
 import { createRequire } from 'node:module'
 import { createServer } from 'node:http'
-import { readFileSync, mkdtempSync, writeFileSync, copyFileSync, mkdirSync } from 'node:fs'
+import { readFileSync, mkdtempSync, writeFileSync, copyFileSync, mkdirSync, readdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -38,6 +38,7 @@ const ctx = await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), 'm
     `--disable-extensions-except=${root}`,
     `--load-extension=${root}`,
     '--disable-extensions-file-access-check', // 等同使用者開啟「允許存取檔案網址」
+    '--lang=zh-TW', // 介面語言；以下檢查以繁體中文文字為準，英文另有一組檢查
   ],
   viewport: { width: 1700, height: 950 },
 })
@@ -762,6 +763,52 @@ try {
   await tp.close()
   await check('勾選寫回過程沒有 JS 錯誤', async () => {
     assert.deepEqual(errors.filter(e => !e.includes('ERR_FILE_NOT_FOUND') && !e.includes('404')), [])
+  })
+
+  /* ---------- 介面多語系 ---------- */
+  await check('語系檔：en 與 zh_TW 的鍵與 $1 參數一致，程式與頁面用到的鍵都存在', async () => {
+    const load = loc => JSON.parse(readFileSync(join(root, `_locales/${loc}/messages.json`), 'utf8'))
+    const en = load('en')
+    const zh = load('zh_TW')
+    assert.deepEqual(Object.keys(zh).sort(), Object.keys(en).sort())
+    const params = m => (m.message.match(/\$\d/g) || []).sort().join()
+    for (const k of Object.keys(en)) assert.equal(params(zh[k]), params(en[k]), k)
+    // 掃描原始碼中的 t('key')、data-i18n="key"、__MSG_key__
+    const used = new Set()
+    const scan = (file, re) => {
+      for (const m of readFileSync(join(root, file), 'utf8').matchAll(re)) used.add(m[1])
+    }
+    const files = ['manifest.json', ...readdirSync(join(root, 'src'), { recursive: true }).map(f => join('src', f))]
+    for (const f of files.filter(f => /\.(js|html|json)$/.test(f))) {
+      scan(f, /\bt\(\s*'([A-Za-z0-9_]+)'/g)
+      scan(f, /data-i18n(?:-html|-title|-placeholder)?="([A-Za-z0-9_]+)"/g)
+      scan(f, /__MSG_([A-Za-z0-9_]+)__/g)
+    }
+    const missing = [...used].filter(k => !(k in en))
+    assert.deepEqual(missing, [])
+  })
+  await check('英文介面：工具列、popup 與引導頁顯示英文', async () => {
+    const enCtx = await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), 'ml-prof-en-')), {
+      headless: true,
+      channel: 'chromium',
+      args: [`--disable-extensions-except=${root}`, `--load-extension=${root}`, '--disable-extensions-file-access-check', '--lang=en-US'],
+    })
+    try {
+      const enSw = enCtx.serviceWorkers()[0] || (await enCtx.waitForEvent('serviceworker'))
+      const ep = await enCtx.newPage()
+      await ep.goto(localUrl)
+      await ep.waitForSelector('#ml-root .markdown-body h1')
+      const tools = (await ep.locator('.ml-toolbar').innerText()).replace(/\s+/g, ' ')
+      assert.ok(tools.includes('Fold all') && tools.includes('Unfold all') && tools.includes('Theme: Auto'), tools)
+      assert.match(await ep.textContent('.ml-toc-stats'), /^About [\d,]+ words · \d+ min$/)
+      const pp = await enCtx.newPage()
+      await pp.goto(`chrome-extension://${enSw.url().split('/')[2]}/src/popup/popup.html`)
+      assert.ok((await pp.textContent('body')).includes('Layout defaults'))
+      assert.equal(await pp.locator('[name=theme] option[value=auto]').textContent(), 'System')
+      assert.equal(await pp.evaluate(() => document.documentElement.lang), 'en-US')
+    } finally {
+      await enCtx.close()
+    }
   })
 
   /* ---------- 擴充功能重新載入：已開分頁的 content script 失去連線 ---------- */

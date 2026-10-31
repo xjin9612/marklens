@@ -55,5 +55,5 @@ MarkLens.nextOf = function (list, current) {
 }
 
 MarkLens.widthLabel = function (w) {
-  return w ? `${w}` : '滿版'
+  return w ? `${w}` : MarkLens.t('widthFull')
 }
