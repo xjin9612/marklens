@@ -408,6 +408,10 @@ try {
 
   /* ---------- http ---------- */
   const p4 = await openDoc(`http://127.0.0.1:${port}/docs/readme.md`)
+  await check('剛好放得下的小表格不出現水平捲軸', async () => {
+    const r = await page.locator('.ml-table-scroll', { has: page.locator('th', { hasText: '小表格' }) }).evaluate(s => [s.scrollWidth, s.clientWidth])
+    assert.ok(r[0] <= r[1], `scrollWidth ${r[0]} > clientWidth ${r[1]}`)
+  })
   await check('http:// 渲染', async () => {
     assert.equal(await p4.locator('.markdown-body h1').count(), 1)
   })
@@ -850,12 +854,31 @@ try {
     assert.equal(await tp.locator('.ml-toast-btn:text("授權資料夾")').count(), 1)
     assert.equal((await opfs.read('tasks.md')).text, before)
   })
-  await check('勾選寫回：關閉設定後勾選框唯讀', async () => {
+  await check('勾選寫回：關閉設定後勾選框唯讀，點擊時說明原因', async () => {
     await sw.evaluate(() => MarkLens.saveSettings({ taskWrite: false }))
     const p2 = await openDoc(pathToFileURL(join(taskDir, 'tasks.md')).href)
-    assert.equal(await p2.locator('input.ml-task-box:not([disabled])').count(), 0)
+    const before = (await opfs.read('tasks.md')).text
+    const b = p2.locator('.task-list-item', { hasText: '第一項' }).locator('input')
+    assert.equal(await b.getAttribute('data-ml-readonly'), 'taskReadonlyOff')
+    const was = await b.isChecked()
+    await b.click()
+    await p2.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent === '勾選寫回已關閉，可在 popup 開啟')
+    assert.equal(await b.isChecked(), was, '勾選狀態不變')
+    assert.equal((await opfs.read('tasks.md')).text, before, '檔案不變')
     await p2.close()
     await sw.evaluate(() => MarkLens.saveSettings({ taskWrite: true, autoRefresh: 'local' }))
+  })
+  await check('勾選寫回：非 UTF-8 檔案唯讀，點擊時說明原因', async () => {
+    // A4 A4 是 Big5 的「中」，不是合法的 UTF-8
+    const big5 = join(taskDir, 'big5.md')
+    writeFileSync(big5, Buffer.concat([Buffer.from('# Big5\n\n- [ ] '), Buffer.from([0xa4, 0xa4]), Buffer.from('\n')]))
+    const p3 = await openDoc(pathToFileURL(big5).href)
+    const b = p3.locator('input.ml-task-box')
+    assert.equal(await b.getAttribute('data-ml-readonly'), 'taskNotUtf8')
+    await b.click()
+    await p3.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent === '此檔案不是 UTF-8 編碼，無法寫回')
+    assert.equal(await b.isChecked(), false)
+    await p3.close()
   })
   await check('授權頁載入', async () => {
     const g = await ctx.newPage()

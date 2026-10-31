@@ -131,6 +131,12 @@
   "taskConflict": {
     "message": "檔案已在其他地方修改，已重新載入，請再點一次"
   },
+  "taskReadonlyRemote": {
+    "message": "只有本機檔案的任務可以勾選寫回"
+  },
+  "taskReadonlyOff": {
+    "message": "勾選寫回已關閉，可在 popup 開啟"
+  },
   "taskNotUtf8": {
     "message": "此檔案不是 UTF-8 編碼，無法寫回"
   },
@@ -243,7 +249,7 @@
     "message": "介面語言"
   },
   "langAuto": {
-    "message": "自動（跟隨瀏覽器）"
+    "message": "跟隨瀏覽器"
   },
   "fontSize": {
     "message": "字體大小"

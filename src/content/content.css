@@ -523,6 +523,8 @@ html.marklens .ml-col-resizer {
   cursor: col-resize;
   z-index: 1;
 }
+/* 最後一欄的把手收進表格內，否則剛好放得下的表格也會多出水平捲軸 */
+html.marklens th:last-child > .ml-col-resizer { right: 0; width: 6px; }
 html.marklens .ml-col-resizer:hover,
 html.marklens .ml-resizing .ml-col-resizer:active { background: var(--accent); opacity: .35; }
 html.marklens .ml-resizing { cursor: col-resize; user-select: none; }
@@ -572,6 +574,7 @@ html.marklens .ml-viewer img { max-width: 95vw; max-height: 95vh; object-fit: co
 
 /* ---------- 任務勾選寫回 ---------- */
 html.marklens .markdown-body input.ml-task-box:not(:disabled) { cursor: pointer; }
+html.marklens .markdown-body input.ml-task-box[data-ml-readonly] { cursor: not-allowed; opacity: .6; }
 html.marklens .markdown-body input.ml-task-box.ml-busy { opacity: .4; cursor: progress; }
 
 /* ---------- 提示 ---------- */

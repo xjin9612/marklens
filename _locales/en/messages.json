@@ -131,6 +131,12 @@
   "taskConflict": {
     "message": "The file was changed elsewhere and has been reloaded. Click again."
   },
+  "taskReadonlyRemote": {
+    "message": "Only tasks in local files can be saved"
+  },
+  "taskReadonlyOff": {
+    "message": "Saving checkboxes is turned off — turn it on in the popup"
+  },
   "taskNotUtf8": {
     "message": "This file is not UTF-8 and cannot be saved"
   },
@@ -243,7 +249,7 @@
     "message": "Language"
   },
   "langAuto": {
-    "message": "Auto (browser)"
+    "message": "Browser"
   },
   "fontSize": {
     "message": "Font size"
