@@ -268,6 +268,10 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         if (!TASK_MARK_RE.test(tokens[i + 2].content)) continue
         t.attrJoin('class', `ml-task-${nonce}-${t.map[0] + offset}`)
       }
+      // 標題的原文行號：「用編輯器開啟」時跳到目前閱讀的章節
+      for (const t of tokens) {
+        if (t.type === 'heading_open' && t.map) t.attrJoin('class', `ml-line-${nonce}-${t.map[0] + offset}`)
+      }
     })
   }
 

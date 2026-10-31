@@ -29,6 +29,7 @@
     widthSel.value = preset ? String(s.textWidth) : 'custom'
     customRow.hidden = preset
     customInput.value = preset ? '' : String(s.textWidth)
+    $('#editor-url-row').hidden = s.editor !== 'custom'
   }
 
   function readValue(el) {
@@ -50,6 +51,12 @@
       }
       customRow.hidden = true
       await MarkLens.saveSettings({ textWidth: Number(el.value) })
+    } else if (el.name === 'editor') {
+      $('#editor-url-row').hidden = el.value !== 'custom'
+      await MarkLens.saveSettings({ editor: el.value })
+    } else if (el.name === 'editorUrl') {
+      const s = await MarkLens.saveSettings({ editorUrl: el.value.trim() })
+      if (el.value.trim() && !MarkLens.editorTemplate(s)) return say(t('editorInvalid'))
     } else if (el.name === 'uiLang') {
       // 介面語言：popup 立即換成新語言；閱讀頁重新整理後套用
       await MarkLens.saveSettings({ uiLang: el.value })

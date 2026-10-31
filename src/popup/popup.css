@@ -69,3 +69,4 @@ input[type=text] {
   color: var(--fg);
   font: 12px/1.5 Consolas, "Cascadia Code", monospace;
 }
+.hint { margin: 0; color: var(--muted); font-size: 12px; }

@@ -218,6 +218,9 @@
   "filesSearch": {
     "message": "Search file names…"
   },
+  "filesUp": {
+    "message": "Up to “$1”"
+  },
   "filesSummary": {
     "message": "📂 $1 · $2 files"
   },
@@ -349,6 +352,36 @@
   },
   "localOnlyTitle": {
     "message": "Local files only"
+  },
+  "secEditor": {
+    "message": "Editor"
+  },
+  "secEditorNote": {
+    "message": "toolbar ✎ opens the file"
+  },
+  "editor": {
+    "message": "Open with"
+  },
+  "editorNone": {
+    "message": "Off"
+  },
+  "editorCustom": {
+    "message": "Custom URL…"
+  },
+  "editorUrl": {
+    "message": "URL template ({path}, {line})"
+  },
+  "editorHint": {
+    "message": "Only editors that register a URL scheme can be opened from the browser. Notepad and Notepad++ don't, so they can't be supported."
+  },
+  "editorInvalid": {
+    "message": "The editor URL must start with the editor's own scheme (such as vscode://) and contain {path}"
+  },
+  "toolEdit": {
+    "message": " Edit"
+  },
+  "toolEditTitle": {
+    "message": "Open this file in your editor, at the section you're reading"
   },
   "secTaskWrite": {
     "message": "Check off tasks"

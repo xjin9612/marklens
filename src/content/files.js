@@ -1,36 +1,73 @@
 'use strict'
-// 側邊欄「檔案」分頁：目前檔案所在資料夾的 Markdown 與子資料夾
-// 預設只讀取同層；子資料夾點開才讀取（大型資料夾不會一次掃描全部）
+// 側邊欄「檔案」分頁：資料夾裡的 Markdown 與子資料夾
+// 預設只讀取一層；子資料夾點開才讀取（大型資料夾不會一次掃描全部）。
+// 樹的起點（root）在同一個分頁中保持不變：從檔案分頁點進子資料夾的檔案後，仍可回到原本的資料夾；
+// 也可以用「↑」把起點往上一層。起點只能是目前檔案所在資料夾或它的上層。
 var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
 ;(() => {
   const { h, t } = MarkLens
   const key = segs => segs.join('/')
 
+  function decodeName(s) {
+    try {
+      return decodeURIComponent(s)
+    } catch {
+      return s
+    }
+  }
+
+  /** 起點是否為 dir 本身或它的上層資料夾 */
+  function isAncestor(root, dir) {
+    return typeof root === 'string' && root.startsWith('file:///') && root.endsWith('/') && dir.startsWith(root)
+  }
+
   MarkLens.FileTree = class {
     /**
      * @param {object} opts
-     * @param {string[]} opts.open 已展開的子資料夾（相對路徑），重新整理後還原
-     * @param {(open: string[]) => void} opts.onToggle 展開狀態變更時呼叫，用來保存
-     * @param {(text: string) => void} opts.onSummary 更新摘要文字
+     * @param {string} [opts.root] 樹的起點（file:// 資料夾網址，結尾為 /），重新整理或在分頁內切換檔案後沿用
+     * @param {string[]} [opts.open] 已展開的子資料夾（相對起點的路徑）
+     * @param {(state: {root: string, open: string[]}) => void} opts.onChange 起點或展開狀態變更時呼叫，用來保存
      */
-    constructor({ open = [], onToggle, onSummary }) {
+    constructor({ root, open = [], onChange }) {
+      this.page = location.href.split(/[?#]/)[0]
+      this.pageDir = this.page.slice(0, this.page.lastIndexOf('/') + 1)
+      const keep = isAncestor(root, this.pageDir)
+      this.root = keep ? root : this.pageDir
+      this.open = new Set(keep ? open : [])
+      // 自動展開到目前檔案所在的資料夾
+      const rel = decodeName(this.pageDir.slice(this.root.length)).split('/').filter(Boolean)
+      for (let i = 1; i <= rel.length; i++) this.open.add(key(rel.slice(0, i)))
+      this.onChange = onChange
       this.nodes = new Map() // 相對路徑 → { status: 'loading'|'ok'|'error', dirs, files }
-      this.open = new Set(open)
-      this.onToggle = onToggle
-      this.onSummary = onSummary
       this.query = ''
-      this.current = decodeName(location.pathname.split('/').pop())
-      this.folder = decodeName(location.pathname.split('/').slice(-2, -1)[0] || '')
+
+      this.upBtn = h('button', { class: 'ml-files-up', text: '↑', on: { click: () => this.goUp() } })
+      this.summary = h('span', { class: 'ml-files-summary' })
       this.list = h('ul', { class: 'ml-files-list', attrs: { role: 'tree' } })
-      this.el = h('nav', { class: 'ml-files' }, [this.list])
+      this.el = h('nav', { class: 'ml-files' }, [h('div', { class: 'ml-files-bar' }, [this.upBtn, this.summary]), this.list])
       this.list.addEventListener('click', e => this.onClick(e))
     }
 
-    /** 讀取同層，並還原先前展開的子資料夾 */
+    get folder() {
+      return decodeName(this.root.split('/').slice(-2, -1)[0] || '/')
+    }
+
+    get parent() {
+      const p = this.root.replace(/[^/]+\/$/, '')
+      // 不超過磁碟根目錄（file:///D:/ 或 file:///）
+      return p.length >= 'file:///'.length && p !== this.root ? p : null
+    }
+
+    save() {
+      this.onChange?.({ root: this.root, open: [...this.open] })
+    }
+
+    /** 讀取起點，並依序還原展開的子資料夾 */
     async init() {
+      this.nodes.clear()
       await this.load([])
-      // 由淺到深依序讀取，父資料夾讀到後才知道子資料夾還在不在
+      // 由淺到深讀取，父資料夾讀到後才知道子資料夾還在不在
       for (const p of [...this.open].sort((a, b) => a.split('/').length - b.split('/').length)) {
         const segs = p.split('/')
         const parent = this.nodes.get(key(segs.slice(0, -1)))
@@ -46,12 +83,23 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.render()
       let res
       try {
-        res = await chrome.runtime.sendMessage({ type: 'list-dir', path: segs })
+        res = await chrome.runtime.sendMessage({ type: 'list-dir', root: this.root, path: segs })
       } catch {
         res = null
       }
       this.nodes.set(k, res?.status === 'ok' ? { status: 'ok', dirs: res.dirs, files: res.files } : { status: 'error', dirs: [], files: [] })
       this.render()
+    }
+
+    /** 起點往上一層；原本的展開狀態接在新起點底下 */
+    async goUp() {
+      const parent = this.parent
+      if (!parent) return
+      const name = decodeName(this.root.slice(parent.length, -1))
+      this.open = new Set([name, ...[...this.open].map(p => `${name}/${p}`)])
+      this.root = parent
+      this.save()
+      await this.init()
     }
 
     async toggle(path) {
@@ -63,7 +111,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         if (!this.nodes.has(path) || this.nodes.get(path).status === 'error') await this.load(path.split('/'))
         else this.render()
       }
-      this.onToggle?.([...this.open])
+      this.save()
     }
 
     setQuery(q) {
@@ -80,13 +128,20 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       // 檔案是一般連結：同分頁開啟，中鍵或 Ctrl＋點擊則開新分頁
     }
 
+    isCurrent(f) {
+      return decodeName(f.url) === decodeName(this.page)
+    }
+
     render() {
       this.list.textContent = ''
+      const parent = this.parent
+      this.upBtn.disabled = !parent
+      this.upBtn.title = parent ? t('filesUp', decodeName(parent.split('/').slice(-2, -1)[0] || '/')) : ''
       const root = this.nodes.get('')
       if (!root) return
       if (this.query) return this.renderSearch()
       this.renderDir([], 0, this.list)
-      if (root.status === 'ok') this.onSummary?.(t('filesSummary', this.folder, this.countLoaded()))
+      this.summary.textContent = root.status === 'ok' ? t('filesSummary', this.folder, root.files.length) : this.folder
     }
 
     renderDir(segs, depth, ul) {
@@ -106,10 +161,11 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         )
         if (open) this.renderDir([...segs, name], depth + 1, ul)
       }
-      for (const f of node.files) ul.append(this.fileItem(f, depth, f.name, !segs.length && f.name === this.current))
+      for (const f of node.files) ul.append(this.fileItem(f, depth, f.name))
     }
 
-    fileItem(f, depth, label, current) {
+    fileItem(f, depth, label) {
+      const current = this.isCurrent(f)
       return h('li', { class: `ml-files-file${current ? ' active' : ''}`, attrs: { role: 'treeitem', style: `--depth:${depth}` } }, [
         h('a', { href: f.url, title: label, attrs: current ? { 'aria-current': 'page' } : {} }, [
           h('span', { class: 'ml-files-twisty' }),
@@ -123,19 +179,18 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       return h('li', { class: 'ml-files-note', text, attrs: { style: `--depth:${depth + 1}` } })
     }
 
-    /** 搜尋：只在已讀取的資料夾中比對檔名，以「資料夾 / 檔名」平鋪列出 */
+    /** 搜尋：只在已展開的資料夾中比對檔名，以「資料夾 / 檔名」平鋪列出 */
     renderSearch() {
       let n = 0
       for (const [k, node] of this.nodes) {
         if (node.status !== 'ok' || (k && !this.isVisible(k))) continue
         for (const f of node.files) {
           if (!f.name.toLowerCase().includes(this.query)) continue
-          const label = k ? `${k} / ${f.name}` : f.name
-          this.list.append(this.fileItem(f, 0, label, !k && f.name === this.current))
+          this.list.append(this.fileItem(f, 0, k ? `${k} / ${f.name}` : f.name))
           n++
         }
       }
-      this.onSummary?.(t('filesFound', n))
+      this.summary.textContent = t('filesFound', n)
     }
 
     /** 子資料夾的每一層都展開著才算看得到 */
@@ -143,18 +198,6 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       const segs = path.split('/')
       for (let i = 1; i <= segs.length; i++) if (!this.open.has(key(segs.slice(0, i)))) return false
       return true
-    }
-
-    countLoaded() {
-      return this.nodes.get('')?.files.length ?? 0
-    }
-  }
-
-  function decodeName(s) {
-    try {
-      return decodeURIComponent(s)
-    } catch {
-      return s
     }
   }
 

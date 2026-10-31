@@ -124,8 +124,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
    * @param {string} [nonce] 本次渲染的 nonce；只有帶正確 nonce 的任務 class 會保留（見 markdown.js）
    */
   MarkLens.sanitize = function (html, nonce) {
-    const taskClass = nonce ? new RegExp(`^ml-task-${nonce}-\\d+$`) : null
-    // 渲染器自己產生的 ml- class：程式碼區塊與任務清單行號
+    const taskClass = nonce ? new RegExp(`^ml-(?:task|line)-${nonce}-\\d+$`) : null
+    // 渲染器自己產生的 ml- class：程式碼區塊、任務清單與標題的行號
     const allowClass = c => c === 'ml-pre' || (taskClass != null && taskClass.test(c))
     const tpl = document.createElement('template')
     tpl.innerHTML = html

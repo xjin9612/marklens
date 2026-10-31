@@ -232,7 +232,31 @@ html.marklens .ml-toc-stats { padding: 6px 12px; color: var(--muted); font-size:
 html.marklens .ml-toc-stats:empty { display: none; }
 
 /* 檔案分頁 */
-html.marklens .ml-files { flex: 1; overflow-y: auto; padding: 6px 0 24px; }
+html.marklens .ml-files { flex: 1; overflow-y: auto; padding: 0 0 24px; }
+html.marklens .ml-files-bar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 4px 8px;
+  background: var(--subtle);
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--muted);
+  font-size: 12px;
+}
+html.marklens .ml-files-up {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: var(--muted);
+  font: 14px/1 var(--ml-font);
+  padding: 3px 7px;
+  cursor: pointer;
+}
+html.marklens .ml-files-up:hover:not(:disabled) { background: var(--hover); color: var(--fg); }
+html.marklens .ml-files-up:disabled { opacity: .35; cursor: default; }
+html.marklens .ml-files-summary { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 html.marklens .ml-files[hidden], html.marklens .ml-toc-nav[hidden] { display: none; }
 html.marklens .ml-files-list { list-style: none; margin: 0; padding: 0; }
 html.marklens .ml-files-list li { --indent: calc(var(--depth, 0) * 14px + 8px); }
@@ -329,7 +353,7 @@ html.marklens.ml-wide-blocks .markdown-body > :is(.ml-table, .ml-code) {
   html.marklens .ml-body { padding: 16px 16px 80px 36px; }
   html.marklens .ml-toc-resizer { display: none; }
   html.marklens .ml-tool-width { display: none; }
-  html.marklens :is(.ml-tool-theme, .ml-tool-export) .ml-tool-label { display: none; }
+  html.marklens :is(.ml-tool-theme, .ml-tool-export, .ml-tool-edit) .ml-tool-label { display: none; }
   html.marklens .ml-toolbar { overflow-x: auto; padding: 0 4px; }
   html.marklens .ml-tool { padding: 6px 7px; }
 }
