@@ -61,7 +61,18 @@ async function openDoc(url = localUrl) {
   page.on('console', m => m.type() === 'error' && errors.push(m.text()))
   await page.goto(url)
   await page.waitForSelector('#ml-root .markdown-body h1', { timeout: 5000 })
+  // 關閉轉場動畫：檢查結果不必等動畫跑完，也不受背景分頁不跑動畫影響
+  await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important; }' })
   return page
+}
+/** 等到條件成立（輪詢；用在無法以頁面事件等待的地方，例如背景程式裡的設定值） */
+async function until(fn, ms = 3000) {
+  const end = Date.now() + ms
+  for (;;) {
+    if (await fn()) return
+    if (Date.now() > end) throw new Error(`逾時：${fn}`)
+    await new Promise(r => setTimeout(r, 50))
+  }
 }
 const visible = (page, sel) => page.locator(sel).first().isVisible()
 
@@ -263,9 +274,10 @@ try {
     assert.equal(await visible(page, '.ml-side-tabs'), false, '搜尋時分頁標籤換成搜尋框')
     try {
       await page.keyboard.type('r')
-      assert.equal(await visible(page, '.ml-body'), true)
+      assert.equal(await visible(page, '.ml-body'), true, '輸入框裡的 r 不應切換原始文字')
+      await page.fill('.ml-toc-search', '表格')
       const shown = await page.locator('.ml-toc-list li:not([hidden])').allTextContents()
-      assert.ok(shown.every(s => s.toLowerCase().includes('r')), shown.join('|'))
+      assert.ok(shown.length > 0 && shown.every(s => s.includes('表格')), shown.join('|'))
     } finally {
       await page.keyboard.press('Escape')
     }
@@ -293,6 +305,7 @@ try {
   })
   await check('再按全部摺疊不會卡住；全部展開恢復', async () => {
     await page.click('text=▸ 全部摺疊')
+    assert.ok((await hiddenCount()) > 0, '再按一次仍是摺疊狀態')
     await page.click('text=▾ 全部展開')
     assert.equal(await hiddenCount(), 0)
     assert.equal(await page.locator('.ml-toc-folded').count(), 0)
@@ -343,6 +356,13 @@ try {
     await page.keyboard.press('[')
     await page.click('.ml-toc-list a:text("第三層標題")')
     assert.equal(await visible(page, '#第三層標題'), true)
+    // 確實捲到該標題（位於工具列下方附近）
+    // 其餘段落仍摺疊、文件變短時捲不到頂端，此時應已捲到底
+    const r = await page.locator('#第三層標題').evaluate(el => {
+      const se = document.scrollingElement
+      return { top: el.getBoundingClientRect().top, atEnd: se.scrollTop + innerHeight >= se.scrollHeight - 2, scrolled: se.scrollTop > 0 }
+    })
+    assert.ok(r.scrolled && r.top >= 0 && (r.top < 120 || r.atEnd), JSON.stringify(r))
     await page.keyboard.press(']')
   })
 
@@ -359,9 +379,9 @@ try {
     assert.ok(box.x < 30 && box.y < 10, JSON.stringify(box))
     await page.screenshot({ path: join(shotDir, 'ml-toc-hidden.png') })
   })
-  await check('收合目錄只影響目前分頁', async () => {
-    await page2.waitForTimeout(300)
+  await check('收合目錄只影響目前分頁（不寫入全域設定）', async () => {
     assert.equal(await visible(page2, '.ml-toc'), true)
+    assert.equal((await sw.evaluate(() => MarkLens.loadSettings())).tocHidden, false, '全域預設值不應改變')
   })
   await check('分頁狀態重新整理後保留', async () => {
     await page.reload()
@@ -373,8 +393,8 @@ try {
   await check('寬度切換只影響目前分頁', async () => {
     await page.click('.ml-tool-width')
     assert.equal(await page.textContent('.ml-tool-width'), '⇔ 寬度：960')
-    await page2.waitForTimeout(200)
     assert.equal(await page2.textContent('.ml-tool-width'), '⇔ 寬度：1200')
+    assert.equal((await sw.evaluate(() => MarkLens.loadSettings())).textWidth, 1200, '全域預設值不應改變')
     await page.keyboard.press('w')
     assert.equal(await page.textContent('.ml-tool-width'), '⇔ 寬度：滿版')
   })
@@ -394,16 +414,23 @@ try {
   })
   await sw.evaluate(() => MarkLens.saveSettings({ theme: 'auto', textWidth: 1200, tocHidden: false }))
 
-  await check('Alt+Shift 快捷鍵指令只作用於目前分頁', async () => {
-    // 直接模擬 background 送出的指令訊息
-    // 沒有 tabs 權限拿不到網址，改用「目前作用中的分頁」
+  await check('Alt+Shift 快捷鍵：一般指令只作用於目前分頁，切換主題作用於所有分頁', async () => {
+    // 呼叫背景程式真正的快捷鍵處理函式；沒有 tabs 權限拿不到網址，以「目前作用中的分頁」代表 page
     await page.bringToFront()
     const id = await sw.evaluate(async () => (await chrome.tabs.query({ active: true, currentWindow: true }))[0].id)
-    await sw.evaluate(tid => chrome.tabs.sendMessage(tid, { type: 'command', name: 'toggle-raw' }), id)
-    await page.waitForTimeout(200)
-    const raws = await Promise.all([page, page2].map(p => p.evaluate(() => document.documentElement.classList.contains('ml-raw'))))
-    assert.deepEqual(raws.filter(Boolean).length, 1)
-    await sw.evaluate(tid => chrome.tabs.sendMessage(tid, { type: 'command', name: 'toggle-raw' }), id)
+    const raw = p => p.evaluate(() => document.documentElement.classList.contains('ml-raw'))
+    await sw.evaluate(tid => onCommand('toggle-raw', { id: tid }), id)
+    await page.waitForFunction(() => document.documentElement.classList.contains('ml-raw'))
+    assert.equal(await raw(page2), false, '其他分頁不受影響')
+    await sw.evaluate(tid => onCommand('toggle-raw', { id: tid }), id)
+    await page.waitForFunction(() => !document.documentElement.classList.contains('ml-raw'))
+    await sw.evaluate(tid => onCommand('cycle-theme', { id: tid }), id)
+    try {
+      assert.equal((await sw.evaluate(() => MarkLens.loadSettings())).theme, 'light')
+      await page2.waitForFunction(() => document.documentElement.dataset.mlTheme === 'light')
+    } finally {
+      await sw.evaluate(() => MarkLens.saveSettings({ theme: 'auto' }))
+    }
   })
 
   /* ---------- 窄螢幕 ---------- */
@@ -522,10 +549,11 @@ try {
   })
   await check('用編輯器開啟：預設不顯示；選 VS Code 後跳到目前章節的行號；自訂網址不能用網頁協定', async () => {
     assert.equal(await page.locator('.ml-tool-edit').isVisible(), false)
+    try {
     await sw.evaluate(() => MarkLens.saveSettings({ editor: 'vscode' }))
     const ep = await openDoc()
     await ep.click('.ml-toc-list a:text("程式碼")')
-    await ep.waitForTimeout(200)
+    await ep.waitForFunction(() => document.querySelector('.ml-toc-list li.active')?.textContent === '程式碼')
     await ep.click('.ml-tool-edit')
     const href = await ep.getAttribute('.ml-tool-edit', 'data-ml-href')
     const line = readFileSync(localMd, 'utf8').split('\n').findIndex(l => l === '## 程式碼') + 1
@@ -536,15 +564,30 @@ try {
     const bp = await openDoc()
     assert.equal(await bp.locator('.ml-tool-edit').isVisible(), false, '不合法的網址不顯示按鈕')
     await bp.close()
-    await sw.evaluate(() => MarkLens.saveSettings({ editor: 'none', editorUrl: '' }))
+    } finally {
+      await sw.evaluate(() => MarkLens.saveSettings({ editor: 'none', editorUrl: '' }))
+    }
   })
-  await check('剛好放得下的小表格不出現水平捲軸', async () => {
-    const r = await page.locator('.ml-table-scroll', { has: page.locator('th', { hasText: '小表格' }) }).evaluate(s => [s.scrollWidth, s.clientWidth])
-    assert.ok(r[0] <= r[1], `scrollWidth ${r[0]} > clientWidth ${r[1]}`)
+  await check('剛好放得下的小表格不出現水平捲軸（各種文字欄寬度）', async () => {
+    await page.bringToFront()
+    await page.locator('.ml-body').click({ position: { x: 5, y: 5 } })
+    const scroll = page.locator('.ml-table-scroll', { has: page.locator('th', { hasText: '小表格' }) })
+    const seen = new Set()
+    // 依序切過每一種寬度（回到起點為止），每種寬度都檢查
+    for (let i = 0; i < 8; i++) {
+      const label = await page.textContent('.ml-tool-width')
+      if (seen.has(label)) break
+      seen.add(label)
+      const r = await scroll.evaluate(s => [s.scrollWidth, s.clientWidth])
+      assert.ok(r[0] <= r[1], `${label}：scrollWidth ${r[0]} > clientWidth ${r[1]}`)
+      await page.keyboard.press('w')
+    }
+    assert.ok(seen.size >= 3, [...seen].join('|'))
   })
   await check('http:// 渲染', async () => {
     assert.equal(await p4.locator('.markdown-body h1').count(), 1)
-    assert.equal(await p4.locator('.ml-tool-nav:not([hidden])').count(), 0, '網路上的頁面不顯示上一份／下一份')
+    assert.equal(await p4.locator('.ml-side-tab:text("檔案")').isVisible(), false, '網路上的頁面沒有檔案分頁')
+    assert.equal(await p4.locator('input.ml-task-box').first().getAttribute('data-ml-readonly'), 'taskReadonlyRemote')
   })
   await check('外部連結開新分頁；錨點、腳註、同站連結不受影響', async () => {
     const attrs = (pg, sel) => pg.locator(sel).first().evaluate(a => `${a.target}|${a.rel}`)
@@ -559,6 +602,64 @@ try {
     assert.equal(await p4.locator('#ml-root').count(), 0)
   })
 
+  /* ---------- 其他閱讀功能 ---------- */
+  await check('表格全螢幕：按鈕切換，Esc 離開，頁面恢復捲動', async () => {
+    await page.bringToFront()
+    const wrap = page.locator('.ml-table').first()
+    await wrap.hover()
+    await wrap.locator('.ml-table-bar button:text("全螢幕")').click()
+    assert.equal(await wrap.evaluate(el => el.classList.contains('ml-table-full')), true)
+    assert.equal(await page.evaluate(() => document.documentElement.classList.contains('ml-noscroll')), true)
+    await page.keyboard.press('Escape')
+    assert.equal(await wrap.evaluate(el => el.classList.contains('ml-table-full')), false)
+    assert.equal(await page.evaluate(() => document.documentElement.classList.contains('ml-noscroll')), false)
+  })
+  await check('網址帶 #錨點 指向被摺疊的段落：展開並捲到該處', async () => {
+    const hp = await openDoc()
+    try {
+      await hp.keyboard.press('[')
+      assert.equal(await visible(hp, '#第三層標題'), false, '先確認已摺疊')
+      await hp.evaluate(() => (location.hash = encodeURIComponent('第三層標題')))
+      await hp.waitForFunction(() => {
+        const el = document.getElementById('第三層標題')
+        return el && el.offsetParent !== null && document.scrollingElement.scrollTop > 0
+      })
+    } finally {
+      await hp.close()
+    }
+  })
+  await check('記住閱讀位置：重新開啟同一份檔案回到原本的位置；關閉後從頂端開始', async () => {
+    const sp1 = await openDoc()
+    await sp1.evaluate(() => scrollTo(0, 600))
+    await sp1.waitForTimeout(700) // 捲動位置延遲 400ms 才儲存
+    await sp1.close()
+    const sp2 = await openDoc()
+    try {
+      await sp2.waitForFunction(() => Math.abs(scrollY - 600) < 2, null, { timeout: 3000 })
+    } finally {
+      await sp2.close()
+    }
+    await sw.evaluate(() => MarkLens.saveSettings({ rememberScroll: false }))
+    try {
+      const sp3 = await openDoc()
+      await sp3.waitForTimeout(500)
+      assert.equal(await sp3.evaluate(() => scrollY), 0)
+      await sp3.close()
+    } finally {
+      await sw.evaluate(() => MarkLens.saveSettings({ rememberScroll: true }))
+    }
+  })
+  await check('關閉「外部連結開新分頁」後連結維持原樣', async () => {
+    await sw.evaluate(() => MarkLens.saveSettings({ linkNewTab: false }))
+    try {
+      const lp = await openDoc()
+      assert.equal(await lp.locator('.markdown-body a[target]').count(), 0)
+      await lp.close()
+    } finally {
+      await sw.evaluate(() => MarkLens.saveSettings({ linkNewTab: true }))
+    }
+  })
+
   await check('沒有 JS 錯誤', async () => {
     // fixture 中的 <img src="x"> 本來就會 404，排除
     assert.deepEqual(errors.filter(e => !e.includes('ERR_FILE_NOT_FOUND') && !e.includes('404')), [])
@@ -570,10 +671,9 @@ try {
   await pop.goto(`chrome-extension://${extId}/src/popup/popup.html`)
   await check('popup 載入並寫入設定', async () => {
     await pop.selectOption('[name=textWidth]', '1600')
-    await pop.waitForTimeout(200)
-    const s = await sw.evaluate(() => MarkLens.loadSettings())
-    assert.equal(s.textWidth, 1600)
+    await until(async () => (await sw.evaluate(() => MarkLens.loadSettings())).textWidth === 1600)
     assert.equal(await pop.locator('#custom-width-row').isVisible(), false)
+    await sw.evaluate(() => MarkLens.saveSettings({ textWidth: 1200 }))
   })
   await pop.setViewportSize({ width: 330, height: 700 })
   await pop.screenshot({ path: join(shotDir, 'ml-popup.png') })
@@ -599,7 +699,20 @@ try {
     assert.equal(await bad.locator(':scope > pre').isVisible(), true)
   })
   await check('Mermaid：標籤注入與點擊事件無效', async () => {
-    await mp.waitForTimeout(300)
+    const dialogs = []
+    const onDialog = d => {
+      dialogs.push(d.message())
+      d.dismiss().catch(() => {})
+    }
+    mp.on('dialog', onDialog)
+    try {
+      // 圖中寫了 click A call alert()：點節點 A 不應跳出對話框
+      await mp.locator('.ml-mermaid-view .node', { hasText: '讀取檔案' }).first().click()
+      await mp.waitForTimeout(300)
+    } finally {
+      mp.off('dialog', onDialog)
+    }
+    assert.deepEqual(dialogs, [])
     assert.equal(await mp.evaluate(() => document.body.dataset.xss), undefined)
     assert.equal(await mp.locator('.ml-mermaid-view img[onerror], .ml-mermaid-view script').count(), 0)
   })
@@ -656,11 +769,15 @@ try {
   })
   await check('Mermaid：關閉設定後不繪製', async () => {
     await sw.evaluate(() => MarkLens.saveSettings({ mermaid: false }))
-    const op = await openDoc(pathToFileURL(localMermaid).href)
-    await op.waitForTimeout(500)
-    assert.equal(await op.locator('.ml-mermaid').count(), 0)
-    await op.close()
-    await sw.evaluate(() => MarkLens.saveSettings({ mermaid: true }))
+    try {
+      const op = await openDoc(pathToFileURL(localMermaid).href)
+      await op.waitForTimeout(500)
+      assert.equal(await op.locator('.ml-mermaid').count(), 0)
+      assert.equal(await op.locator('code.language-mermaid').count(), 3, '保留程式碼')
+      await op.close()
+    } finally {
+      await sw.evaluate(() => MarkLens.saveSettings({ mermaid: true }))
+    }
   })
 
   /* ---------- 數學公式 ---------- */
@@ -738,6 +855,7 @@ try {
     // 程式碼中英對齊的字型設定一併寫入（本機有中文字型、未裝更紗黑體時才會有）
     const codeFont = await page.evaluate(() => JSON.parse(document.documentElement.dataset.mlCodeFont || '{}'))
     if (codeFont.loaded) assert.ok(html.includes('font-family: "MarkLens CJK Mono"; src: local('), '應含程式碼對齊字型')
+    else assert.ok(codeFont.skipped, `沒有寫入對齊字型時應記錄原因：${JSON.stringify(codeFont)}`)
     assert.deepEqual(xerr, [])
     await xp.close()
   })
@@ -753,6 +871,19 @@ try {
     await xp.close()
   })
   await mt.close()
+  await check('數學公式：關閉設定後不載入 KaTeX，保留 $ 原文', async () => {
+    await sw.evaluate(() => MarkLens.saveSettings({ math: false }))
+    try {
+      const op = await openDoc(pathToFileURL(mathFile).href)
+      await op.waitForTimeout(500)
+      assert.equal(await op.locator('.katex').count(), 0)
+      assert.equal(await op.evaluate(() => document.documentElement.dataset.mlMath), undefined)
+      assert.ok((await op.textContent('.markdown-body')).includes('行內公式 $E = mc^2$'))
+      await op.close()
+    } finally {
+      await sw.evaluate(() => MarkLens.saveSettings({ math: true }))
+    }
+  })
   await check('數學公式：http:// 頁面不載入 KaTeX，保留 $ 原文', async () => {
     const hp = await openDoc(`http://127.0.0.1:${port}/docs/math.md`)
     await hp.waitForTimeout(300)
@@ -771,14 +902,17 @@ try {
     d.dismiss().catch(() => {})
   })
   await sp.bringToFront()
-  await sp.waitForFunction(
-    () => Document.prototype.querySelectorAll.call(document, '.ml-mermaid-view svg, .ml-mermaid-error').length === 7,
-    null,
-    { timeout: 20000 },
-  )
-  await sp.waitForFunction(() => document.documentElement.dataset.mlMath === 'loaded')
-  await sp.waitForTimeout(200)
   const inSec = fn => sp.evaluate(fn)
+  // 等圖表與公式都畫完再檢查；放在 check 裡，逾時會記為失敗而不是中斷整個測試
+  await check('安全性：攻擊樣本載入完成（7 張圖表、公式都已繪製）', async () => {
+    await sp.waitForFunction(
+      () => Document.prototype.querySelectorAll.call(document, '.ml-mermaid-view svg, .ml-mermaid-error').length === 7,
+      null,
+      { timeout: 20000 },
+    )
+    await sp.waitForFunction(() => document.documentElement.dataset.mlMath === 'loaded')
+    await sp.waitForTimeout(200)
+  })
   await check('安全性：攻擊碼在載入與點擊後都沒有執行', async () => {
     const targets = sp.locator('.markdown-body a, .markdown-body summary, .markdown-body p, .ml-mermaid-view .node, .ml-mermaid-view .edgeLabel')
     // 正常的 http／mailto 連結會連到外部，攔下它的預設跳轉；其他網址（若有漏網的危險連結）照常放行，才測得出來
@@ -871,6 +1005,38 @@ try {
     assert.equal(await fp.title(), evilName)
     assert.equal(await fp.evaluate(() => document.body.dataset.xss), undefined)
     await fp.close()
+  })
+
+  /* ---------- 載入時不閃出原始文字 ---------- */
+  await check('載入中先隱藏原始文字；停用 MarkLens 時原文照常顯示', async () => {
+    // 樣式表比程式早套用：程式接手前原文是隱藏的
+    const hp = await ctx.newPage()
+    await hp.addInitScript(() => {
+      new MutationObserver((_, obs) => {
+        const pre = document.querySelector('body > pre')
+        if (!pre) return
+        window.__preVis = getComputedStyle(pre).visibility
+        obs.disconnect()
+      }).observe(document, { childList: true, subtree: true })
+    })
+    await hp.goto(localUrl)
+    await hp.waitForSelector('#ml-root .markdown-body h1')
+    assert.equal(await hp.evaluate(() => window.__preVis), 'hidden')
+    await hp.close()
+    await sw.evaluate(() => MarkLens.saveSettings({ enabled: false }))
+    try {
+      const op = await ctx.newPage()
+      await op.goto(localUrl)
+      await op.waitForFunction(() => document.documentElement.classList.contains('ml-off'))
+      assert.equal(await op.locator('#ml-root').count(), 0)
+      assert.equal(await op.locator('body > pre').evaluate(el => getComputedStyle(el).visibility), 'visible')
+      await op.close()
+    } finally {
+      await sw.evaluate(() => MarkLens.saveSettings({ enabled: true }))
+    }
+    // 停用／啟用會重新整理所有已開啟的分頁：等主要分頁重新渲染，後面的檢查才能繼續用
+    await page.waitForSelector('#ml-root .markdown-body h1', { timeout: 5000 })
+    await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important; }' })
   })
 
   /* ---------- 任務勾選寫回 ---------- */
@@ -987,6 +1153,7 @@ try {
   })
   await check('勾選寫回：關閉設定後勾選框唯讀，點擊時說明原因', async () => {
     await sw.evaluate(() => MarkLens.saveSettings({ taskWrite: false }))
+    try {
     const p2 = await openDoc(pathToFileURL(join(taskDir, 'tasks.md')).href)
     const before = (await opfs.read('tasks.md')).text
     const b = p2.locator('.task-list-item', { hasText: '第一項' }).locator('input')
@@ -997,7 +1164,9 @@ try {
     assert.equal(await b.isChecked(), was, '勾選狀態不變')
     assert.equal((await opfs.read('tasks.md')).text, before, '檔案不變')
     await p2.close()
-    await sw.evaluate(() => MarkLens.saveSettings({ taskWrite: true, autoRefresh: 'local' }))
+    } finally {
+      await sw.evaluate(() => MarkLens.saveSettings({ taskWrite: true, autoRefresh: 'local' }))
+    }
   })
   await check('勾選寫回：非 UTF-8 檔案唯讀，點擊時說明原因', async () => {
     // A4 A4 是 Big5 的「中」，不是合法的 UTF-8
@@ -1011,7 +1180,66 @@ try {
     assert.equal(await b.isChecked(), false)
     await p3.close()
   })
-  await check('授權頁載入', async () => {
+  await check('勾選寫回：多個授權資料夾都有這個路徑時，寫入內容與頁面相同的那一份；分不出來就不寫', async () => {
+    // OPFS：<暫存目錄名>/work/tasks.md（與頁面相同）、copy/work/tasks.md（另一份同名檔案）
+    // 授權 <暫存目錄名>、<暫存目錄名>/work（巢狀，指向同一個檔案）與 copy/work
+    const base = work.split(/[\\/]/).pop()
+    const setup = copySrc =>
+      sw.evaluate(
+        async ([b, a, c]) => {
+          const top = await navigator.storage.getDirectory()
+          for (const n of [b, 'copy']) await top.removeEntry(n, { recursive: true }).catch(() => {})
+          const put = async (dir, text) => {
+            const w = await (await dir.getFileHandle('tasks.md', { create: true })).createWritable()
+            await w.write(text)
+            await w.close()
+          }
+          const baseDir = await top.getDirectoryHandle(b, { create: true })
+          const mine = await baseDir.getDirectoryHandle('work', { create: true })
+          const other = await (await top.getDirectoryHandle('copy', { create: true })).getDirectoryHandle('work', { create: true })
+          await put(mine, a)
+          await put(other, c)
+          for (const r of await MarkLens.Roots.list()) await MarkLens.Roots.remove(r.id)
+          for (const d of [baseDir, mine, other]) await MarkLens.Roots.add(d)
+        },
+        [base, tasksSrc, copySrc],
+      )
+    const readOpfs = path =>
+      sw.evaluate(async p => {
+        let dir = await navigator.storage.getDirectory()
+        for (const n of p.slice(0, -1)) dir = await dir.getDirectoryHandle(n)
+        return (await (await dir.getFileHandle(p.at(-1))).getFile()).text()
+      }, path)
+    const click = async (pg, expect) => {
+      await pg.locator('.task-list-item', { hasText: '第一項' }).first().locator('input').click()
+      await pg.waitForFunction(t => document.querySelector('.ml-toast.show')?.textContent.startsWith(t), expect)
+    }
+    try {
+      const other = tasksSrc.replace('第二項', '另一份檔案')
+      await setup(other)
+      const p5 = await openDoc(pathToFileURL(join(taskDir, 'tasks.md')).href)
+      await click(p5, '已勾選並存檔')
+      await p5.close()
+      assert.equal(await readOpfs([base, 'work', 'tasks.md']), tasksSrc.replace('- [ ] 第一項', '- [x] 第一項'), '寫入與頁面相同的那一份')
+      assert.equal(await readOpfs(['copy', 'work', 'tasks.md']), other, '另一份不動')
+      // 兩份內容完全相同：分不出是哪一個檔案，不寫入
+      await setup(tasksSrc)
+      const p6 = await openDoc(pathToFileURL(join(taskDir, 'tasks.md')).href)
+      await click(p6, '多個授權資料夾都有這個檔案')
+      await p6.close()
+      assert.equal(await readOpfs([base, 'work', 'tasks.md']), tasksSrc)
+      assert.equal(await readOpfs(['copy', 'work', 'tasks.md']), tasksSrc)
+    } finally {
+      // 回到前一項檢查之後的狀態：沒有授權資料夾
+      await sw.evaluate(async () => {
+        for (const r of await MarkLens.Roots.list()) await MarkLens.Roots.remove(r.id)
+      })
+    }
+  })
+  await check('授權頁載入（沒有授權資料夾時顯示空白說明）', async () => {
+    await sw.evaluate(async () => {
+      for (const r of await MarkLens.Roots.list()) await MarkLens.Roots.remove(r.id)
+    })
     const g = await ctx.newPage()
     g.on('pageerror', e => errors.push(e.message))
     await g.goto(`chrome-extension://${sw.url().split('/')[2]}/src/grant/grant.html?back=1`)
@@ -1108,7 +1336,8 @@ try {
     // 觸發捲動位置儲存與自動更新
     await page.mouse.wheel(0, 400)
     writeFileSync(localMd, readFileSync(fixture, 'utf8') + '\n\n重新載入後的修改\n')
-    await page.waitForSelector('.ml-orphan', { timeout: 4000 })
+    // 重新載入當下若有一個讀檔請求還在等背景程式回應，要等它失敗後下一輪才發現失聯，所以多給一點時間
+    await page.waitForSelector('.ml-orphan', { timeout: 8000 })
     await page.waitForTimeout(800)
     assert.deepEqual(errors.slice(before), [])
   })
