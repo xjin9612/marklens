@@ -1,7 +1,8 @@
 'use strict'
 // 授權頁：新增、確認、移除可寫回的資料夾
-;(() => {
+;(async () => {
   const { t } = MarkLens
+  await MarkLens.initI18n()
   MarkLens.localize()
   const $ = sel => document.querySelector(sel)
   const list = $('#roots')

@@ -239,6 +239,12 @@
   "themeSystem": {
     "message": "跟隨系統"
   },
+  "uiLang": {
+    "message": "介面語言"
+  },
+  "langAuto": {
+    "message": "自動（跟隨瀏覽器）"
+  },
   "fontSize": {
     "message": "字體大小"
   },

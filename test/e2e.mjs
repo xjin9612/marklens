@@ -893,6 +893,32 @@ try {
     const missing = [...used].filter(k => !(k in en))
     assert.deepEqual(missing, [])
   })
+  await check('介面語言設定：中文瀏覽器下指定 English，閱讀頁、popup、引導頁改為英文', async () => {
+    await sw.evaluate(() => MarkLens.saveSettings({ uiLang: 'en' }))
+    try {
+      const lp = await openDoc()
+      const tools = (await lp.locator('.ml-toolbar').innerText()).replace(/\s+/g, ' ')
+      assert.ok(tools.includes('Fold all') && tools.includes('Export HTML'), tools)
+      assert.equal(await lp.locator('.ml-toc-search').getAttribute('placeholder'), 'Search headings…')
+      await lp.close()
+      const wp = await ctx.newPage()
+      await wp.goto(`chrome-extension://${extId}/src/welcome/welcome.html`)
+      await wp.waitForSelector('#file-status[data-state="ok"]')
+      assert.equal(await wp.textContent('h1'), 'Welcome to MarkLens')
+      assert.equal(await wp.evaluate(() => document.documentElement.lang), 'en')
+      await wp.close()
+      // popup 切回自動時立即換回中文
+      const pp = await ctx.newPage()
+      await pp.goto(`chrome-extension://${extId}/src/popup/popup.html`)
+      assert.equal(await pp.locator('[data-i18n="secLayout"]').textContent(), 'Layout defaults')
+      await pp.selectOption('[name=uiLang]', 'auto')
+      await pp.waitForFunction(() => document.querySelector('[data-i18n="secLayout"]').textContent === '版面預設值')
+      assert.equal((await sw.evaluate(() => MarkLens.loadSettings())).uiLang, 'auto')
+      await pp.close()
+    } finally {
+      await sw.evaluate(() => MarkLens.saveSettings({ uiLang: 'auto' }))
+    }
+  })
   await check('英文介面：工具列、popup 與引導頁顯示英文', async () => {
     const enCtx = await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), 'ml-prof-en-')), {
       headless: true,

@@ -2,6 +2,7 @@
 // 設定面板：表單欄位名稱與設定鍵一一對應，變更即存
 ;(async () => {
   const { t } = MarkLens
+  await MarkLens.initI18n()
   MarkLens.localize()
   const form = document.body
   const $ = sel => document.querySelector(sel)
@@ -49,6 +50,11 @@
       }
       customRow.hidden = true
       await MarkLens.saveSettings({ textWidth: Number(el.value) })
+    } else if (el.name === 'uiLang') {
+      // 介面語言：popup 立即換成新語言；閱讀頁重新整理後套用
+      await MarkLens.saveSettings({ uiLang: el.value })
+      await MarkLens.initI18n(el.value)
+      MarkLens.localize()
     } else if (el.name === 'customWidth') {
       const w = Math.min(4000, Math.max(480, Number(el.value) || 0))
       await MarkLens.saveSettings({ textWidth: w })
