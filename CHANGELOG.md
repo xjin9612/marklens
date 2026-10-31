@@ -32,6 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Security
 - HTML in a document can no longer use MarkLens's own `ml-` class and id names, so it cannot fake a full-screen overlay, a toast or a toolbar on top of the page
 - The `name` attribute is kept only on `<a>`, so elements such as `<img name="querySelector">` cannot overwrite methods on `document` (DOM clobbering)
+- On web pages, per-tab layout (sidebar, width) is no longer saved in the site's own `sessionStorage`, where later pages of the same site in that tab could read it and detect MarkLens. It now lives in memory and resets on reload; local files are unchanged
 - Folder listings for the Files tab are read only from local `file://` folders (no network shares or `.` / `..` segments) and return only Markdown file names and subfolder names
 - New end-to-end attack suite (`test/fixtures/security.md`, partly adapted from local-markdown-viewer, MIT) with 60+ samples; every link, diagram node and summary is clicked and nothing may run
 
