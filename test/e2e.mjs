@@ -565,6 +565,58 @@ try {
     assert.equal(await res.jsonValue(), 1)
   })
   await mt.screenshot({ path: join(shotDir, 'ml-math.png'), fullPage: true })
+
+  /* ---------- 匯出 HTML ---------- */
+  /** 按工具列的匯出，回傳下載的 HTML 內容與存檔路徑 */
+  async function exportFrom(pg) {
+    const [dl] = await Promise.all([pg.waitForEvent('download'), pg.click('.ml-tool-export')])
+    const file = join(work, `export-${Date.now()}-${dl.suggestedFilename()}`)
+    await dl.saveAs(file)
+    return { name: dl.suggestedFilename(), file, html: readFileSync(file, 'utf8') }
+  }
+  await check('匯出 HTML：單一檔案、不含程式碼、全部展開，開啟後樣式正常', async () => {
+    await page.bringToFront()
+    await page.click('.ml-toolbar button:has-text("全部摺疊")')
+    const { name, file, html } = await exportFrom(page)
+    await page.click('.ml-toolbar button:has-text("全部展開")')
+    assert.equal(name, 'sample.html', '檔名')
+    assert.ok(!/<script/i.test(html), '不應含 script')
+    assert.ok(html.includes('http-equiv="Content-Security-Policy"'))
+    const body = html.slice(html.indexOf('<body>'))
+    assert.ok(!/class="[^"]*\bml-(fold|anchor|code-bar|table-bar)\b/.test(body), '不應含閱讀頁的互動元件')
+    assert.ok(!/data-ml-fold="/.test(body) && !/ml-folded/.test(body), '應全部展開')
+    assert.equal(await page.locator('.ml-toast.show').textContent(), '已匯出 sample.html', '提示')
+    const xp = await ctx.newPage()
+    const xerr = []
+    xp.on('console', m => m.type() === 'error' && !m.text().includes('ERR_FILE_NOT_FOUND') && xerr.push(m.text()))
+    await xp.goto(pathToFileURL(file).href)
+    assert.equal(await xp.locator('#ml-root').count(), 1, 'ml-root')
+    assert.equal(await xp.title(), await page.title(), '標題')
+    assert.ok(await xp.locator('.markdown-body h2', { hasText: '安全性' }).isVisible(), '摺疊的段落應顯示')
+    const kw = await xp.locator('.hljs-keyword').first().evaluate(el => getComputedStyle(el).color)
+    const text = await xp.locator('.markdown-body p').first().evaluate(el => getComputedStyle(el).color)
+    assert.notEqual(kw, text, '程式碼高亮樣式應內嵌')
+    assert.ok(await xp.locator('.markdown-alert-note').isVisible())
+    // 勾選狀態與閱讀頁一致
+    const checked = pg => pg.locator('input.ml-task-box:checked').count()
+    assert.equal(await checked(xp), await checked(page), '勾選狀態')
+    // 程式碼中英對齊的字型設定一併寫入（本機有中文字型、未裝更紗黑體時才會有）
+    const codeFont = await page.evaluate(() => JSON.parse(document.documentElement.dataset.mlCodeFont || '{}'))
+    if (codeFont.loaded) assert.ok(html.includes('font-family: "MarkLens CJK Mono"; src: local('), '應含程式碼對齊字型')
+    assert.deepEqual(xerr, [])
+    await xp.close()
+  })
+  await check('匯出 HTML：數學公式的字型內嵌，離線開啟也能顯示', async () => {
+    await mt.bringToFront()
+    const { file, html } = await exportFrom(mt)
+    assert.ok(html.includes('data:font/woff2;base64,'))
+    assert.ok(!/url\(fonts\//.test(html), '不應留下相對路徑的字型')
+    const xp = await ctx.newPage()
+    await xp.goto(pathToFileURL(file).href)
+    await xp.waitForFunction(() => [...document.fonts].some(f => f.family === 'KaTeX_Main' && f.status === 'loaded'), null, { timeout: 5000 })
+    assert.equal(await xp.locator('.katex-display').count(), 2)
+    await xp.close()
+  })
   await mt.close()
   await check('數學公式：http:// 頁面不載入 KaTeX，保留 $ 原文', async () => {
     const hp = await openDoc(`http://127.0.0.1:${port}/docs/math.md`)

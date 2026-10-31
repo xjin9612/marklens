@@ -130,6 +130,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.tocBtn = btn('ml-tool-toc', t('toolToc'), t('toolTocTitle'), () => this.toggleToc())
       this.widthBtn = btn('ml-tool-width', '', t('toolWidthTitle'), () => this.cycleWidth())
       this.themeBtn = btn('ml-tool-theme', '', t('toolThemeTitle'), () => this.cycleTheme())
+      this.exportBtn = btn('ml-tool-export', '', t('toolExportTitle'), () => this.exportHtml())
+      // 窄螢幕只顯示圖示（文字部分由 CSS 隱藏）
+      this.exportBtn.append('⤓', h('span', { class: 'ml-tool-label', text: t('toolExport') }))
       this.rawBtn = btn('ml-tool-raw', t('toolRaw'), t('toolRawTitle'), () => this.toggleRaw())
       this.topBtn = btn('ml-tool-top', t('toolTop'), t('toolTopTitle'), () => scrollTo({ top: 0 }))
       return h('div', { class: 'ml-toolbar', attrs: { role: 'toolbar' } }, [
@@ -139,6 +142,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           btn('', t('toolFoldAll'), t('toolFoldAllTitle'), () => MarkLens.foldAll(this.article)),
           btn('', t('toolUnfoldAll'), t('toolUnfoldAllTitle'), () => MarkLens.unfoldAll(this.article)),
           this.widthBtn,
+          this.exportBtn,
         ]),
         this.themeBtn,
         this.rawBtn,
@@ -272,6 +276,19 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     cycleTheme() {
       if (!MarkLens.alive()) return
       MarkLens.saveSettings({ theme: MarkLens.nextOf(MarkLens.THEME_ORDER, this.settings.theme) }).catch(() => {})
+    }
+
+    async exportHtml() {
+      if (!MarkLens.alive()) return this.onOrphaned()
+      this.exportBtn.disabled = true
+      try {
+        const name = await MarkLens.exportHtml(this.article)
+        MarkLens.toast(t('exportDone', name))
+      } catch (err) {
+        MarkLens.toast(t('exportFailed', err.message))
+      } finally {
+        this.exportBtn.disabled = false
+      }
     }
 
     cycleWidth() {

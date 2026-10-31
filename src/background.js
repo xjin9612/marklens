@@ -77,7 +77,25 @@ const HANDLERS = {
   },
 
   'toggle-task': toggleTask,
+
+  /**
+   * 匯出 HTML 用：讀取擴充功能內的樣式與字型
+   * 只允許固定的幾個檔案，不能被拿來讀取擴充功能的其他內容
+   */
+  async 'read-asset'(msg) {
+    const path = String(msg.path || '')
+    if (!ASSET_RE.test(path)) return { status: 'error', error: 'not allowed' }
+    const res = await fetch(chrome.runtime.getURL(path))
+    if (!res.ok) return { status: 'error', error: `HTTP ${res.status}` }
+    if (path.endsWith('.css')) return { status: 'ok', text: await res.text() }
+    const bytes = new Uint8Array(await res.arrayBuffer())
+    let bin = ''
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
+    return { status: 'ok', base64: btoa(bin) }
+  },
 }
+
+const ASSET_RE = /^(?:src\/content\/content\.css|vendor\/katex\/katex\.min\.css|vendor\/katex\/fonts\/KaTeX_[A-Za-z0-9-]+\.woff2)$/
 
 /* ---------- 任務勾選寫回 ---------- */
 

@@ -79,6 +79,7 @@
         "src/content/enhance.js",
         "src/content/mermaid.js",
         "src/content/math.js",
+        "src/content/export.js",
         "src/content/table.js",
         "src/content/toc.js",
         "src/content/main.js"

@@ -66,14 +66,21 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           }),
       )
       let loaded = 0
-      for (const face of faces) {
+      const css = []
+      for (const [i, face] of faces.entries()) {
         try {
           document.fonts.add(await face.load())
           loaded++
+          // 同樣的設定以 CSS 形式保留，匯出 HTML 時寫進檔案
+          const names = (i === 0 ? cjk[1] : cjk[2]).map(n => `local("${n}")`).join(', ')
+          css.push(
+            `@font-face { font-family: "${FAMILY}"; src: ${names}; font-weight: ${face.weight}; size-adjust: ${sizeAdjust}; unicode-range: ${CJK_RANGE}; }`,
+          )
         } catch {
           // 該字重找不到對應的 local() 名稱，交給瀏覽器的一般備援
         }
       }
+      MarkLens.codeFontCss = css.join('\n')
       return { ascii, cjk: cjk[0], ratio, loaded }
     } catch (err) {
       console.warn('[MarkLens] 程式碼字型校正失敗', err)
