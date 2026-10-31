@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "MarkLens",
   "short_name": "MarkLens",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "輕量、可稽核的 Markdown 閱讀器：寬表格可拖拉欄寬與排序、側邊目錄、深淺色主題、本機檔案自動更新。",
   "icons": {
     "16": "icons/icon16.png",
@@ -120,5 +120,5 @@
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'none'"
   },
-  "version_name": "1.1.0"
+  "version_name": "1.2.0"
 }
