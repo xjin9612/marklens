@@ -35,6 +35,7 @@ To upgrade, replace the folder with the new release and click the reload icon on
 | Syntax | CommonMark + GFM, task lists, footnotes, `==highlight==`, emoji shortcodes (`:tada:`), GitHub alerts (`> [!NOTE]` etc.), collapsible front matter |
 | Code | highlight.js syntax highlighting (common languages), language label, copy button, per-block wrap toggle |
 | Diagrams | [Mermaid](https://mermaid.js.org/) flowcharts, sequence diagrams and more in local files. The library (~5 MB) loads only when a document contains a mermaid block; diagrams follow the theme, keep their place during live reload, and can be toggled back to source. Syntax errors are shown next to the source. Not drawn on `http(s)://` pages (see Security) |
+| Math | `$…$`, `$$…$$`, `` $`…`$ `` and ` ```math ` blocks rendered with [KaTeX](https://katex.org/) in local files; loaded only when a document contains math. Prices like `$5 and $10` stay as text. Like Pandoc and GitHub, `$HOME/$USER` would be read as math — put it in backticks or write `\$` |
 | Images | Lazy loading, click to zoom (Esc to close) |
 | Theme | System / light / dark, from the toolbar, the `d` key or the popup; applies to every open tab |
 | Check off tasks | Click a task-list checkbox in a local file to save `[ ]` / `[x]` straight back to the file — no editor needed. Works in nested lists, ordered lists and blockquotes; checkboxes inside code blocks are never touched. Undo from the toast; refuses to write if the file changed elsewhere; keeps CRLF and BOM. Requires authorizing a folder once (see below) |
@@ -80,6 +81,7 @@ Browser-level (change them at `chrome://extensions/shortcuts`):
 ## Security
 
 - **Allow-list HTML sanitizer** (`src/content/sanitize.js`): keeps common tags such as `<details>`, `<kbd>` and tables; drops `<script>`, `<iframe>`, `<svg>`, every event-handler attribute, `style` (except table alignment), and `javascript:` / non-image `data:` URLs.
+- **Math** renders with KaTeX `trust: false` (no `\href`, `\url`, `\includegraphics` or `\html…` commands) and a macro-expansion limit; like Mermaid, its files are reachable from `file://` pages only.
 - **No borrowing the interface**: HTML in a document cannot use MarkLens's own `ml-` class or id names (so it cannot draw a fake overlay or prompt over the page), and `name` is kept only on `<a>` to prevent DOM clobbering.
 - **Attack suite**: `test/fixtures/security.md` collects 60+ attack samples; the tests render it, click every link and diagram node, and fail if anything runs.
 - **Minimal permissions**: only `storage`. Content scripts match Markdown file extensions only — no "read all sites" permission.
@@ -107,6 +109,7 @@ src/
     markdown.js          markdown-it setup, ==mark==, alerts, front matter
     enhance.js           heading anchors & folding, inline grouping, task lists, code blocks, images, stats
     mermaid.js           Mermaid diagrams, loaded on demand
+    math.js              KaTeX math, loaded on demand
     table.js             column resize, sorting, filter, copy, fullscreen, state save/restore
     toc.js               sidebar outline
     main.js              entry point: layout, toolbar, shortcuts, per-tab state, live reload, task write-back
@@ -167,6 +170,8 @@ The suite loads the extension into Chromium and opens local and http fixtures (`
 - Tabs: outline and width stay per tab, appearance syncs live, new tabs use updated defaults
 - Task write-back: correct line (with front matter), blockquote and ordered lists, undo, conflict detection, CRLF and BOM preserved, unauthorized folder, feature off. Folder access is simulated with the browser's private file system (OPFS); the folder picker itself has to be tested by hand
 - Mermaid (`test/fixtures/mermaid.md`): not loaded without diagrams, drawing, syntax errors, label injection, source toggle, theme switch, no flicker on live reload, not drawn over http, setting off
+- Math (`test/fixtures/math.md`): inline, display, ` ```math `, tables, prices and escapes left alone, errors, live reload, not drawn over http
+- Interface language: matching keys in both locales, English UI smoke test
 - Popup settings
 
 Screenshots go to the directory in the `SHOT_DIR` environment variable (system temp by default).

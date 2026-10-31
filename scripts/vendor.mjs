@@ -36,6 +36,16 @@ const PACKAGES = [
     files: [['highlight.min.js', 'highlight.min.js']],
   },
   {
+    // 數學公式：單檔 ESM 與樣式，只在頁面有公式時才動態載入；字型只取 woff2（所有支援的瀏覽器都優先使用 woff2）
+    name: 'katex',
+    version: '0.19.1',
+    files: [
+      ['dist/katex.mjs', 'katex/katex.mjs'],
+      ['dist/katex.min.css', 'katex/katex.min.css'],
+    ],
+    dirs: [['dist/fonts', 'katex/fonts', /\.woff2$/]],
+  },
+  {
     // ESM 版本：主檔加上按圖表類型拆分的 chunk，只在頁面有 mermaid 區塊時才動態載入
     name: 'mermaid',
     version: '12.2.0',
@@ -69,12 +79,13 @@ try {
       copyFileSync(join(out, 'package', from), join(vendorDir, to))
     }
     // 整個資料夾（不含 sourcemap）；先清空，避免殘留舊版的 chunk
-    for (const [from, to] of pkg.dirs ?? []) {
+    for (const [from, to, only] of pkg.dirs ?? []) {
       const dest = join(vendorDir, to)
       rmSync(dest, { recursive: true, force: true })
       mkdirSync(dest, { recursive: true })
       for (const f of readdirSync(join(out, 'package', from))) {
-        if (!f.endsWith('.map')) copyFileSync(join(out, 'package', from, f), join(dest, f))
+        if (f.endsWith('.map') || (only && !only.test(f))) continue
+        copyFileSync(join(out, 'package', from, f), join(dest, f))
       }
     }
     const licName = pkg.license ?? pkg.name

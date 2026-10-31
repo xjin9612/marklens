@@ -161,7 +161,19 @@ flowchart TD
   click B call alert()
 ```
 
-## 14. 自動連結比照 GitHub
+## 14. 數學公式（KaTeX 以 trust: false 繪製）
+
+連結 $\href{javascript:document.body.dataset.xss='katex-href'}{連結}$、網址 $\url{javascript:alert(1)}$、
+借用介面 $\htmlClass{ml-viewer open}{x}$、樣式 $\htmlStyle{position:fixed;inset:0;background:red}{x}$、
+屬性 $\htmlData{onclick=alert(1)}{x}$、圖片 $\includegraphics{x}$。
+
+<span class="math-inline">\href{javascript:document.body.dataset.xss='forged-math'}{HTML 偽造的公式}</span>
+
+$$
+\def\a{\a\a}\a
+$$
+
+## 15. 自動連結比照 GitHub
 
 自動連結：檔名 README.md、裸網域 example.com 不連結；www.example.com、https://example.com/a 與 a@example.com 連結。
 

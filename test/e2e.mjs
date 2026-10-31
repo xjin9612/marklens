@@ -27,7 +27,8 @@ copyFileSync(mermaidFixture, localMermaid)
 
 const server = createServer((req, res) => {
   res.writeHead(200, { 'content-type': 'text/markdown; charset=utf-8' })
-  res.end(readFileSync(req.url.includes('mermaid') ? mermaidFixture : fixture))
+  const name = ['mermaid', 'math'].find(n => req.url.includes(n))
+  res.end(readFileSync(name ? join(root, `test/fixtures/${name}.md`) : fixture))
 }).listen(0)
 const port = server.address().port
 
@@ -527,6 +528,52 @@ try {
     await sw.evaluate(() => MarkLens.saveSettings({ mermaid: true }))
   })
 
+  /* ---------- 數學公式 ---------- */
+  await check('數學公式：沒有公式的文件不載入 KaTeX', async () => {
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.mlMath), undefined)
+  })
+  const mathFile = join(work, 'math.md')
+  copyFileSync(join(root, 'test/fixtures/math.md'), mathFile)
+  const mt = await openDoc(pathToFileURL(mathFile).href)
+  await mt.bringToFront()
+  await check('數學公式：行內、獨立、```math、表格內都繪製；金額、跳脫、程式碼不轉換', async () => {
+    await mt.waitForFunction(() => document.querySelectorAll('.markdown-body :is(.katex, .katex-error)').length === 7, null, { timeout: 15000 })
+    const r = await mt.evaluate(() => ({
+      inline: document.querySelectorAll('.math-inline > :is(.katex, .katex-error)').length,
+      display: document.querySelectorAll('.math-display .katex-display').length,
+      error: document.querySelectorAll('.katex-error').length,
+      table: document.querySelectorAll('td .katex').length,
+      text: document.querySelector('.markdown-body').innerText,
+      code: document.querySelector('.markdown-body p code').textContent,
+      font: document.fonts.check('16px KaTeX_Main'),
+    }))
+    assert.equal(r.display, 2)
+    assert.equal(r.inline, 5) // E=mc²、√2、表格、錯誤的那一個、x₁
+    assert.equal(r.error, 1)
+    assert.equal(r.table, 1)
+    assert.ok(r.text.includes('價格 $5 與 $10 不是公式，跳脫的 $HOME 也不是'), r.text)
+    assert.equal(r.code, '$x$')
+    await mt.waitForFunction(() => document.fonts.check('16px KaTeX_Main') && [...document.fonts].some(f => f.family === 'KaTeX_Main' && f.status === 'loaded'), null, { timeout: 5000 })
+  })
+  await check('數學公式：自動更新時同步重繪，不閃爍', async () => {
+    writeFileSync(mathFile, readFileSync(join(root, 'test/fixtures/math.md'), 'utf8') + '\n新增 $y^2$\n')
+    const res = await mt.waitForFunction(
+      () => document.body.innerText.includes('新增') && document.querySelectorAll('.math-inline:not(:has(.katex, .katex-error))').length + 1,
+      null,
+      { timeout: 4000, polling: 'raf' },
+    )
+    assert.equal(await res.jsonValue(), 1)
+  })
+  await mt.screenshot({ path: join(shotDir, 'ml-math.png'), fullPage: true })
+  await mt.close()
+  await check('數學公式：http:// 頁面不載入 KaTeX，保留 $ 原文', async () => {
+    const hp = await openDoc(`http://127.0.0.1:${port}/docs/math.md`)
+    await hp.waitForTimeout(300)
+    assert.equal(await hp.locator('.katex').count(), 0)
+    assert.ok((await hp.textContent('.markdown-body')).includes('行內公式 $E = mc^2$'))
+    await hp.close()
+  })
+
   /* ---------- 安全性：攻擊樣本（test/fixtures/security.md） ---------- */
   // 攻擊成功會在 body 留下 data-xss 或跳出對話框。頁面上的 document 方法可能被樣本覆蓋（DOM clobbering），
   // 所以檢查一律透過 Document.prototype 呼叫
@@ -542,6 +589,8 @@ try {
     null,
     { timeout: 20000 },
   )
+  await sp.waitForFunction(() => document.documentElement.dataset.mlMath === 'loaded')
+  await sp.waitForTimeout(200)
   const inSec = fn => sp.evaluate(fn)
   await check('安全性：攻擊碼在載入與點擊後都沒有執行', async () => {
     const targets = sp.locator('.markdown-body a, .markdown-body summary, .markdown-body p, .ml-mermaid-view .node, .ml-mermaid-view .edgeLabel')
@@ -571,20 +620,25 @@ try {
       const all = Document.prototype.querySelectorAll.call(document, '.markdown-body *')
       for (const el of all) {
         const inDiagram = !!el.closest('.ml-mermaid-view')
+        // KaTeX 輸出（含 MathML 與錯誤提示的紅字樣式）另外檢查
+        const inMath = !!el.closest('.katex, .katex-error')
         const tag = el.tagName.toUpperCase()
-        if (!inDiagram && /^(SCRIPT|IFRAME|OBJECT|EMBED|FORM|INPUT|TEXTAREA|META|BASE|LINK|STYLE|SVG|MATH|TEMPLATE|NOSCRIPT|FRAME|FRAMESET)$/.test(tag)) out.push(tag)
+        if (!inDiagram && !(inMath && tag === 'MATH') && /^(SCRIPT|IFRAME|OBJECT|EMBED|FORM|INPUT|TEXTAREA|META|BASE|LINK|STYLE|SVG|MATH|TEMPLATE|NOSCRIPT|FRAME|FRAMESET)$/.test(tag)) out.push(tag)
         if (!inDiagram && tag === 'BUTTON' && !/\bml-/.test(el.className)) out.push('BUTTON')
         if (inDiagram && /^(SCRIPT|IFRAME|OBJECT|EMBED)$/.test(tag)) out.push(`mermaid ${tag}`)
+        if (inMath && /^(A|IMG|SCRIPT)$/.test(tag)) out.push(`katex ${tag}`)
+        if (inMath && /\bml-/.test(el.getAttribute('class') || '')) out.push(`katex class ${el.getAttribute('class')}`)
+        if (inMath && /position\s*:\s*fixed/i.test(el.getAttribute('style') || '')) out.push('katex fixed')
         for (const at of el.attributes) {
           const v = at.value.replace(/[\s\u0000-\u001f]/g, '').toLowerCase()
           if (at.name.toLowerCase().startsWith('on')) out.push(`${tag} ${at.name}`)
           if (/(^|:)href$|^(src|poster|action|data|srcdoc|formaction)$/i.test(at.name) && /^(javascript|vbscript|data:(?!image\/(png|gif|jpe?g|webp)))/.test(v)) out.push(`${tag} ${at.name}=${v.slice(0, 30)}`)
-          if (!inDiagram && at.name === 'style' && !/^text-align:/.test(at.value)) out.push(`${tag} style`)
+          if (!inDiagram && !inMath && at.name === 'style' && !/^text-align:/.test(at.value)) out.push(`${tag} style`)
         }
       }
       return out
     })
-    assert.deepEqual(bad, [])
+    assert.deepEqual(bad, [], bad.join(' | '))
   })
   await check('安全性：文件不能借用 MarkLens 介面的 class／id 偽造畫面', async () => {
     const r = await inSec(() => {

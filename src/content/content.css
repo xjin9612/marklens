@@ -631,3 +631,9 @@ html.marklens .markdown-body .ml-mermaid .ml-mermaid-view.ml-mermaid-error {
   margin-bottom: 8px;
 }
 html.marklens .markdown-body .ml-mermaid-error pre { padding: 8px 0 0; background: none; white-space: pre-wrap; text-align: left; }
+
+/* 數學公式（KaTeX） */
+html.marklens .markdown-body .math-display { display: block; overflow-x: auto; overflow-y: hidden; text-align: center; margin: 0 0 16px; }
+html.marklens .markdown-body .math-display .katex-display { margin: .5em 0; }
+html.marklens .markdown-body .katex { font-size: 1.1em; }
+html.marklens .markdown-body .katex-error { color: #d1242f; }

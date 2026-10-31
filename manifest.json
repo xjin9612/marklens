@@ -78,6 +78,7 @@
         "src/content/fonts.js",
         "src/content/enhance.js",
         "src/content/mermaid.js",
+        "src/content/math.js",
         "src/content/table.js",
         "src/content/toc.js",
         "src/content/main.js"
@@ -116,7 +117,12 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["vendor/mermaid/*", "vendor/mermaid/chunks/mermaid.esm.min/*"],
+      "resources": [
+        "vendor/mermaid/*",
+        "vendor/mermaid/chunks/mermaid.esm.min/*",
+        "vendor/katex/*",
+        "vendor/katex/fonts/*"
+      ],
       "matches": ["file:///*"]
     }
   ],
