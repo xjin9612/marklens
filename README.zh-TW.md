@@ -7,9 +7,9 @@
 
 在 Chrome / Edge 直接閱讀 `.md` 檔案的擴充功能。功能參考 [md-reader 2.x](https://github.com/md-reader/md-reader)（MIT），程式碼全部重新撰寫，目標是**可稽核、無遠端依賴、無建置流程**。
 
-![淺色主題：側邊目錄、提示框、任務清單與表格](docs/screenshots/light.png)
+![淺色主題：側邊目錄、提示框、任務清單與表格](docs/screenshots/light.zh-TW.png)
 
-![深色主題：依欄位排序的表格與表格工具列，下方是 Mermaid 圖表](docs/screenshots/dark.png)
+![深色主題：依欄位排序的表格與表格工具列，下方是 Mermaid 圖表](docs/screenshots/dark.zh-TW.png)
 
 ## 安裝
 
