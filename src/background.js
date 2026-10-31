@@ -21,19 +21,45 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
   return true // 非同步回覆
 })
 
+/* ---------- 上次讀取的檔案內容（自動更新比對用） ---------- */
+// service worker 閒置時會被終止，快取隨之清空，下一次讀取就完整回傳一次，不影響正確性
+const lastRead = new Map()
+const LAST_READ_LIMIT = 20
+
+function rememberRead(url, bytes) {
+  lastRead.delete(url)
+  lastRead.set(url, bytes)
+  if (lastRead.size > LAST_READ_LIMIT) lastRead.delete(lastRead.keys().next().value)
+}
+
+function sameBytes(a, b) {
+  if (!a || a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false
+  return true
+}
+
 const HANDLERS = {
   /**
    * 代 content script 讀取「它自己所在頁面」的本機檔案
    * 只接受 sender.url，不接受任意路徑，避免被用來讀取其他檔案
    */
-  async 'read-self'(_msg, sender) {
+  async 'read-self'(msg, sender) {
     const url = (sender.url || '').split('#')[0]
     if (!url.startsWith('file:')) return { text: null }
+    let bytes
     try {
-      const buf = await (await fetch(url, { cache: 'no-store' })).arrayBuffer()
-      return { text: new TextDecoder('utf-8', { fatal: true }).decode(buf) }
+      bytes = new Uint8Array(await (await fetch(url, { cache: 'no-store' })).arrayBuffer())
     } catch {
-      // 不是合法 UTF-8 或讀取失敗：交給瀏覽器原本的解碼結果
+      return { text: null }
+    }
+    // 自動更新：內容與上次相同就不回傳，省下大檔的傳輸與頁面端比對
+    const same = sameBytes(lastRead.get(url), bytes)
+    rememberRead(url, bytes)
+    if (msg.ifChanged && same) return { unchanged: true }
+    try {
+      return { text: new TextDecoder('utf-8', { fatal: true }).decode(bytes) }
+    } catch {
+      // 不是合法 UTF-8：交給瀏覽器原本的解碼結果
       return { text: null }
     }
   },

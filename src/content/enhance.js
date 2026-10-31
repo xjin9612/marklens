@@ -91,11 +91,24 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     return nodes
   }
 
+  /**
+   * 摺疊模式（每次渲染依文件大小決定，見 MarkLens.setFoldMode）
+   * - find：hidden="until-found"，Ctrl+F 搜得到摺疊內容並自動展開；但瀏覽器內部以 content-visibility 實作，
+   *   大量元素同時切換時樣式計算很慢（1MB 文件全部摺疊約 2.5 秒）
+   * - fast：以 CSS display:none 隱藏，快十倍以上，但 Ctrl+F 搜不到摺疊內容
+   */
+  const FAST_FOLD_BLOCKS = 3000 // 頂層區塊超過此數量改用 fast 模式（約 400KB 的文件）
+
+  MarkLens.setFoldMode = function (article) {
+    article.dataset.mlFoldMode = article.children.length > FAST_FOLD_BLOCKS ? 'fast' : 'find'
+  }
+
   function setFoldCount(node, delta) {
     const c = (+node.dataset.mlFold || 0) + delta
+    const findable = node.parentElement?.dataset.mlFoldMode !== 'fast'
     if (c > 0) {
       node.dataset.mlFold = c
-      node.setAttribute('hidden', 'until-found')
+      if (findable) node.setAttribute('hidden', 'until-found')
     } else {
       delete node.dataset.mlFold
       node.removeAttribute('hidden')

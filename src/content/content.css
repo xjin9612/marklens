@@ -70,6 +70,8 @@ html.marklens pre.ml-source { display: none; }
 html.marklens.ml-noscroll, html.marklens.ml-noscroll body { overflow: hidden; }
 html.marklens.ml-dragging, html.marklens.ml-dragging * { cursor: col-resize !important; user-select: none !important; }
 html.marklens [hidden]:not([hidden="until-found"]) { display: none !important; }
+/* 大檔的摺疊（fast 模式）：直接不顯示，見 enhance.js setFoldMode */
+html.marklens .markdown-body[data-ml-fold-mode="fast"] > [data-ml-fold] { display: none !important; }
 /* 摺疊的內容：hidden=until-found 只隱藏內容不移除方塊，把外距與高度歸零 */
 html.marklens .markdown-body > [hidden="until-found"] {
   margin-block: 0 !important;

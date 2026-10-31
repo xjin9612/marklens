@@ -93,10 +93,17 @@ MarkLens.flash = function (btn, text, ms = 1000) {
  * - http(s)：fetch（同源，不需額外權限）
  * 失敗回傳 null
  */
-MarkLens.fetchSource = async function () {
+MarkLens.UNCHANGED = Symbol('unchanged')
+
+/**
+ * @param {{ifChanged?: boolean}} [opts] ifChanged：本機檔案若與上次讀取時相同，回傳 MarkLens.UNCHANGED，
+ *   不必把整份內容傳回頁面（自動更新每秒檢查一次，大檔時可省下大量傳輸與比對）
+ */
+MarkLens.fetchSource = async function (opts = {}) {
   if (location.protocol === 'file:') {
     try {
-      const res = await chrome.runtime.sendMessage({ type: 'read-self' })
+      const res = await chrome.runtime.sendMessage({ type: 'read-self', ifChanged: !!opts.ifChanged })
+      if (res?.unchanged) return MarkLens.UNCHANGED
       return typeof res?.text === 'string' ? res.text : null
     } catch {
       return null
