@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Added
-- **Previous / next file** buttons (‹ ›) in the toolbar for local files: step through the Markdown files in the same folder, sorted by name the way people expect (`2-…` before `10-…`), even when the documents don't link to each other
+- **Files tab** in the sidebar for local files: the Markdown files and subfolders next to the current document, folders first, sorted by name the way people expect (`2-…` before `10-…`). Only the current folder is read up front; a subfolder is read when you open it, so large trees stay fast. Open folders and the selected tab are kept per tab. Hidden and dependency folders (`.*, node_modules, target, dist, build`) are skipped — edit the list in the popup → **File list**
 - External `http(s)` links open in a new tab, so the document stays open; anchors, footnotes and same-site links are unchanged. Can be turned off in the popup
 - Welcome page on first install: walks through turning on **Allow access to file URLs** (the status updates live), how to open a file, keyboard shortcuts and the main features. Reopen it any time from the popup → **Help**
 - **Export HTML** (toolbar ⤓): saves what you see as one self-contained HTML file to share with people who don't have MarkLens. Styles, Mermaid diagrams and math fonts are embedded, folded sections are expanded, relative links and images become absolute, checkbox states are kept, and the file contains no JavaScript (a Content-Security-Policy blocks scripts)
@@ -15,7 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Emoji shortcodes from GitHub's list (`:tada:` → 🎉). Code spans and code blocks are left alone, and text emoticons such as `:)` are not converted
 
 ### Changed
-- The outline is shown and hidden with a single ☰ button in the toolbar (or `t`); the « button inside the outline is gone and the heading search box uses the full width
+- Sidebar header is now `☰ | Outline  Files | 🔍`: the ☰ sits in the same spot whether the sidebar is open or closed, the « button is gone, and search opens from the magnifier or the `/` key (Esc closes). Search filters headings on the Outline tab and file names on the Files tab
 
 ### Fixed
 - Read-only task checkboxes (file not UTF-8, saving turned off, or a page on the web) no longer look broken: clicking or hovering explains why the checkbox can't be saved

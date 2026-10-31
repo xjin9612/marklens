@@ -1,9 +1,25 @@
 'use strict'
-// 側邊目錄：層級過濾、文字搜尋、目前章節高亮、摺疊標記、拖拉寬度
+// 側邊欄：「目錄｜檔案」兩個分頁、搜尋、目前章節高亮、摺疊標記、拖拉寬度
 var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
 ;(() => {
   const { h, t } = MarkLens
+
+  /** 線條圖示（跟隨文字顏色），比 emoji 在各系統上一致 */
+  function icon(name) {
+    const NS = 'http://www.w3.org/2000/svg'
+    const svg = document.createElementNS(NS, 'svg')
+    svg.setAttribute('viewBox', '0 0 16 16')
+    svg.setAttribute('class', `ml-icon ml-icon-${name}`)
+    svg.setAttribute('aria-hidden', 'true')
+    const shapes = { search: [['circle', { cx: 7, cy: 7, r: 4.5 }], ['path', { d: 'M10.5 10.5 14 14' }]] }
+    for (const [tag, attrs] of shapes[name]) {
+      const el = document.createElementNS(NS, tag)
+      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v)
+      svg.append(el)
+    }
+    return svg
+  }
 
   MarkLens.Toc = class {
     constructor(app) {
@@ -11,26 +27,115 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.items = [] // { heading, li, level, text }
       this.activeIndex = -1
       this.hovering = false
+      this.tab = 'toc'
+      this.statsText = ''
+      this.filesText = ''
 
-      this.stats = h('div', { class: 'ml-toc-stats' })
+      // 標題列：☰ ｜ 目錄 檔案 ｜ 🔍；搜尋時分頁標籤換成搜尋框
+      const menu = h('button', {
+        class: 'ml-tool ml-side-menu',
+        text: '☰',
+        title: t('toolTocTitle'),
+        on: { click: () => this.app.toggleToc() },
+      })
+      this.tabToc = h('button', { class: 'ml-side-tab', text: t('tabToc'), on: { click: () => this.setTab('toc') } })
+      this.tabFiles = h('button', { class: 'ml-side-tab', text: t('tabFiles'), on: { click: () => this.setTab('files') } })
+      this.tabs = h('div', { class: 'ml-side-tabs', attrs: { role: 'tablist' } }, [this.tabToc, this.tabFiles])
+      this.searchBtn = h('button', { class: 'ml-tool ml-side-icon', title: t('searchTitle'), on: { click: () => this.openSearch() } }, [icon('search')])
       this.search = h('input', {
         class: 'ml-toc-search',
         type: 'search',
-        placeholder: t('tocSearch'),
-        on: { input: () => this.applyFilter() },
+        on: {
+          input: () => this.applyQuery(),
+          keydown: e => {
+            if (e.key === 'Escape') {
+              e.preventDefault()
+              this.closeSearch()
+            }
+          },
+        },
       })
+      const closeSearch = h('button', { class: 'ml-side-search-close', text: '✕', title: t('searchClose'), on: { click: () => this.closeSearch() } })
+      this.searchBox = h('label', { class: 'ml-side-search', hidden: true }, [icon('search'), this.search, closeSearch])
+
+      this.stats = h('div', { class: 'ml-toc-stats' })
       this.list = h('ul', { class: 'ml-toc-list' })
+      this.tocNav = h('nav', { class: 'ml-toc-nav' }, [this.list])
       this.resizer = h('div', { class: 'ml-toc-resizer', title: t('tocResizeTitle') })
       this.el = h('aside', { class: 'ml-toc', attrs: { 'aria-label': t('tocLabel') } }, [
-        // 顯示／收合統一由工具列的 ☰ 按鈕（或 t 鍵）切換
-        h('div', { class: 'ml-toc-head' }, [this.search, this.stats]),
-        h('nav', { class: 'ml-toc-nav' }, [this.list]),
+        h('div', { class: 'ml-toc-head' }, [menu, this.tabs, this.searchBox, this.searchBtn]),
+        this.stats,
+        this.tocNav,
         this.resizer,
       ])
+
+      // 「檔案」分頁只有本機檔案才有（網路上的資料夾無法列出內容）
+      if (location.protocol === 'file:') {
+        this.files = new MarkLens.FileTree({
+          open: app.view.filesOpen,
+          onToggle: open => app.setView({ filesOpen: open }),
+          onSummary: text => {
+            this.filesText = text
+            this.syncStats()
+          },
+        })
+        this.el.insertBefore(this.files.el, this.resizer)
+      } else {
+        this.tabs.hidden = true
+      }
+      this.setTab(this.files && app.view.sideTab === 'files' ? 'files' : 'toc', false)
+
       this.el.addEventListener('mouseenter', () => (this.hovering = true))
       this.el.addEventListener('mouseleave', () => (this.hovering = false))
       this.list.addEventListener('click', e => this.onClick(e))
       this.bindResize()
+    }
+
+    /** 切換「目錄｜檔案」分頁；檔案清單第一次切到時才讀取 */
+    setTab(tab, save = true) {
+      if (tab === 'files' && !this.files) tab = 'toc'
+      this.tab = tab
+      this.tabToc.classList.toggle('active', tab === 'toc')
+      this.tabFiles.classList.toggle('active', tab === 'files')
+      this.tabToc.setAttribute('aria-selected', String(tab === 'toc'))
+      this.tabFiles.setAttribute('aria-selected', String(tab === 'files'))
+      this.tocNav.hidden = tab !== 'toc'
+      if (this.files) this.files.el.hidden = tab !== 'files'
+      this.search.placeholder = t(tab === 'files' ? 'filesSearch' : 'tocSearch')
+      if (tab === 'files' && !this.filesStarted) {
+        this.filesStarted = true
+        this.files.init()
+      }
+      this.applyQuery()
+      if (save) this.app.setView({ sideTab: tab })
+    }
+
+    openSearch() {
+      if (this.app.view.tocHidden && !this.app.isNarrow()) this.app.setView({ tocHidden: false })
+      if (this.app.isNarrow()) this.app.setTocOpen(true)
+      this.tabs.hidden = true
+      this.searchBtn.hidden = true
+      this.searchBox.hidden = false
+      this.search.focus()
+    }
+
+    closeSearch() {
+      this.search.value = ''
+      this.searchBox.hidden = true
+      this.searchBtn.hidden = false
+      this.tabs.hidden = !this.files
+      this.applyQuery()
+    }
+
+    /** 依目前分頁套用搜尋字串 */
+    applyQuery() {
+      if (this.tab === 'files') this.files.setQuery(this.search.value)
+      else this.applyFilter()
+      this.syncStats()
+    }
+
+    syncStats() {
+      this.stats.textContent = this.tab === 'files' ? this.filesText : this.statsText
     }
 
     build(headings, depth) {
@@ -71,7 +176,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
 
     setStats({ chars, minutes }) {
-      this.stats.textContent = t('tocStats', chars.toLocaleString(), minutes)
+      this.statsText = t('tocStats', chars.toLocaleString(), minutes)
+      this.syncStats()
     }
 
     onClick(e) {

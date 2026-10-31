@@ -138,11 +138,11 @@ html.marklens .ml-tool:hover { background: var(--hover); color: var(--fg); }
 html.marklens .ml-tool.active { color: var(--accent); }
 html.marklens .ml-spacer { flex: 1; }
 html.marklens .ml-orphan { margin-left: 8px; color: var(--alert-warning); white-space: nowrap; }
-/* 上一份／下一份 */
-html.marklens .ml-tool-nav { font-size: 18px; line-height: 1; padding: 3px 9px; }
-html.marklens .ml-tool-nav:disabled { opacity: .35; cursor: default; background: none; }
-/* 目錄開關：只有漢堡圖示 */
-html.marklens .ml-tool-toc { font-size: 17px; line-height: 1; padding: 4px 9px; }
+/* 側邊欄開關：只有漢堡圖示；側邊欄開著時由側邊欄標題列的 ☰ 取代，位置相同不會跳動 */
+html.marklens :is(.ml-tool-toc, .ml-side-menu) { font-size: 17px; line-height: 1; padding: 4px 9px; }
+@media (min-width: 901px) {
+  html.marklens:not(.ml-toc-hidden) .ml-toolbar .ml-tool-toc { display: none; }
+}
 html.marklens .ml-orphan .ml-tool { color: var(--accent); padding: 4px 6px; }
 
 /* ---------- 原始文字模式：工具列保留，可隨時返回 ---------- */
@@ -175,19 +175,87 @@ html.marklens .ml-toc {
   box-sizing: border-box;
 }
 html.marklens.ml-toc-hidden .ml-toc { display: none; }
-html.marklens .ml-toc-head { padding: 8px 12px; border-bottom: 1px solid var(--border-soft); }
-html.marklens .ml-toc-search {
-  display: block;
-  width: 100%;
+/* 標題列：☰ ｜ 目錄 檔案 ｜ 🔍，高度與工具列相同 */
+html.marklens .ml-toc-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 40px;
+  padding: 0 8px 0 12px;
   box-sizing: border-box;
-  padding: 5px 8px;
-  border: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-soft);
+  flex: none;
+}
+html.marklens .ml-side-tabs { display: flex; gap: 2px; flex: 1; min-width: 0; }
+html.marklens .ml-side-tabs[hidden] + .ml-side-search[hidden] + .ml-side-icon { margin-left: auto; }
+html.marklens .ml-side-tab {
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+html.marklens .ml-side-tab:hover { color: var(--fg); background: var(--hover); }
+html.marklens .ml-side-tab.active { color: var(--fg); font-weight: 600; background: var(--bg); border-color: var(--border); }
+html.marklens .ml-side-icon { display: grid; place-items: center; padding: 5px 7px; }
+html.marklens .ml-icon { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+html.marklens .ml-side-search {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 4px 3px 8px;
+  border: 1px solid var(--accent);
   border-radius: 6px;
   background: var(--bg);
+  color: var(--muted);
+}
+html.marklens .ml-side-search[hidden] { display: none; }
+html.marklens .ml-toc-search {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: none;
   color: var(--fg);
   font: inherit;
 }
-html.marklens .ml-toc-stats { margin-top: 6px; color: var(--muted); font-size: 12px; }
+html.marklens .ml-toc-search::-webkit-search-cancel-button { display: none; }
+html.marklens .ml-side-search-close { border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0 4px; font: inherit; }
+html.marklens .ml-side-search-close:hover { color: var(--fg); }
+html.marklens .ml-toc-stats { padding: 6px 12px; color: var(--muted); font-size: 12px; border-bottom: 1px solid var(--border-soft); flex: none; }
+html.marklens .ml-toc-stats:empty { display: none; }
+
+/* 檔案分頁 */
+html.marklens .ml-files { flex: 1; overflow-y: auto; padding: 6px 0 24px; }
+html.marklens .ml-files[hidden], html.marklens .ml-toc-nav[hidden] { display: none; }
+html.marklens .ml-files-list { list-style: none; margin: 0; padding: 0; }
+html.marklens .ml-files-list li { --indent: calc(var(--depth, 0) * 14px + 8px); }
+html.marklens .ml-files-dir,
+html.marklens .ml-files-file a {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 12px 3px var(--indent);
+  color: var(--fg);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+}
+html.marklens .ml-files-dir:hover,
+html.marklens .ml-files-file a:hover { background: var(--hover); }
+html.marklens .ml-files-file.active a { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 600; }
+html.marklens .ml-files-twisty { width: 12px; flex: none; color: var(--muted); font-size: 10px; text-align: center; }
+html.marklens .ml-files-icon { flex: none; font-size: 13px; }
+html.marklens .ml-files-name { overflow: hidden; text-overflow: ellipsis; }
+html.marklens .ml-files-name mark { background: var(--mark); color: inherit; border-radius: 2px; }
+html.marklens .ml-files-note { padding: 3px 12px 3px calc(var(--indent) + 16px); color: var(--muted); font-size: 12px; }
 html.marklens .ml-toc-nav { flex: 1; overflow-y: auto; padding: 8px 0 24px; }
 html.marklens .ml-toc-list { list-style: none; margin: 0; padding: 0; }
 html.marklens .ml-toc-list li a {

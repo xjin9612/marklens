@@ -27,10 +27,11 @@ To upgrade, replace the folder with the new release and click the reload icon on
 | Area | What you get |
 |---|---|
 | Pages | Renders `.md` `.markdown` `.mkd` `.mdx` over `http(s)://` and `file://`; only takes over when the browser shows the file as plain text |
-| Toolbar | Sticky top bar: outline (☰), previous / next file in the folder (‹ ›, local files), fold all, unfold all, text width, export HTML, theme, raw source / back to reading, back to top |
+| Files | Local files: a **Files** tab lists the Markdown files and subfolders next to the document (folders first, natural sort); subfolders load when opened. Skipped names are configurable |
+| Toolbar | Sticky top bar: sidebar (☰), fold all, unfold all, text width, export HTML, theme, raw source / back to reading, back to top |
 | Export | Save the current view as one self-contained HTML file (styles, diagrams and math fonts embedded, sections expanded, no JavaScript) to share with people who don't have MarkLens |
 | Layout | Text column width: full / 1600 / 1200 / 960 / custom. Tables and code blocks can grow past the text column up to the page edge. Adjustable font size and line height; reading progress bar |
-| Outline | Sidebar TOC (toggle with ☰ or `t`), active-section highlight, heading search, depth filter, resizable width, two-line titles, folded-section markers, word count and reading time |
+| Sidebar | ☰ or `t` to show / hide. **Outline** tab: active-section highlight, heading search (`/`), depth filter, resizable width, two-line titles, folded-section markers, word count and reading time |
 | Folding | Fold any section from the ▾ next to its heading. "Fold all" starts from the first heading level that has two or more headings. Folded content stays searchable with Ctrl+F and unfolds on match (in very large documents — roughly 400 KB+ — folded sections are hidden normally for speed and must be unfolded before searching) |
 | Tables | **Drag to resize columns** (double-click the handle to auto-fit), **click headers to sort** (numbers with thousands separators, byte units, dates, CJK text; empty cells last; third click restores the original order), row filter (5+ rows), copy as TSV (paste straight into Excel), wrap toggle, fullscreen with sticky header. The table toolbar only appears on hover |
 | Syntax | CommonMark + GFM, task lists, footnotes, `==highlight==`, emoji shortcodes (`:tada:`), GitHub alerts (`> [!NOTE]` etc.), collapsible front matter |
@@ -67,6 +68,7 @@ On a reading page (ignored while typing in an input):
 | `t` | Toggle outline |
 | `r` | Raw source / back to reading |
 | `w` | Cycle text width |
+| `/` | Search headings (Outline tab) or file names (Files tab) |
 | `d` | Cycle theme: system → light → dark (all tabs) |
 | `[` / `]` | Fold all / unfold all |
 
@@ -114,7 +116,8 @@ src/
     math.js              KaTeX math, loaded on demand
     export.js            export the current view as a self-contained HTML file
     table.js             column resize, sorting, filter, copy, fullscreen, state save/restore
-    toc.js               sidebar outline
+    toc.js               sidebar: Outline / Files tabs, search
+    files.js             Files tab: folder listing, lazy subfolders
     main.js              entry point: layout, toolbar, shortcuts, per-tab state, live reload, task write-back
     content.css          all styles (scoped under html.marklens)
   popup/                 settings popup

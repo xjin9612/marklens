@@ -50,18 +50,6 @@
   "toolTocTitle": {
     "message": "Show / hide outline (t)"
   },
-  "navPrev": {
-    "message": "Previous file: $1"
-  },
-  "navNext": {
-    "message": "Next file: $1"
-  },
-  "navFirst": {
-    "message": "This is the first file in the folder"
-  },
-  "navLast": {
-    "message": "This is the last file in the folder"
-  },
   "toolWidth": {
     "message": "⇔ Width: $1"
   },
@@ -214,6 +202,48 @@
   },
   "tableResizeTitle": {
     "message": "Drag to resize, double-click to auto-fit"
+  },
+  "tabToc": {
+    "message": "Outline"
+  },
+  "tabFiles": {
+    "message": "Files"
+  },
+  "searchTitle": {
+    "message": "Search (/)"
+  },
+  "searchClose": {
+    "message": "Close search (Esc)"
+  },
+  "filesSearch": {
+    "message": "Search file names…"
+  },
+  "filesSummary": {
+    "message": "📂 $1 · $2 files"
+  },
+  "filesFound": {
+    "message": "$1 found in opened folders"
+  },
+  "filesLoading": {
+    "message": "Loading…"
+  },
+  "filesError": {
+    "message": "Can't read this folder"
+  },
+  "filesEmpty": {
+    "message": "(no Markdown files)"
+  },
+  "secFiles": {
+    "message": "File list"
+  },
+  "secFilesNote": {
+    "message": "sidebar Files tab"
+  },
+  "fileIgnore": {
+    "message": "Hide these names"
+  },
+  "fileIgnoreTitle": {
+    "message": "Comma-separated; * matches anything, .* hides names starting with a dot"
   },
   "tocSearch": {
     "message": "Search headings…"
