@@ -39,6 +39,7 @@ To upgrade, replace the folder with the new release and click the reload icon on
 | Theme | System / light / dark, from the toolbar, the `d` key or the popup; applies to every open tab |
 | Check off tasks | Click a task-list checkbox in a local file to save `[ ]` / `[x]` straight back to the file — no editor needed. Works in nested lists, ordered lists and blockquotes; checkboxes inside code blocks are never touched. Undo from the toast; refuses to write if the file changed elsewhere; keeps CRLF and BOM. Requires authorizing a folder once (see below) |
 | Live reload | Local files are checked every second and re-rendered only when changed — scroll position, folds, and table sort / widths / filters are preserved |
+| Language | English and Traditional Chinese interface, following the browser language |
 | Misc | External links open in a new tab (can be turned off), remembers reading position per file, print stylesheet, relative `.md` links open in the reader |
 
 ### Checking off tasks in local files
@@ -47,7 +48,7 @@ To upgrade, replace the folder with the new release and click the reload icon on
 2. After that, a click saves the change immediately; use **Undo** on the toast to revert.
 3. After Chrome restarts, you may be asked to confirm access again. Choose **Allow on every visit** in Chrome's prompt to skip this.
 
-Folder access is held by the extension itself (in its own storage, under its own origin). Ordinary web pages — including local HTML files — cannot reach it. Manage folders from the popup → **管理授權資料夾** (Manage folders).
+Folder access is held by the extension itself (in its own storage, under its own origin). Ordinary web pages — including local HTML files — cannot reach it. Manage folders from the popup → **Manage folders**.
 
 ### Per-tab vs. global settings
 
@@ -91,9 +92,11 @@ Browser-level (change them at `chrome://extensions/shortcuts`):
 
 ```
 manifest.json
+_locales/                interface text: en (default) and zh_TW
 src/
   background.js          shortcuts, local file reads
   shared/settings.js     settings defaults and storage (shared by all contexts)
+  shared/i18n.js         interface text lookup (strings live in _locales/)
   shared/roots.js        authorized folders (extension origin only)
   grant/                 folder authorization page
   welcome/               first-run welcome page

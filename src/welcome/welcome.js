@@ -2,12 +2,14 @@
 // 首次安裝引導頁：檢查「允許存取檔案網址」是否已開啟，並引導使用者開啟
 
 const $ = sel => document.querySelector(sel)
+const { t } = MarkLens
+MarkLens.localize()
 
 function refreshFileAccess() {
   chrome.extension.isAllowedFileSchemeAccess(allowed => {
     const status = $('#file-status')
     status.dataset.state = allowed ? 'ok' : 'off'
-    status.textContent = allowed ? '✔ 已開啟，可以閱讀本機檔案' : '尚未開啟'
+    status.textContent = t(allowed ? 'welcomeFileOk' : 'welcomeFileOff')
     $('#step-file').toggleAttribute('data-done', allowed)
   })
 }

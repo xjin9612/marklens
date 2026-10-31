@@ -1,9 +1,11 @@
 'use strict'
 // 授權頁：新增、確認、移除可寫回的資料夾
 ;(() => {
+  const { t } = MarkLens
+  MarkLens.localize()
   const $ = sel => document.querySelector(sel)
   const list = $('#roots')
-  const STATE_TEXT = { granted: '可寫回', prompt: '需要確認', denied: '已拒絕' }
+  const STATE_KEY = { granted: 'grantStateGranted', prompt: 'grantStatePrompt', denied: 'grantStateDenied' }
 
   function say(text) {
     $('#status').textContent = text
@@ -19,22 +21,22 @@
       const name = Object.assign(document.createElement('span'), { className: 'name', textContent: r.handle.name })
       const badge = Object.assign(document.createElement('span'), {
         className: `state ${state}`,
-        textContent: STATE_TEXT[state] || state,
+        textContent: STATE_KEY[state] ? t(STATE_KEY[state]) : state,
       })
       li.append(name, badge)
       if (state !== 'granted') {
-        const confirm = Object.assign(document.createElement('button'), { className: 'primary', textContent: '確認權限' })
+        const confirm = Object.assign(document.createElement('button'), { className: 'primary', textContent: t('grantConfirm') })
         confirm.onclick = () => guard(async () => {
           const r2 = await r.handle.requestPermission({ mode: 'readwrite' })
-          say(r2 === 'granted' ? `已允許：${r.handle.name}` : `未允許：${r.handle.name}`)
+          say(t(r2 === 'granted' ? 'grantAllowed' : 'grantNotAllowed', r.handle.name))
           await render()
         })
         li.append(confirm)
       }
-      const remove = Object.assign(document.createElement('button'), { textContent: '移除' })
+      const remove = Object.assign(document.createElement('button'), { textContent: t('grantRemove') })
       remove.onclick = () => guard(async () => {
         await MarkLens.Roots.remove(r.id)
-        say(`已移除：${r.handle.name}`)
+        say(t('grantRemoved', r.handle.name))
         await render()
       })
       li.append(remove)
@@ -45,14 +47,14 @@
   function guard(fn) {
     return fn().catch(err => {
       // 使用者在選擇視窗按取消時不必提示
-      if (err.name !== 'AbortError') say(`發生錯誤：${err.message}`)
+      if (err.name !== 'AbortError') say(t('grantError', err.message))
     })
   }
 
   $('#add').onclick = () => guard(async () => {
     const handle = await showDirectoryPicker({ mode: 'readwrite', id: 'marklens-root' })
     await MarkLens.Roots.add(handle)
-    say(`已授權：${handle.name}`)
+    say(t('grantAdded', handle.name))
     await render()
   })
 

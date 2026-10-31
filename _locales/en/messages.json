@@ -1,0 +1,494 @@
+{
+  "extDescription": {
+    "message": "Lightweight, auditable Markdown reader: outline, folding, resizable and sortable tables, Mermaid diagrams, and checking off tasks in local files."
+  },
+  "cmdToggleToc": {
+    "message": "Show / hide outline (current tab)"
+  },
+  "cmdCycleTheme": {
+    "message": "Cycle theme (auto → light → dark, all tabs)"
+  },
+  "cmdCycleWidth": {
+    "message": "Cycle text width (current tab)"
+  },
+  "cmdToggleRaw": {
+    "message": "Toggle source / rendered view (current tab)"
+  },
+  "headingAnchor": {
+    "message": "Link to this heading"
+  },
+  "foldSection": {
+    "message": "Fold / unfold this section"
+  },
+  "copy": {
+    "message": "Copy"
+  },
+  "copied": {
+    "message": "Copied"
+  },
+  "failed": {
+    "message": "Failed"
+  },
+  "wrap": {
+    "message": "Wrap"
+  },
+  "codeWrapTitle": {
+    "message": "Toggle line wrapping for this block"
+  },
+  "themeAuto": {
+    "message": "Auto"
+  },
+  "themeLight": {
+    "message": "Light"
+  },
+  "themeDark": {
+    "message": "Dark"
+  },
+  "toolToc": {
+    "message": "☰ Outline"
+  },
+  "toolTocTitle": {
+    "message": "Show / hide outline (t)"
+  },
+  "toolWidth": {
+    "message": "⇔ Width: $1"
+  },
+  "toolWidthTitle": {
+    "message": "Cycle text width (w)"
+  },
+  "widthFull": {
+    "message": "Full"
+  },
+  "toolTheme": {
+    "message": " Theme: $1"
+  },
+  "toolThemeTitle": {
+    "message": "Cycle theme: auto → light → dark, all tabs (d)"
+  },
+  "toolRaw": {
+    "message": "</> Source"
+  },
+  "toolRawTitle": {
+    "message": "Toggle source (r)"
+  },
+  "toolBack": {
+    "message": "← Back to reading"
+  },
+  "toolTop": {
+    "message": "↑ Top"
+  },
+  "toolTopTitle": {
+    "message": "Back to top"
+  },
+  "toolFoldAll": {
+    "message": "▸ Fold all"
+  },
+  "toolFoldAllTitle": {
+    "message": "Fold all ([)"
+  },
+  "toolUnfoldAll": {
+    "message": "▾ Unfold all"
+  },
+  "toolUnfoldAllTitle": {
+    "message": "Unfold all (])"
+  },
+  "taskTitle": {
+    "message": "Click to check / uncheck and save to the file"
+  },
+  "taskChecked": {
+    "message": "Checked and saved"
+  },
+  "taskUnchecked": {
+    "message": "Unchecked and saved"
+  },
+  "undo": {
+    "message": "Undo"
+  },
+  "taskNoRoot": {
+    "message": "This file's folder is not authorized for saving yet"
+  },
+  "authorizeFolder": {
+    "message": "Authorize folder"
+  },
+  "taskPermission": {
+    "message": "Access to “$1” needs to be confirmed again"
+  },
+  "goConfirm": {
+    "message": "Confirm"
+  },
+  "taskConflict": {
+    "message": "The file was changed elsewhere and has been reloaded. Click again."
+  },
+  "taskNotUtf8": {
+    "message": "This file is not UTF-8 and cannot be saved"
+  },
+  "taskError": {
+    "message": "Could not save: $1"
+  },
+  "unknownError": {
+    "message": "unknown error"
+  },
+  "orphanBefore": {
+    "message": "MarkLens was updated — "
+  },
+  "orphanReload": {
+    "message": "reload"
+  },
+  "orphanAfter": {
+    "message": " to apply"
+  },
+  "mermaidChart": {
+    "message": "Diagram"
+  },
+  "mermaidSource": {
+    "message": "Source"
+  },
+  "mermaidError": {
+    "message": "Mermaid syntax error"
+  },
+  "mermaidLocalOnly": {
+    "message": "Mermaid diagrams are drawn for local files only"
+  },
+  "mermaidPending": {
+    "message": "Drawing Mermaid diagram…"
+  },
+  "mermaidToggleTitle": {
+    "message": "Toggle diagram / source"
+  },
+  "tableFilter": {
+    "message": "Filter rows…"
+  },
+  "tableCopyTitle": {
+    "message": "Copy as TSV (paste into Excel), using the current sort and filter"
+  },
+  "tableFullscreen": {
+    "message": "Fullscreen"
+  },
+  "tableFullscreenTitle": {
+    "message": "Fullscreen (Esc to exit)"
+  },
+  "tableExitFullscreen": {
+    "message": "Exit fullscreen"
+  },
+  "tableReset": {
+    "message": "Reset"
+  },
+  "tableResetTitle": {
+    "message": "Reset column widths, sort and filter"
+  },
+  "tableWrapTitle": {
+    "message": "Toggle cell wrapping"
+  },
+  "tableSortTitle": {
+    "message": "Click to sort (ascending → descending → original)"
+  },
+  "tableResizeTitle": {
+    "message": "Drag to resize, double-click to auto-fit"
+  },
+  "tocSearch": {
+    "message": "Search headings…"
+  },
+  "tocCloseTitle": {
+    "message": "Hide outline (t)"
+  },
+  "tocResizeTitle": {
+    "message": "Drag to resize"
+  },
+  "tocLabel": {
+    "message": "Outline"
+  },
+  "tocStats": {
+    "message": "About $1 words · $2 min"
+  },
+  "popupTitle": {
+    "message": "MarkLens settings"
+  },
+  "popupEnable": {
+    "message": "Enabled"
+  },
+  "popupEnableTitle": {
+    "message": "When off, pages show as plain text"
+  },
+  "popupFileWarning": {
+    "message": "Local files are not allowed yet. In the extension's details, turn on <b>Allow access to file URLs</b>."
+  },
+  "openSettings": {
+    "message": "Open settings"
+  },
+  "secAppearance": {
+    "message": "Appearance"
+  },
+  "secAppearanceNote": {
+    "message": "applies to all tabs instantly"
+  },
+  "theme": {
+    "message": "Theme"
+  },
+  "themeSystem": {
+    "message": "System"
+  },
+  "fontSize": {
+    "message": "Font size"
+  },
+  "lineHeight": {
+    "message": "Line height"
+  },
+  "secLayout": {
+    "message": "Layout defaults"
+  },
+  "secLayoutNote": {
+    "message": "for new or reloaded tabs"
+  },
+  "textWidth": {
+    "message": "Text width"
+  },
+  "custom": {
+    "message": "Custom…"
+  },
+  "customWidth": {
+    "message": "Custom width (px)"
+  },
+  "tableWidth": {
+    "message": "Table / code width"
+  },
+  "tableWidthFull": {
+    "message": "Can be wider"
+  },
+  "tableWidthText": {
+    "message": "Same as text"
+  },
+  "tocDepth": {
+    "message": "Outline depth"
+  },
+  "all": {
+    "message": "All"
+  },
+  "optTocHidden": {
+    "message": "Hide outline by default"
+  },
+  "optTableWrap": {
+    "message": "Wrap table cells"
+  },
+  "optCodeWrap": {
+    "message": "Wrap code"
+  },
+  "optRememberScroll": {
+    "message": "Remember reading position"
+  },
+  "optLinkNewTab": {
+    "message": "Open external links in a new tab"
+  },
+  "optMermaid": {
+    "message": "Draw Mermaid diagrams"
+  },
+  "optMath": {
+    "message": "Render math ($$…$$)"
+  },
+  "localOnlyTitle": {
+    "message": "Local files only"
+  },
+  "secTaskWrite": {
+    "message": "Check off tasks"
+  },
+  "secTaskWriteNote": {
+    "message": "save checkboxes back to local files"
+  },
+  "optTaskWrite": {
+    "message": "Save checkboxes to the file"
+  },
+  "manageFolders": {
+    "message": "Manage folders"
+  },
+  "secRefresh": {
+    "message": "Live reload"
+  },
+  "mode": {
+    "message": "Mode"
+  },
+  "refreshOff": {
+    "message": "Off"
+  },
+  "refreshLocal": {
+    "message": "Local files only"
+  },
+  "refreshAll": {
+    "message": "All pages"
+  },
+  "refreshInterval": {
+    "message": "Check interval (ms)"
+  },
+  "toggleRaw": {
+    "message": "Toggle source"
+  },
+  "shortcutSettings": {
+    "message": "Shortcuts"
+  },
+  "help": {
+    "message": "Help"
+  },
+  "statusOutOfRange": {
+    "message": "Value out of range"
+  },
+  "statusSaved": {
+    "message": "Saved"
+  },
+  "statusSavedReload": {
+    "message": "Saved — reload tabs to apply"
+  },
+  "statusNotMarkdown": {
+    "message": "This tab is not a Markdown page"
+  },
+  "grantPageTitle": {
+    "message": "MarkLens: folder access"
+  },
+  "grantH1": {
+    "message": "Folder access for saving tasks"
+  },
+  "grantIntro": {
+    "message": "To save a checked task back to its file, MarkLens needs read/write access to the folder. Access is kept inside the extension; ordinary web pages, including local HTML files, cannot reach it."
+  },
+  "grantBackNote": {
+    "message": "When you're done, go back to the document and click the checkbox again."
+  },
+  "grantBack": {
+    "message": "Back to the document"
+  },
+  "grantFolders": {
+    "message": "Authorized folders"
+  },
+  "grantAdd": {
+    "message": "+ Add folder"
+  },
+  "grantEmpty": {
+    "message": "No folders yet."
+  },
+  "grantTips": {
+    "message": "Notes"
+  },
+  "grantTip1": {
+    "message": "Authorize a high-level folder (for example <code>D:\\Projects</code>) and every .md under it becomes writable."
+  },
+  "grantTip2": {
+    "message": "After Chrome restarts you may be asked to confirm again; choose <b>Allow on every visit</b> in the prompt to avoid this."
+  },
+  "grantTip3": {
+    "message": "Only the clicked checkbox line is changed, and nothing is written if the file was changed elsewhere."
+  },
+  "grantStateGranted": {
+    "message": "Writable"
+  },
+  "grantStatePrompt": {
+    "message": "Needs confirmation"
+  },
+  "grantStateDenied": {
+    "message": "Denied"
+  },
+  "grantConfirm": {
+    "message": "Confirm access"
+  },
+  "grantAllowed": {
+    "message": "Allowed: $1"
+  },
+  "grantNotAllowed": {
+    "message": "Not allowed: $1"
+  },
+  "grantRemove": {
+    "message": "Remove"
+  },
+  "grantRemoved": {
+    "message": "Removed: $1"
+  },
+  "grantError": {
+    "message": "Error: $1"
+  },
+  "grantAdded": {
+    "message": "Authorized: $1"
+  },
+  "welcomeTitle": {
+    "message": "Welcome to MarkLens"
+  },
+  "welcomeLead": {
+    "message": "Read Markdown right in the browser: outline, folding, sortable tables, Mermaid diagrams — and check off tasks straight into the file."
+  },
+  "step1Title": {
+    "message": "Allow access to local files"
+  },
+  "step1Text": {
+    "message": "To read <code>.md</code> files on your computer, Chrome needs a switch that only you can turn on."
+  },
+  "step1Li1": {
+    "message": "Open MarkLens's settings with the button below"
+  },
+  "step1Li2": {
+    "message": "Turn on <b>Allow access to file URLs</b>"
+  },
+  "step1Li3": {
+    "message": "Come back here — the status updates by itself"
+  },
+  "checking": {
+    "message": "Checking…"
+  },
+  "welcomeFileOk": {
+    "message": "✔ On — local files can be read"
+  },
+  "welcomeFileOff": {
+    "message": "Not on yet"
+  },
+  "openExtSettings": {
+    "message": "Open extension settings"
+  },
+  "step2Title": {
+    "message": "Open a Markdown file"
+  },
+  "step2Text": {
+    "message": "Drag any <code>.md</code> file into a Chrome window, or type its path in the address bar (for example <code>D:\\Projects\\README.md</code>). Plain-text <code>.md</code> pages on the web are picked up too."
+  },
+  "step2Tip": {
+    "message": "Tip: pin MarkLens to the toolbar (puzzle icon → pin). Its button opens theme, font and layout settings."
+  },
+  "step3Title": {
+    "message": "Everyday keys"
+  },
+  "colKey": {
+    "message": "Key"
+  },
+  "colAction": {
+    "message": "Action"
+  },
+  "keyToc": {
+    "message": "Show / hide outline"
+  },
+  "keyRaw": {
+    "message": "Source / back to reading"
+  },
+  "keyWidth": {
+    "message": "Cycle text width"
+  },
+  "keyTheme": {
+    "message": "Cycle theme: auto → light → dark"
+  },
+  "keyFold": {
+    "message": "Fold all / unfold all"
+  },
+  "featTables": {
+    "message": "<b>Tables</b>: drag column widths, click headers to sort, filter, copy for spreadsheets"
+  },
+  "featTasks": {
+    "message": "<b>Check off tasks</b>: click <code>- [ ]</code> in a local file to save it (you'll authorize the folder the first time)"
+  },
+  "featDiagrams": {
+    "message": "<b>Diagrams and math</b>: <code>```mermaid</code> blocks and <code>$$…$$</code> formulas in local files are drawn automatically"
+  },
+  "featReload": {
+    "message": "<b>Live reload</b>: save in your editor and the page updates within a second, keeping scroll position and folds"
+  },
+  "step4Title": {
+    "message": "Optional: aligned CJK in code blocks"
+  },
+  "step4Text": {
+    "message": "CJK text and box-drawing tables in code are aligned automatically. For the best result install the free <a href=\"https://github.com/be5invis/Sarasa-Gothic/releases\" target=\"_blank\" rel=\"noopener noreferrer\">Sarasa Mono TC</a>, then fully restart Chrome (type <code>chrome://restart</code> in the address bar)."
+  },
+  "changelog": {
+    "message": "Changelog"
+  }
+}

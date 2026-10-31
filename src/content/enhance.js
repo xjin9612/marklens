@@ -33,13 +33,13 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       el.id = id
       el.dataset.mlLevel = el.tagName[1]
       el.dataset.mlText = text
-      el.append(h('a', { class: 'ml-anchor', href: `#${encodeURIComponent(id)}`, text: '#', title: '連結到此標題' }))
+      el.append(h('a', { class: 'ml-anchor', href: `#${encodeURIComponent(id)}`, text: '#', title: MarkLens.t('headingAnchor') }))
       // 只有文章直接子元素的標題才能摺疊（摺疊範圍以兄弟節點計算）
       if (el.parentElement === article) {
         el.prepend(
           h('button', {
             class: 'ml-fold',
-            title: '摺疊／展開此段',
+            title: MarkLens.t('foldSection'),
             attrs: { 'aria-expanded': 'true' },
             on: { click: e => (e.preventDefault(), MarkLens.toggleFold(el)) },
           }),
@@ -226,13 +226,16 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       pre.replaceWith(wrap)
       const copyBtn = h('button', {
         class: 'ml-btn',
-        text: '複製',
-        on: { click: async () => MarkLens.flash(copyBtn, (await MarkLens.copyText(code.textContent)) ? '已複製' : '失敗') },
+        text: MarkLens.t('copy'),
+        on: {
+          click: async () =>
+            MarkLens.flash(copyBtn, MarkLens.t((await MarkLens.copyText(code.textContent)) ? 'copied' : 'failed')),
+        },
       })
       const wrapBtn = h('button', {
         class: 'ml-btn ml-code-wrap-btn',
-        text: '換行',
-        title: '切換此區塊自動換行',
+        text: MarkLens.t('wrap'),
+        title: MarkLens.t('codeWrapTitle'),
         on: { click: () => wrap.classList.toggle('ml-code-wrap-toggled') },
       })
       const bar = h('div', { class: 'ml-code-bar' }, [

@@ -3,7 +3,7 @@
 var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
 ;(() => {
-  const { h } = MarkLens
+  const { h, t } = MarkLens
   const ENTRY = 'vendor/mermaid/mermaid.esm.min.mjs'
   const CACHE_LIMIT = 50
 
@@ -41,7 +41,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   /** 顯示圖或原始碼 */
   function showSource(wrap, on) {
     wrap.classList.toggle('ml-mermaid-source', on)
-    wrap.querySelector('.ml-mermaid-toggle').textContent = on ? '圖表' : '原始碼'
+    wrap.querySelector('.ml-mermaid-toggle').textContent = t(on ? 'mermaidChart' : 'mermaidSource')
   }
 
   function setSvg(wrap, svg, theme) {
@@ -57,7 +57,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     view.classList.remove('ml-mermaid-pending')
     view.classList.add('ml-mermaid-error')
     const msg = String(err?.message || err).trim().split('\n').slice(0, 6).join('\n')
-    view.replaceChildren(h('strong', { text: 'Mermaid 語法錯誤' }), h('pre', { text: msg }))
+    view.replaceChildren(h('strong', { text: t('mermaidError') }), h('pre', { text: msg }))
     delete wrap.dataset.mlMermaidTheme
     showSource(wrap, true)
   }
@@ -106,7 +106,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       if (enabled) {
         for (const code of codes) {
           const lang = code.closest('.ml-code').querySelector('.ml-code-lang')
-          if (lang) lang.title = 'Mermaid 圖表只在本機檔案繪製'
+          if (lang) lang.title = t('mermaidLocalOnly')
         }
       }
       return Promise.resolve()
@@ -116,10 +116,10 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       const wrap = code.closest('.ml-code')
       wrap.classList.add('ml-mermaid')
       wrap.dataset.mlMermaidCode = code.textContent
-      const view = h('div', { class: 'ml-mermaid-view ml-mermaid-pending', text: 'Mermaid 圖表繪製中…' })
+      const view = h('div', { class: 'ml-mermaid-view ml-mermaid-pending', text: t('mermaidPending') })
       const toggle = h('button', {
         class: 'ml-btn ml-mermaid-toggle',
-        title: '切換圖表／原始碼',
+        title: t('mermaidToggleTitle'),
         on: { click: () => showSource(wrap, !wrap.classList.contains('ml-mermaid-source')) },
       })
       const lang = wrap.querySelector('.ml-code-lang')

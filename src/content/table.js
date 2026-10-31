@@ -3,7 +3,7 @@
 var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
 ;(() => {
-  const { h } = MarkLens
+  const { h, t } = MarkLens
   const collator = new Intl.Collator('zh-Hant', { numeric: true, sensitivity: 'base' })
 
   /* ---------- 排序值解析 ---------- */
@@ -98,20 +98,20 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         ? h('input', {
             class: 'ml-table-filter',
             type: 'search',
-            placeholder: '篩選列…',
+            placeholder: t('tableFilter'),
             on: { input: () => applyFilter() },
           })
         : null
     const btn = (text, title, fn) => h('button', { class: 'ml-btn', text, title, on: { click: fn } })
-    const copyBtn = btn('複製', '複製為 TSV（可直接貼到 Excel），套用目前排序與篩選', async () => {
-      MarkLens.flash(copyBtn, (await MarkLens.copyText(toTSV())) ? '已複製' : '失敗')
+    const copyBtn = btn(t('copy'), t('tableCopyTitle'), async () => {
+      MarkLens.flash(copyBtn, t((await MarkLens.copyText(toTSV())) ? 'copied' : 'failed'))
     })
-    const fullBtn = btn('全螢幕', '全螢幕檢視（Esc 離開）', () => toggleFull())
+    const fullBtn = btn(t('tableFullscreen'), t('tableFullscreenTitle'), () => toggleFull())
     const bar = h('div', { class: 'ml-table-bar' }, [
       filter,
       count,
-      simple ? btn('重設', '重設欄寬、排序與篩選', resetAll) : null,
-      btn('換行', '切換儲存格換行', () => wrap.classList.toggle('ml-nowrap')),
+      simple ? btn(t('tableReset'), t('tableResetTitle'), resetAll) : null,
+      btn(t('wrap'), t('tableWrapTitle'), () => wrap.classList.toggle('ml-nowrap')),
       copyBtn,
       fullBtn,
     ])
@@ -143,7 +143,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
     function toggleFull(force) {
       const on = wrap.classList.toggle('ml-table-full', typeof force === 'boolean' ? force : undefined)
-      fullBtn.textContent = on ? '離開全螢幕' : '全螢幕'
+      fullBtn.textContent = t(on ? 'tableExitFullscreen' : 'tableFullscreen')
       document.documentElement.classList.toggle('ml-noscroll', on)
     }
     wrap.addEventListener('keydown', e => {
@@ -226,13 +226,13 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     if (simple) {
       ths.forEach((th, i) => {
         th.classList.add('ml-sortable')
-        th.title = '點擊排序（升冪 → 降冪 → 原順序）'
+        th.title = t('tableSortTitle')
         th.addEventListener('click', e => {
           if (e.target.closest('a, .ml-col-resizer')) return
           sortBy(i)
         })
 
-        const handle = h('span', { class: 'ml-col-resizer', title: '拖拉調整欄寬，雙擊自動適應' })
+        const handle = h('span', { class: 'ml-col-resizer', title: t('tableResizeTitle') })
         th.append(handle)
         handle.addEventListener('click', e => e.stopPropagation())
         handle.addEventListener('dblclick', e => {

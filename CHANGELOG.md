@@ -7,7 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 - External `http(s)` links open in a new tab, so the document stays open; anchors, footnotes and same-site links are unchanged. Can be turned off in the popup
-- Welcome page on first install: walks through turning on **Allow access to file URLs** (the status updates live), how to open a file, keyboard shortcuts and the main features. Reopen it any time from the popup → **使用說明** (Help)
+- Welcome page on first install: walks through turning on **Allow access to file URLs** (the status updates live), how to open a file, keyboard shortcuts and the main features. Reopen it any time from the popup → **Help**
+- Interface in English and Traditional Chinese, following the browser language (other languages get English): toolbar, outline, tables, popup, folder access page, welcome page and shortcut names
 - Emoji shortcodes from GitHub's list (`:tada:` → 🎉). Code spans and code blocks are left alone, and text emoticons such as `:)` are not converted
 
 ### Fixed

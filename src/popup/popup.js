@@ -1,6 +1,8 @@
 'use strict'
 // 設定面板：表單欄位名稱與設定鍵一一對應，變更即存
 ;(async () => {
+  const { t } = MarkLens
+  MarkLens.localize()
   const form = document.body
   const $ = sel => document.querySelector(sel)
   const status = $('#status')
@@ -51,10 +53,10 @@
       const w = Math.min(4000, Math.max(480, Number(el.value) || 0))
       await MarkLens.saveSettings({ textWidth: w })
     } else {
-      if (el.type === 'number' && !el.checkValidity()) return say('數值超出範圍')
+      if (el.type === 'number' && !el.checkValidity()) return say(t('statusOutOfRange'))
       await MarkLens.saveSettings({ [el.name]: readValue(el) })
     }
-    say(MarkLens.LIVE_KEYS.includes(el.name) || el.name === 'enabled' ? '已儲存' : '已儲存，重新整理分頁後套用')
+    say(t(MarkLens.LIVE_KEYS.includes(el.name) || el.name === 'enabled' ? 'statusSaved' : 'statusSavedReload'))
   })
 
   // 本機檔案存取權限提示
@@ -80,7 +82,7 @@
       await chrome.tabs.sendMessage(tab.id, { type: 'command', name: 'toggle-raw' })
       window.close()
     } catch {
-      say('此分頁不是 Markdown 頁面')
+      say(t('statusNotMarkdown'))
     }
   })
 })()
