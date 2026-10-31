@@ -230,7 +230,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         on: { click: async () => MarkLens.flash(copyBtn, (await MarkLens.copyText(code.textContent)) ? '已複製' : '失敗') },
       })
       const wrapBtn = h('button', {
-        class: 'ml-btn',
+        class: 'ml-btn ml-code-wrap-btn',
         text: '換行',
         title: '切換此區塊自動換行',
         on: { click: () => wrap.classList.toggle('ml-code-wrap-toggled') },

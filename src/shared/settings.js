@@ -22,6 +22,7 @@ MarkLens.DEFAULTS = Object.freeze({
   refreshInterval: 1000,
   rememberScroll: true,
   taskWrite: true, // 本機檔案的任務清單可直接勾選並存回原檔（需先授權資料夾）
+  mermaid: true, // 本機檔案的 mermaid 區塊繪製成圖表
 })
 
 // 會即時同步到所有已開分頁的設定

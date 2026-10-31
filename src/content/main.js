@@ -192,6 +192,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.enableTaskBoxes()
       MarkLens.processAlerts(this.article)
       MarkLens.processCodeBlocks(this.article)
+      MarkLens.renderMermaid(this.article, this.settings.mermaid)
       MarkLens.processImages(this.article)
       this.tables = Array.from(this.article.querySelectorAll('table'), t => MarkLens.enhanceTable(t, this.settings))
 
@@ -229,6 +230,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       rs.setProperty('--ml-line-height', String(s.lineHeight))
       const dark = s.theme === 'dark' || (s.theme === 'auto' && this.darkQuery.matches)
       document.documentElement.dataset.mlTheme = dark ? 'dark' : 'light'
+      if (this.article) MarkLens.rethemeMermaid(this.article)
     }
 
     /** 分頁狀態與只在載入時套用的設定 */
