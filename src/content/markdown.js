@@ -113,6 +113,35 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
   }
 
+  /* ---------- 自動連結：比照 GitHub，只連結 http(s)://、www. 與 email ---------- */
+  // linkify 的模糊比對會把 README.md 當成摩爾多瓦（.md）網域的網址，example.com 也會被連結；GitHub 兩者都不連結
+  const GFM_AUTOLINK = /^(?:[a-z][a-z0-9+.-]*:|www\.)/i
+
+  function gfmAutolinkPlugin(md) {
+    md.core.ruler.after('linkify', 'marklens_gfm_autolink', state => {
+      for (const block of state.tokens) {
+        if (block.type !== 'inline' || !block.children) continue
+        const out = []
+        const kids = block.children
+        for (let i = 0; i < kids.length; i++) {
+          const t = kids[i]
+          const close = kids[i + 2]
+          if (t.type === 'link_open' && t.markup === 'linkify' && close?.type === 'link_close') {
+            const text = kids[i + 1].content
+            const isEmail = (t.attrGet('href') || '').startsWith('mailto:') && !text.startsWith('mailto:')
+            if (!GFM_AUTOLINK.test(text) && !isEmail) {
+              out.push(kids[i + 1]) // 只留文字
+              i += 2
+              continue
+            }
+          }
+          out.push(t)
+        }
+        block.children = out
+      }
+    })
+  }
+
   /* ---------- 任務清單行號（供勾選寫回） ---------- */
   // 在清單項目上標記「原文第幾行」：class 帶入每次建立時隨機產生的 nonce，
   // 文件作者寫的 HTML 無法猜到 nonce，因此無法偽造可寫回的勾選框
@@ -143,6 +172,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     if (globalThis.markdownitFootnote) md.use(globalThis.markdownitFootnote)
     md.use(markPlugin)
     md.use(alertPlugin)
+    md.use(gfmAutolinkPlugin)
     md.marklensNonce = Array.from(crypto.getRandomValues(new Uint8Array(8)), b => b.toString(16).padStart(2, '0')).join('')
     md.use(taskLinePlugin, md.marklensNonce)
     return md

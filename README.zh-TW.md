@@ -77,6 +77,8 @@
 ## 安全設計
 
 - **HTML 白名單過濾**（`src/content/sanitize.js`）：允許 `<details>`、`<kbd>`、表格等常用標籤；移除 `<script>`、`<iframe>`、`<svg>`、所有事件屬性、`style`（表格對齊除外），以及 `javascript:`、`data:`（圖片除外）等連結。
+- **不能借用介面**：文件中的 HTML 不能使用 MarkLens 自己的 `ml-` class／id（無法在頁面上蓋出假遮罩或假提示），`name` 屬性只保留給 `<a>`，防止 DOM clobbering。
+- **攻擊樣本測試**：`test/fixtures/security.md` 收錄 60 多種攻擊寫法，測試會渲染後逐一點擊所有連結與圖表節點，任何程式碼執行即失敗。
 - **最小權限**：只要求 `storage`；content script 只匹配 Markdown 副檔名的網址，不要求「讀取所有網站」。
 - **本機檔案讀取**：由 background 代讀，且只允許讀取發出請求的那個頁面本身的網址。
 - **寫入**：只在點擊任務勾選框時發生，背景程式確認檔案內容與頁面一致後，只修改那一行。哪些勾選框可寫回由 Markdown 解析器決定，並帶有每次渲染隨機產生的 nonce，文件內嵌的 HTML 無法偽造。
@@ -152,7 +154,7 @@ npm test
 測試以 Chromium 載入擴充功能，開啟本機與 http 的測試文件（`test/fixtures/sample.md`），涵蓋：
 
 - 渲染：GFM、任務清單（緊湊／鬆散清單）、腳註、Alert、front matter、程式碼高亮
-- 安全：script、事件屬性、`javascript:` 連結、style 屬性過濾
+- 安全：script、事件屬性、`javascript:` 連結、style 屬性過濾；以及 `test/fixtures/security.md` 攻擊樣本（危險標籤與網址、編碼繞過、DOM clobbering、偽造介面、檔名、Mermaid）
 - 版面：文字欄寬度、寬表格超出文字欄、窄螢幕抽屜目錄
 - 表格：排序（數字／容量／日期）、拖拉欄寬、篩選、自動更新後狀態保留
 - 摺疊：全部摺疊／展開、Ctrl+F 命中展開、目錄標記

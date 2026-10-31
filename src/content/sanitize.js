@@ -49,9 +49,33 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   // markdown-it 以 style="text-align:…" 輸出表格對齊，只保留這一種 style
   const ALIGN_STYLE = /^\s*text-align\s*:\s*(left|right|center)\s*;?\s*$/i
 
-  function cleanElement(el) {
+  // MarkLens 自己的介面一律使用 ml- 開頭的 class／id；文件內容不得使用，
+  // 否則作者可借用介面樣式偽造全螢幕遮罩、假提示或假工具列
+  const RESERVED = /^ml-/i
+
+  function cleanClasses(el, allowClass) {
+    for (const c of Array.from(el.classList)) {
+      if (RESERVED.test(c) && !allowClass(c)) el.classList.remove(c)
+    }
+    if (!el.classList.length) el.removeAttribute('class')
+  }
+
+  function cleanElement(el, allowClass) {
     for (const attr of Array.from(el.attributes)) {
       const name = attr.name.toLowerCase()
+      if (name === 'class') {
+        cleanClasses(el, allowClass)
+        continue
+      }
+      if (name === 'id' && RESERVED.test(attr.value)) {
+        el.removeAttribute(attr.name)
+        continue
+      }
+      // name 只保留給舊式錨點 <a name>；<img name> 等會覆蓋 document 上的同名屬性（DOM clobbering）
+      if (name === 'name' && el.tagName !== 'A') {
+        el.removeAttribute(attr.name)
+        continue
+      }
       if (name === 'style') {
         const m = ALIGN_STYLE.exec(attr.value)
         if (m && (el.tagName === 'TD' || el.tagName === 'TH')) el.setAttribute('style', `text-align:${m[1].toLowerCase()}`)
@@ -72,7 +96,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
   }
 
-  function walk(parent) {
+  function walk(parent, allowClass) {
     for (const node of Array.from(parent.childNodes)) {
       if (node.nodeType === Node.ELEMENT_NODE) {
         const tag = node.tagName.toUpperCase()
@@ -80,9 +104,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           node.remove()
           continue
         }
-        walk(node)
+        walk(node, allowClass)
         if (ALLOW.has(tag)) {
-          cleanElement(node)
+          cleanElement(node, allowClass)
         } else {
           node.replaceWith(...Array.from(node.childNodes))
         }
@@ -96,11 +120,16 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   /**
    * 過濾 HTML 字串，回傳安全的 DocumentFragment
    * template 內容是惰性的：解析時不會載入圖片或執行任何程式
+   * @param {string} html
+   * @param {string} [nonce] 本次渲染的 nonce；只有帶正確 nonce 的任務 class 會保留（見 markdown.js）
    */
-  MarkLens.sanitize = function (html) {
+  MarkLens.sanitize = function (html, nonce) {
+    const taskClass = nonce ? new RegExp(`^ml-task-${nonce}-\\d+$`) : null
+    // 渲染器自己產生的 ml- class：程式碼區塊與任務清單行號
+    const allowClass = c => c === 'ml-pre' || (taskClass != null && taskClass.test(c))
     const tpl = document.createElement('template')
     tpl.innerHTML = html
-    walk(tpl.content)
+    walk(tpl.content, allowClass)
     return document.importNode(tpl.content, true)
   }
 })()

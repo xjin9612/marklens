@@ -503,6 +503,111 @@ try {
     await sw.evaluate(() => MarkLens.saveSettings({ mermaid: true }))
   })
 
+  /* ---------- 安全性：攻擊樣本（test/fixtures/security.md） ---------- */
+  // 攻擊成功會在 body 留下 data-xss 或跳出對話框。頁面上的 document 方法可能被樣本覆蓋（DOM clobbering），
+  // 所以檢查一律透過 Document.prototype 呼叫
+  const sp = await openDoc(pathToFileURL(join(root, 'test/fixtures/security.md')).href)
+  const dialogs = []
+  sp.on('dialog', d => {
+    dialogs.push(d.message())
+    d.dismiss().catch(() => {})
+  })
+  await sp.bringToFront()
+  await sp.waitForFunction(
+    () => Document.prototype.querySelectorAll.call(document, '.ml-mermaid-view svg, .ml-mermaid-error').length === 7,
+    null,
+    { timeout: 20000 },
+  )
+  const inSec = fn => sp.evaluate(fn)
+  await check('安全性：攻擊碼在載入與點擊後都沒有執行', async () => {
+    const targets = sp.locator('.markdown-body a, .markdown-body summary, .markdown-body p, .ml-mermaid-view .node, .ml-mermaid-view .edgeLabel')
+    // 正常的 http／mailto 連結會連到外部，攔下它的預設跳轉；其他網址（若有漏網的危險連結）照常放行，才測得出來
+    await sp.evaluate(() =>
+      document.addEventListener(
+        'click',
+        e => {
+          const a = e.target.closest?.('a[href]')
+          if (a && /^(https?|mailto):/i.test(a.getAttribute('href'))) e.preventDefault()
+        },
+        true,
+      ),
+    )
+    const n = await targets.count()
+    for (let i = 0; i < n; i++) {
+      await targets.nth(i).click({ force: true, timeout: 300 }).catch(() => {})
+      if (!sp.url().split('#')[0].endsWith('security.md')) throw new Error(`點擊第 ${i} 個元素後離開了頁面：${sp.url()}`)
+    }
+    await sp.waitForTimeout(500)
+    assert.equal(await inSec(() => document.body.dataset.xss), undefined)
+    assert.deepEqual(dialogs, [])
+  })
+  await check('安全性：危險標籤、事件屬性與危險網址全部移除（含 Mermaid 輸出）', async () => {
+    const bad = await inSec(() => {
+      const out = []
+      const all = Document.prototype.querySelectorAll.call(document, '.markdown-body *')
+      for (const el of all) {
+        const inDiagram = !!el.closest('.ml-mermaid-view')
+        const tag = el.tagName.toUpperCase()
+        if (!inDiagram && /^(SCRIPT|IFRAME|OBJECT|EMBED|FORM|INPUT|TEXTAREA|META|BASE|LINK|STYLE|SVG|MATH|TEMPLATE|NOSCRIPT|FRAME|FRAMESET)$/.test(tag)) out.push(tag)
+        if (!inDiagram && tag === 'BUTTON' && !/\bml-/.test(el.className)) out.push('BUTTON')
+        if (inDiagram && /^(SCRIPT|IFRAME|OBJECT|EMBED)$/.test(tag)) out.push(`mermaid ${tag}`)
+        for (const at of el.attributes) {
+          const v = at.value.replace(/[\s\u0000-\u001f]/g, '').toLowerCase()
+          if (at.name.toLowerCase().startsWith('on')) out.push(`${tag} ${at.name}`)
+          if (/(^|:)href$|^(src|poster|action|data|srcdoc|formaction)$/i.test(at.name) && /^(javascript|vbscript|data:(?!image\/(png|gif|jpe?g|webp)))/.test(v)) out.push(`${tag} ${at.name}=${v.slice(0, 30)}`)
+          if (!inDiagram && at.name === 'style' && !/^text-align:/.test(at.value)) out.push(`${tag} style`)
+        }
+      }
+      return out
+    })
+    assert.deepEqual(bad, [])
+  })
+  await check('安全性：文件不能借用 MarkLens 介面的 class／id 偽造畫面', async () => {
+    const r = await inSec(() => {
+      const qa = s => Document.prototype.querySelectorAll.call(document, s)
+      return {
+        fakes: qa('.markdown-body :is(.ml-viewer, .ml-toast, .ml-toolbar)').length,
+        roots: qa('[id="ml-root"]').length,
+        forgedTask: qa('.markdown-body [class*="ml-task-0000000000000000"]').length,
+      }
+    })
+    assert.deepEqual(r, { fakes: 0, roots: 1, forgedTask: 0 })
+    // 工具列沒有被遮住，可以正常點擊
+    await sp.click('.ml-toolbar button:has-text("全部摺疊")', { timeout: 2000 })
+    assert.ok((await inSec(() => Document.prototype.querySelectorAll.call(document, '.ml-folded').length)) > 0)
+    await sp.click('.ml-toolbar button:has-text("全部展開")', { timeout: 2000 })
+  })
+  await check('安全性：name 屬性無法覆蓋 document 的方法（DOM clobbering）', async () => {
+    const r = await inSec(() => [typeof document.getElementById, typeof document.querySelector, typeof document.createElement, String(document.documentElement)])
+    assert.deepEqual(r, ['function', 'function', 'function', '[object HTMLHtmlElement]'])
+    assert.equal(await sp.locator('.markdown-body a[name="old-style-anchor"]').count(), 1, '<a name> 舊式錨點應保留')
+  })
+  await check('安全性：安全的內容照常顯示', async () => {
+    assert.equal(await sp.locator('#safe-png[src^="data:image/png"]').count(), 1)
+    assert.equal(await sp.locator('.ml-mermaid-view svg').count(), 7)
+    assert.ok((await sp.textContent('.markdown-body')).includes('本段應正常顯示'))
+    const toc = await sp.locator('.ml-toc-list a').allTextContents()
+    assert.ok(toc.includes('第三層') && toc.includes('第四層'), toc.join('|'))
+    assert.equal(await sp.locator('.ml-toc :is(img, script, a[href^="javascript"])').count(), 0)
+  })
+  await check('自動連結比照 GitHub：README.md、裸網域不連結', async () => {
+    const p = sp.locator('.markdown-body p', { hasText: '自動連結：' })
+    const hrefs = await p.locator('a').evaluateAll(as => as.map(a => a.getAttribute('href')))
+    assert.deepEqual(hrefs, ['http://www.example.com', 'https://example.com/a', 'mailto:a@example.com'])
+  })
+  await sp.close()
+  await check('安全性：檔名中的 HTML 不會被執行', async () => {
+    const evilName = '<img src=x onerror=document.body.dataset.xss=1>.md'
+    writeFileSync(join(work, evilName), '沒有標題的文件，頁面標題取自檔名。\n')
+    const fp = await ctx.newPage()
+    await fp.goto(pathToFileURL(join(work, evilName)).href)
+    await fp.waitForSelector('#ml-root .markdown-body p')
+    await fp.waitForTimeout(300)
+    assert.equal(await fp.title(), evilName)
+    assert.equal(await fp.evaluate(() => document.body.dataset.xss), undefined)
+    await fp.close()
+  })
+
   /* ---------- 任務勾選寫回 ---------- */
   // 資料夾選擇視窗無法自動化：改用 OPFS（瀏覽器私有檔案系統）裡同名的「work」資料夾當作已授權資料夾，
   // 網址路徑中的 work/ 會對應到它，寫回的結果從 OPFS 讀出驗證。授權視窗本身需手動測試。
