@@ -290,6 +290,23 @@ try {
     assert.equal(await h2.evaluate(el => el.classList.contains('ml-folded')), false)
     assert.equal(await hiddenCount(), 0)
   })
+  await check('大檔摺疊改用一般隱藏（fast 模式）', async () => {
+    const big = join(work, 'big.md')
+    const parts = ['# 大檔']
+    for (let i = 0; i < 400; i++) parts.push(`## 第 ${i} 章`, ...Array.from({ length: 8 }, (_, j) => `段落 ${i}-${j}`))
+    writeFileSync(big, parts.join('\n\n'))
+    const bp = await openDoc(pathToFileURL(big).href)
+    assert.equal(await bp.$eval('.markdown-body', el => el.dataset.mlFoldMode), 'fast')
+    await bp.keyboard.press('[')
+    const hidden = await bp.$$eval('.markdown-body > [data-ml-fold]', els => [els.length, els.filter(e => e.hasAttribute('hidden')).length, getComputedStyle(els[0]).display])
+    assert.ok(hidden[0] > 3000, `摺疊節點 ${hidden[0]}`)
+    assert.equal(hidden[1], 0, '大檔不應使用 hidden=until-found')
+    assert.equal(hidden[2], 'none')
+    await bp.keyboard.press(']')
+    assert.equal(await bp.locator('.markdown-body > [data-ml-fold]').count(), 0)
+    assert.equal(await page.$eval('.markdown-body', el => el.dataset.mlFoldMode), 'find')
+    await bp.close()
+  })
   await check('點目錄中被摺疊的項目會展開並跳轉', async () => {
     await page.keyboard.press('[')
     await page.click('.ml-toc-list a:text("第三層標題")')

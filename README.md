@@ -26,7 +26,7 @@ To upgrade, replace the folder with the new release and click the reload icon on
 | Toolbar | Sticky top bar: outline, fold all, unfold all, text width, raw source / back to reading, back to top |
 | Layout | Text column width: full / 1600 / 1200 / 960 / custom. Tables and code blocks can grow past the text column up to the page edge. Adjustable font size and line height; reading progress bar |
 | Outline | Sidebar TOC (collapse with «), active-section highlight, heading search, depth filter, resizable width, two-line titles, folded-section markers, word count and reading time |
-| Folding | Fold any section from the ▾ next to its heading. "Fold all" starts from the first heading level that has two or more headings. Folded content stays searchable with Ctrl+F and unfolds on match |
+| Folding | Fold any section from the ▾ next to its heading. "Fold all" starts from the first heading level that has two or more headings. Folded content stays searchable with Ctrl+F and unfolds on match (in very large documents — roughly 400 KB+ — folded sections are hidden normally for speed and must be unfolded before searching) |
 | Tables | **Drag to resize columns** (double-click the handle to auto-fit), **click headers to sort** (numbers with thousands separators, byte units, dates, CJK text; empty cells last; third click restores the original order), row filter (5+ rows), copy as TSV (paste straight into Excel), wrap toggle, fullscreen with sticky header. The table toolbar only appears on hover |
 | Syntax | CommonMark + GFM, task lists, footnotes, `==highlight==`, GitHub alerts (`> [!NOTE]` etc.), collapsible front matter |
 | Code | highlight.js syntax highlighting (common languages), language label, copy button, per-block wrap toggle |

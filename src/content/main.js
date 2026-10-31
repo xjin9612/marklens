@@ -185,6 +185,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       }
       this.article.append(frag)
       MarkLens.groupInline(this.article)
+      MarkLens.setFoldMode(this.article)
 
       const headings = MarkLens.processHeadings(this.article)
       MarkLens.processTaskLists(this.article, this.md.marklensNonce)
@@ -432,8 +433,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       const tick = async () => {
         if (!MarkLens.alive()) return this.onOrphaned()
         if (!document.hidden) {
-          const src = await MarkLens.fetchSource()
-          if (src != null && src !== this.raw) this.update(src)
+          const src = await MarkLens.fetchSource({ ifChanged: true })
+          if (src !== MarkLens.UNCHANGED && src != null && src !== this.raw) this.update(src)
         }
         this.refreshTimer = setTimeout(tick, Math.max(300, this.settings.refreshInterval))
       }

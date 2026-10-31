@@ -53,7 +53,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.activeIndex = -1
       this.applyFilter()
       this.syncFold()
-      this.update()
+      // 延到下一個畫面再量位置，避免在建立目錄時強制整頁排版
+      requestAnimationFrame(() => this.update())
     }
 
     applyFilter() {
@@ -70,6 +71,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         it.li.classList.toggle('ml-toc-folded', it.heading.classList.contains('ml-folded'))
         it.li.classList.toggle('ml-toc-inside-fold', !!it.heading.dataset.mlFold)
       }
+      // 未被摺疊隱藏的標題，供 update() 二分搜尋
+      this.visible = this.items.filter(it => !it.heading.dataset.mlFold)
     }
 
     setStats({ chars, minutes }) {
@@ -90,15 +93,25 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       if (this.app.isNarrow()) this.app.setTocOpen(false)
     }
 
-    /** 捲動時高亮目前章節：取最後一個頂端已越過工具列下緣的標題 */
+    /**
+     * 捲動時高亮目前章節：取最後一個頂端已越過工具列下緣的標題
+     * 標題依文件順序排列、位置遞增，用二分搜尋只量少數幾個標題的位置，大檔捲動時才不會卡頓
+     */
     update() {
-      let idx = -1
-      for (let i = 0; i < this.items.length; i++) {
-        const el = this.items[i].heading
-        if (el.offsetParent === null || el.dataset.mlFold) continue // 被摺疊
-        if (el.getBoundingClientRect().top <= 90) idx = i
-        else break
+      const list = this.visible
+      let lo = 0
+      let hi = list.length - 1
+      let found = -1
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1
+        if (list[mid].heading.getBoundingClientRect().top <= 90) {
+          found = mid
+          lo = mid + 1
+        } else {
+          hi = mid - 1
+        }
       }
+      const idx = found < 0 ? -1 : this.items.indexOf(list[found])
       if (idx === this.activeIndex) return
       this.items[this.activeIndex]?.li.classList.remove('active')
       this.activeIndex = idx
