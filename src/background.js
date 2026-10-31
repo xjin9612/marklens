@@ -2,6 +2,11 @@
 // Service worker：快捷鍵、代讀本機檔案、任務勾選寫回
 importScripts('/src/shared/settings.js', '/src/shared/roots.js')
 
+// 首次安裝：開啟引導頁（說明如何開啟「允許存取檔案網址」）；更新時不打擾
+chrome.runtime.onInstalled.addListener(({ reason }) => {
+  if (reason === 'install') chrome.tabs.create({ url: chrome.runtime.getURL('src/welcome/welcome.html') })
+})
+
 chrome.commands.onCommand.addListener(async (command, tab) => {
   if (command === 'cycle-theme') {
     // 主題是全域設定，所有分頁同步

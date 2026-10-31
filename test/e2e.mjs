@@ -67,6 +67,18 @@ try {
   const sw = ctx.serviceWorkers()[0] || (await ctx.waitForEvent('serviceworker'))
   const page = await openDoc()
 
+  /* ---------- 首次安裝引導頁 ---------- */
+  await check('首次安裝自動開啟引導頁，並顯示檔案存取狀態', async () => {
+    const isWelcome = p => p.url().endsWith('/src/welcome/welcome.html')
+    const wp = ctx.pages().find(isWelcome) || (await ctx.waitForEvent('page', { predicate: isWelcome, timeout: 5000 }))
+    await wp.waitForSelector('#file-status[data-state="ok"]')
+    assert.ok((await wp.textContent('#version')).startsWith('MarkLens '))
+    assert.equal(await wp.locator('#open-details').isVisible(), false, '已開啟時隱藏設定按鈕')
+    await wp.setViewportSize({ width: 1000, height: 1400 })
+    await wp.screenshot({ path: join(shotDir, 'ml-welcome.png'), fullPage: true })
+    await wp.close()
+  })
+
   /* ---------- 渲染 ---------- */
   await check('file:// 渲染且標題正確', async () => {
     assert.equal(await page.title(), 'MarkLens 功能測試')

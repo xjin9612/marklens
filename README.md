@@ -18,7 +18,7 @@ Inspired by [md-reader 2.x](https://github.com/md-reader/md-reader) (MIT); rewri
 1. Download `marklens-vX.Y.Z.zip` from the [latest release](https://github.com/xjin9612/marklens/releases/latest) and unzip it (or clone this repository).
 2. Open `chrome://extensions` (Edge: `edge://extensions`) and turn on **Developer mode**.
 3. Click **Load unpacked** and select the unzipped `marklens-vX.Y.Z` folder (the one containing `manifest.json`).
-4. For local files: open the extension's **Details** and enable **Allow access to file URLs**.
+4. For local files: open the extension's **Details** and enable **Allow access to file URLs**. A welcome page opens after installing and walks you through this.
 
 To upgrade, replace the folder with the new release and click the reload icon on the extensions page. See [CHANGELOG.md](./CHANGELOG.md) for what changed.
 
@@ -96,6 +96,7 @@ src/
   shared/settings.js     settings defaults and storage (shared by all contexts)
   shared/roots.js        authorized folders (extension origin only)
   grant/                 folder authorization page
+  welcome/               first-run welcome page
   content/
     util.js              helpers, reading the page source
     fonts.js             CJK/ASCII width alignment for code blocks
