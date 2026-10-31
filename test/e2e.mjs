@@ -1039,6 +1039,60 @@ try {
     await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important; }' })
   })
 
+  await check('同分頁換檔：舊畫面保留到新頁排好版（沒有空白頁），檔案清單不出現「讀取中」', async () => {
+    const nav = join(work, 'nav')
+    const vp = await openDoc(pathToFileURL(join(nav, '1-a.md')).href)
+    try {
+      await vp.click('.ml-side-tab:text("檔案")')
+      await vp.waitForSelector('.ml-files-file a[href$="2-b.md"]')
+      // 新頁一開始就記錄：轉場物件、排版完成與轉場結束的時間、是否出現過「讀取中」
+      await vp.addInitScript(() => {
+        const r = (window.__nav = { loading: false })
+        addEventListener('pagereveal', e => {
+          r.vt = !!e.viewTransition
+          e.viewTransition?.finished.then(() => (r.vtEnd = performance.now()))
+        })
+        new MutationObserver(() => {
+          if (!r.root && document.getElementById('ml-root')) r.root = performance.now()
+          if ([...document.querySelectorAll('.ml-files-note')].some(n => n.textContent.includes('讀取中'))) r.loading = true
+        }).observe(document, { childList: true, subtree: true, characterData: true })
+      })
+      await vp.click('.ml-files-file a[href$="2-b.md"]')
+      await vp.waitForURL(/2-b\.md$/)
+      await vp.waitForSelector('#ml-root .markdown-body h1:text("B")')
+      await vp.waitForFunction(() => window.__nav.vtEnd)
+      const r = await vp.evaluate(() => window.__nav)
+      assert.equal(r.vt, true, '應有跨文件轉場')
+      // 排版完成就結束轉場（不是等 1.5 秒的保底）
+      assert.ok(r.vtEnd - r.root < 300, JSON.stringify(r))
+      assert.equal(r.loading, false, '不應出現「讀取中」')
+      assert.equal(await vp.textContent('.ml-files-file.active'), '📄2-b.md')
+    } finally {
+      await vp.close()
+    }
+  })
+  await check('開新分頁時，等待畫面的背景沿用上次的主題（MarkLens 深色、系統淺色）', async () => {
+    const before = (await sw.evaluate(() => MarkLens.loadSettings())).theme
+    await sw.evaluate(() => MarkLens.saveSettings({ theme: 'dark' }))
+    try {
+      await (await openDoc()).close() // 讓深色主題寫進本機檔案的儲存空間
+      const bp = await ctx.newPage()
+      await bp.addInitScript(() => {
+        new MutationObserver((_, obs) => {
+          if (!document.querySelector('body > pre')) return
+          window.__bg = getComputedStyle(document.documentElement).backgroundColor
+          obs.disconnect()
+        }).observe(document, { childList: true, subtree: true })
+      })
+      await bp.goto(localUrl)
+      await bp.waitForSelector('#ml-root .markdown-body h1')
+      assert.equal(await bp.evaluate(() => window.__bg), 'rgb(13, 17, 23)')
+      await bp.close()
+    } finally {
+      await sw.evaluate(t => MarkLens.saveSettings({ theme: t }), before)
+    }
+  })
+
   /* ---------- 任務勾選寫回 ---------- */
   // 資料夾選擇視窗無法自動化：改用 OPFS（瀏覽器私有檔案系統）裡同名的「work」資料夾當作已授權資料夾，
   // 網址路徑中的 work/ 會對應到它，寫回的結果從 OPFS 讀出驗證。授權視窗本身需手動測試。

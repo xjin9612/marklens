@@ -14,10 +14,23 @@ html:not(.marklens):not(.ml-off) > body > pre {
   animation: ml-reveal 0s 1.5s forwards;
 }
 @keyframes ml-reveal { to { visibility: visible; } }
-/* 等待期間的背景跟隨系統深淺色，深色主題切換檔案時不會閃白 */
+/* 等待期間的背景：沿用上次的主題（early.js 設定），沒有紀錄時跟隨系統深淺色 */
 @media (prefers-color-scheme: dark) {
   html:not(.marklens):not(.ml-off) { background: #0d1117; }
 }
+html[data-ml-early-theme="light"]:not(.marklens):not(.ml-off) { background: #ffffff; }
+html[data-ml-early-theme="dark"]:not(.marklens):not(.ml-off) { background: #0d1117; }
+
+/*
+ * 同一分頁內換檔：跨文件 View Transition（Chrome 126 起）。舊畫面停在原處不淡出，新頁先不顯示；
+ * 新頁排好版後 early.js 的 MarkLens.revealPage() 會結束轉場，直接換成新頁，中間沒有空白頁。
+ * 萬一新頁沒有呼叫（例如程式出錯），1.5 秒後轉場自然結束。
+ * 只有轉場兩端都是 .md 頁面（都有這份樣式表）時才會發生；重新整理不會觸發。
+ */
+@view-transition { navigation: auto; }
+::view-transition-old(root) { animation: ml-hold 1.5s; }
+::view-transition-new(root) { animation: none; opacity: 0; }
+@keyframes ml-hold { from, to { opacity: 1; } }
 
 /* ---------- 主題變數 ---------- */
 html.marklens {
