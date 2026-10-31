@@ -36,6 +36,14 @@ flowchart LR
   E -->|fail| G
 ```
 
+## Capacity
+
+Each node handles $\lambda = 1{,}200$ requests per second; with $n$ nodes the expected queue wait is
+
+$$
+W_q = \frac{\rho}{\mu (1 - \rho)}, \qquad \rho = \frac{\lambda}{n \mu}
+$$
+
 ## Rollback
 
 ```bash
