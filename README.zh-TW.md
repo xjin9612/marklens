@@ -182,6 +182,14 @@ npm test
 
 截圖輸出到 `SHOT_DIR` 環境變數指定的目錄（預設為系統暫存目錄）。
 
+### 手動測試
+
+有些項目無法自動化：資料夾選擇視窗、Chrome 重新啟動後的權限確認、開啟 VS Code，以及字型與圖表的實際顯示效果。`test/manual/` 是發版前在自己的 Chrome 上逐項確認的清單：
+
+1. 第一次先執行 `npm run manual:bigfile`，產生約 1MB 的效能測試檔（不進版控）。
+2. 在 `chrome://extensions` 重新載入 MarkLens，開啟 `test/manual/00-說明.md` 依序檢查；用側邊欄的「檔案」分頁切換檔案。
+3. 勾選會直接寫回這些檔案，測完執行 `git restore test/manual` 還原。
+
 ## 發版流程
 
 1. 在 `CHANGELOG.md` 最上方新增 `## [X.Y.Z] - YYYY-MM-DD` 段落（把 *Unreleased* 的項目移進來）。

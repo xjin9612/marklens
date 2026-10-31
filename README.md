@@ -184,6 +184,14 @@ The suite loads the extension into Chromium and opens local and http fixtures (`
 
 Screenshots go to the directory in the `SHOT_DIR` environment variable (system temp by default).
 
+### Manual tests
+
+Some things can't be automated: the folder picker, permission prompts after a Chrome restart, opening VS Code, and how fonts and diagrams actually look. `test/manual/` (in Traditional Chinese) is a checklist to run in your own Chrome before a release:
+
+1. `npm run manual:bigfile` once, to generate the ~1 MB performance file (not committed).
+2. Reload MarkLens on `chrome://extensions`, then open `test/manual/00-說明.md` and work through the files; the sidebar's **Files** tab moves between them.
+3. Checking boxes writes to these files, so restore them afterwards: `git restore test/manual`.
+
 ## Releasing
 
 1. Add a `## [X.Y.Z] - YYYY-MM-DD` section at the top of `CHANGELOG.md` (move items from *Unreleased*).
