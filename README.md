@@ -56,7 +56,7 @@ Folder access is held by the extension itself (in its own storage, under its own
 
 ### Per-tab vs. global settings
 
-- **Current tab only**: sidebar visibility, sidebar width, selected sidebar tab, text width, and the Files tab's top folder and open folders. Kept across reloads and when opening another file in the same tab, cleared when the tab closes — handy for comparing documents side by side. Raw view and folds are not kept.
+- **Current tab only**: sidebar visibility, sidebar width, selected sidebar tab, text width, and the Files tab's top folder and open folders. Kept across reloads and when opening another file in the same tab, cleared when the tab closes — handy for comparing documents side by side. Raw view and folds are not kept. On web pages these stay in memory only (not in the site's storage, so the site can't detect MarkLens) and reset on reload.
 - **Synced live to every tab**: theme, font size, line height.
 - **Everything else in the popup** is the default for new tabs; open tabs pick it up after a reload. Dragging the sidebar width also saves it as the new default.
 

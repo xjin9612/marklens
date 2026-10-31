@@ -27,8 +27,14 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
   }
 
-  /* ---------- 分頁狀態：只影響目前分頁，重新整理後保留，關閉分頁即清除 ---------- */
+  /*
+   * ---------- 分頁狀態：只影響目前分頁，重新整理後保留，關閉分頁即清除 ----------
+   * 只有本機檔案存進 sessionStorage。網頁上的 sessionStorage 屬於該網站，同分頁之後開啟的同站頁面讀得到，
+   * 網站可藉此得知裝了 MarkLens；所以網頁上的分頁狀態只留在記憶體，重新整理後回到預設值。
+   */
+  const PERSIST_VIEW = location.protocol === 'file:'
   function readView() {
+    if (!PERSIST_VIEW) return {}
     try {
       return JSON.parse(sessionStorage.getItem(VIEW_KEY)) || {}
     } catch {
@@ -36,6 +42,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
   }
   function writeView(view) {
+    if (!PERSIST_VIEW) return
     try {
       sessionStorage.setItem(VIEW_KEY, JSON.stringify(view))
     } catch {

@@ -589,6 +589,18 @@ try {
     assert.equal(await p4.locator('.ml-side-tab:text("檔案")').isVisible(), false, '網路上的頁面沒有檔案分頁')
     assert.equal(await p4.locator('input.ml-task-box').first().getAttribute('data-ml-readonly'), 'taskReadonlyRemote')
   })
+  await check('網頁上的分頁狀態不寫進網站的儲存空間（網站無法藉此偵測 MarkLens）', async () => {
+    await p4.bringToFront()
+    await p4.locator('.ml-body').click({ position: { x: 5, y: 5 } })
+    const before = await p4.textContent('.ml-tool-width')
+    await p4.keyboard.press('w')
+    assert.notEqual(await p4.textContent('.ml-tool-width'), before, '寬度仍可在本頁切換')
+    const keys = await p4.evaluate(() => [...Object.keys(sessionStorage), ...Object.keys(localStorage)])
+    assert.deepEqual(keys.filter(k => k.startsWith('marklens')), [])
+    await p4.reload()
+    await p4.waitForSelector('#ml-root .markdown-body h1')
+    assert.equal(await p4.textContent('.ml-tool-width'), before, '重新整理後回到預設值')
+  })
   await check('外部連結開新分頁；錨點、腳註、同站連結不受影響', async () => {
     const attrs = (pg, sel) => pg.locator(sel).first().evaluate(a => `${a.target}|${a.rel}`)
     assert.equal(await attrs(page, '.markdown-body a[href="https://example.com"]'), '_blank|noopener noreferrer')
