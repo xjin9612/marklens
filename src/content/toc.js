@@ -1,0 +1,134 @@
+'use strict'
+// 側邊目錄：層級過濾、文字搜尋、目前章節高亮、摺疊標記、拖拉寬度
+var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
+
+;(() => {
+  const { h } = MarkLens
+
+  MarkLens.Toc = class {
+    constructor(app) {
+      this.app = app
+      this.items = [] // { heading, li, level, text }
+      this.activeIndex = -1
+      this.hovering = false
+
+      this.stats = h('div', { class: 'ml-toc-stats' })
+      this.search = h('input', {
+        class: 'ml-toc-search',
+        type: 'search',
+        placeholder: '搜尋標題…',
+        on: { input: () => this.applyFilter() },
+      })
+      const closeBtn = h('button', {
+        class: 'ml-btn ml-toc-close',
+        text: '«',
+        title: '收合目錄（t）',
+        on: { click: () => this.app.toggleToc() },
+      })
+      this.list = h('ul', { class: 'ml-toc-list' })
+      this.resizer = h('div', { class: 'ml-toc-resizer', title: '拖拉調整寬度' })
+      this.el = h('aside', { class: 'ml-toc', attrs: { 'aria-label': '目錄' } }, [
+        h('div', { class: 'ml-toc-head' }, [h('div', { class: 'ml-toc-row' }, [this.search, closeBtn]), this.stats]),
+        h('nav', { class: 'ml-toc-nav' }, [this.list]),
+        this.resizer,
+      ])
+      this.el.addEventListener('mouseenter', () => (this.hovering = true))
+      this.el.addEventListener('mouseleave', () => (this.hovering = false))
+      this.list.addEventListener('click', e => this.onClick(e))
+      this.bindResize()
+    }
+
+    build(headings, depth) {
+      this.depth = depth
+      this.list.textContent = ''
+      const minLevel = Math.min(6, ...headings.map(el => +el.dataset.mlLevel))
+      this.items = headings.map(heading => {
+        const level = +heading.dataset.mlLevel
+        const text = heading.dataset.mlText
+        const a = h('a', { href: `#${encodeURIComponent(heading.id)}`, text, title: text })
+        const li = h('li', { class: `ml-toc-l${level - minLevel + 1}` }, [a])
+        this.list.append(li)
+        return { heading, li, level, text: text.toLowerCase() }
+      })
+      this.activeIndex = -1
+      this.applyFilter()
+      this.syncFold()
+      this.update()
+    }
+
+    applyFilter() {
+      const q = this.search.value.trim().toLowerCase()
+      for (const it of this.items) {
+        // 搜尋時忽略層級限制
+        it.li.hidden = q ? !it.text.includes(q) : it.level > this.depth
+      }
+    }
+
+    /** 摺疊標記：被摺疊的標題加 ▸，被收在摺疊段落裡的標題變淡 */
+    syncFold() {
+      for (const it of this.items) {
+        it.li.classList.toggle('ml-toc-folded', it.heading.classList.contains('ml-folded'))
+        it.li.classList.toggle('ml-toc-inside-fold', !!it.heading.dataset.mlFold)
+      }
+    }
+
+    setStats({ chars, minutes }) {
+      this.stats.textContent = `約 ${chars.toLocaleString()} 字 · ${minutes} 分鐘`
+    }
+
+    onClick(e) {
+      const a = e.target.closest('a')
+      if (!a) return
+      e.preventDefault()
+      const it = this.items.find(x => x.li.contains(a))
+      if (!it) return
+      MarkLens.revealElement(this.app.article, it.heading)
+      // 點被摺疊的標題本身：順便展開它
+      if (it.heading.classList.contains('ml-folded')) MarkLens.toggleFold(it.heading, false)
+      it.heading.scrollIntoView({ block: 'start' })
+      history.replaceState(null, '', `#${encodeURIComponent(it.heading.id)}`)
+      if (this.app.isNarrow()) this.app.setTocOpen(false)
+    }
+
+    /** 捲動時高亮目前章節：取最後一個頂端已越過工具列下緣的標題 */
+    update() {
+      let idx = -1
+      for (let i = 0; i < this.items.length; i++) {
+        const el = this.items[i].heading
+        if (el.offsetParent === null || el.dataset.mlFold) continue // 被摺疊
+        if (el.getBoundingClientRect().top <= 90) idx = i
+        else break
+      }
+      if (idx === this.activeIndex) return
+      this.items[this.activeIndex]?.li.classList.remove('active')
+      this.activeIndex = idx
+      const cur = this.items[idx]
+      if (!cur) return
+      cur.li.classList.add('active')
+      // 滑鼠在目錄上時不要自動捲動目錄，避免干擾操作
+      if (!this.hovering && !cur.li.hidden) cur.li.scrollIntoView({ block: 'nearest' })
+    }
+
+    bindResize() {
+      this.resizer.addEventListener('pointerdown', e => {
+        e.preventDefault()
+        this.resizer.setPointerCapture(e.pointerId)
+        document.documentElement.classList.add('ml-dragging')
+        let width = this.el.getBoundingClientRect().width
+        const move = ev => {
+          width = Math.round(Math.min(600, Math.max(160, ev.clientX)))
+          this.app.setView({ tocWidth: width })
+        }
+        const up = () => {
+          this.resizer.removeEventListener('pointermove', move)
+          this.resizer.removeEventListener('pointerup', up)
+          document.documentElement.classList.remove('ml-dragging')
+          // 同時記成新分頁的預設值（不影響已開的分頁）
+          if (MarkLens.alive()) MarkLens.saveSettings({ tocWidth: width }).catch(() => {})
+        }
+        this.resizer.addEventListener('pointermove', move)
+        this.resizer.addEventListener('pointerup', up)
+      })
+    }
+  }
+})()

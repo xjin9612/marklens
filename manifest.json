@@ -1,0 +1,116 @@
+{
+  "manifest_version": 3,
+  "name": "MarkLens",
+  "short_name": "MarkLens",
+  "version": "1.0.0",
+  "description": "輕量、可稽核的 Markdown 閱讀器：寬表格可拖拉欄寬與排序、側邊目錄、深淺色主題、本機檔案自動更新。",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "action": {
+    "default_title": "MarkLens",
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*/*.md",
+        "*://*/*.md?*",
+        "*://*/*.markdown",
+        "*://*/*.markdown?*",
+        "*://*/*.mkd",
+        "*://*/*.mkd?*",
+        "*://*/*.mdx",
+        "*://*/*.mdx?*",
+        "*://*/*.MD",
+        "*://*/*.MD?*",
+        "*://*/*.Markdown",
+        "*://*/*.Markdown?*",
+        "*://*/*.MARKDOWN",
+        "*://*/*.MARKDOWN?*",
+        "*://*/*.MKD",
+        "*://*/*.MKD?*",
+        "*://*/*.MDX",
+        "*://*/*.MDX?*",
+        "file:///*.md",
+        "file:///*.md?*",
+        "file:///*.markdown",
+        "file:///*.markdown?*",
+        "file:///*.mkd",
+        "file:///*.mkd?*",
+        "file:///*.mdx",
+        "file:///*.mdx?*",
+        "file:///*.MD",
+        "file:///*.MD?*",
+        "file:///*.Markdown",
+        "file:///*.Markdown?*",
+        "file:///*.MARKDOWN",
+        "file:///*.MARKDOWN?*",
+        "file:///*.MKD",
+        "file:///*.MKD?*",
+        "file:///*.MDX",
+        "file:///*.MDX?*"
+      ],
+      "js": [
+        "vendor/markdown-it.min.js",
+        "vendor/markdown-it-footnote.min.js",
+        "vendor/highlight.min.js",
+        "src/shared/settings.js",
+        "src/content/util.js",
+        "src/content/sanitize.js",
+        "src/content/markdown.js",
+        "src/content/enhance.js",
+        "src/content/table.js",
+        "src/content/toc.js",
+        "src/content/main.js"
+      ],
+      "css": [
+        "src/content/content.css"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "commands": {
+    "toggle-toc": {
+      "description": "切換側邊目錄（目前分頁）",
+      "suggested_key": {
+        "default": "Alt+Shift+B"
+      }
+    },
+    "cycle-theme": {
+      "description": "切換主題（自動 → 淺色 → 深色，所有分頁）",
+      "suggested_key": {
+        "default": "Alt+Shift+T"
+      }
+    },
+    "cycle-width": {
+      "description": "切換文字寬度（目前分頁）",
+      "suggested_key": {
+        "default": "Alt+Shift+C"
+      }
+    },
+    "toggle-raw": {
+      "description": "切換原始文字／渲染結果（目前分頁）",
+      "suggested_key": {
+        "default": "Alt+Shift+R"
+      }
+    }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'"
+  },
+  "version_name": "1.0.0"
+}

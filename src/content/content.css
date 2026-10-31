@@ -1,0 +1,562 @@
+/* MarkLens 閱讀器樣式：所有規則都限定在 html.marklens 底下，未接管的頁面不受影響 */
+
+/* ---------- 主題變數 ---------- */
+html.marklens {
+  --ml-text-max: 1200px;
+  --ml-text-min: min(100%, 1200px);
+  --ml-font-size: 16px;
+  --ml-line-height: 1.7;
+  --ml-toc-width: 260px;
+  --ml-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", "Noto Sans CJK TC", sans-serif;
+  --ml-mono: "Cascadia Code", Consolas, "SFMono-Regular", Menlo, "Noto Sans Mono CJK TC", "Microsoft JhengHei", monospace;
+}
+html.marklens[data-ml-theme="light"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --fg: #1f2328;
+  --muted: #59636e;
+  --border: #d1d9e0;
+  --border-soft: #e5e9ee;
+  --subtle: #f6f8fa;
+  --hover: #eef1f4;
+  --link: #0969da;
+  --accent: #0969da;
+  --accent-soft: #ddf4ff;
+  --mark: #fff8c5;
+  --code-bg: #f6f8fa;
+  --inline-code-bg: rgba(129, 139, 152, .14);
+  --shadow: 0 4px 16px rgba(31, 35, 40, .12);
+  --hl-keyword: #cf222e; --hl-string: #0a3069; --hl-number: #0550ae; --hl-comment: #59636e;
+  --hl-title: #8250df; --hl-attr: #0550ae; --hl-builtin: #953800; --hl-meta: #1f6feb;
+  --hl-addition: #116329; --hl-addition-bg: #dafbe1; --hl-deletion: #82071e; --hl-deletion-bg: #ffebe9;
+  --alert-note: #0969da; --alert-tip: #1a7f37; --alert-important: #8250df; --alert-warning: #9a6700; --alert-caution: #d1242f;
+}
+html.marklens[data-ml-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0d1117;
+  --fg: #e6edf3;
+  --muted: #9198a1;
+  --border: #3d444d;
+  --border-soft: #2a3038;
+  --subtle: #151b23;
+  --hover: #1f2630;
+  --link: #4493f8;
+  --accent: #4493f8;
+  --accent-soft: #121d2f;
+  --mark: rgba(187, 128, 9, .35);
+  --code-bg: #151b23;
+  --inline-code-bg: rgba(101, 108, 118, .25);
+  --shadow: 0 4px 16px rgba(0, 0, 0, .5);
+  --hl-keyword: #ff7b72; --hl-string: #a5d6ff; --hl-number: #79c0ff; --hl-comment: #8b949e;
+  --hl-title: #d2a8ff; --hl-attr: #79c0ff; --hl-builtin: #ffa657; --hl-meta: #79c0ff;
+  --hl-addition: #aff5b4; --hl-addition-bg: #033a16; --hl-deletion: #ffdcd7; --hl-deletion-bg: #67060c;
+  --alert-note: #4493f8; --alert-tip: #3fb950; --alert-important: #ab7df8; --alert-warning: #d29922; --alert-caution: #f85149;
+}
+
+html.marklens, html.marklens body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+/* ---------- 基本 ---------- */
+html.marklens pre.ml-source { display: none; }
+html.marklens.ml-noscroll, html.marklens.ml-noscroll body { overflow: hidden; }
+html.marklens.ml-dragging, html.marklens.ml-dragging * { cursor: col-resize !important; user-select: none !important; }
+html.marklens [hidden]:not([hidden="until-found"]) { display: none !important; }
+/* 摺疊的內容：hidden=until-found 只隱藏內容不移除方塊，把外距與高度歸零 */
+html.marklens .markdown-body > [hidden="until-found"] {
+  margin-block: 0 !important;
+  padding-block: 0 !important;
+  border: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* ---------- 按鈕 ---------- */
+html.marklens .ml-btn {
+  font: 12px/1 var(--ml-font);
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  cursor: pointer;
+  white-space: nowrap;
+}
+html.marklens .ml-btn:hover { background: var(--hover); }
+html.marklens .ml-btn:disabled { color: var(--accent); cursor: default; }
+
+/* ---------- 閱讀進度 ---------- */
+html.marklens .ml-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--accent);
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  z-index: 30;
+  pointer-events: none;
+}
+
+/* ---------- 頂部工具列 ---------- */
+html.marklens .ml-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 40px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border-soft);
+  font: 13px/1 var(--ml-font);
+}
+html.marklens .ml-reading-only { display: contents; }
+html.marklens .ml-tool {
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+html.marklens .ml-tool:hover { background: var(--hover); color: var(--fg); }
+html.marklens .ml-tool.active { color: var(--accent); }
+html.marklens .ml-spacer { flex: 1; }
+html.marklens .ml-orphan { margin-left: 8px; color: var(--alert-warning); white-space: nowrap; }
+html.marklens .ml-orphan .ml-tool { color: var(--accent); padding: 4px 6px; }
+
+/* ---------- 原始文字模式：工具列保留，可隨時返回 ---------- */
+html.marklens.ml-raw :is(.ml-body, .ml-toc, .ml-reading-only, .ml-tool-toc, .ml-backdrop) { display: none !important; }
+html.marklens.ml-raw .ml-main { margin-left: 0 !important; }
+html.marklens.ml-raw pre.ml-source {
+  display: block;
+  margin: 0;
+  padding: 24px 32px;
+  font: 14px/1.6 var(--ml-mono);
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: none;
+}
+html.marklens.ml-raw .ml-tool-raw { border-color: var(--accent); }
+
+/* ---------- 側邊目錄 ---------- */
+html.marklens .ml-toc {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--ml-toc-width);
+  display: flex;
+  flex-direction: column;
+  background: var(--subtle);
+  border-right: 1px solid var(--border-soft);
+  font: 13px/1.5 var(--ml-font);
+  z-index: 20;
+  box-sizing: border-box;
+}
+html.marklens.ml-toc-hidden .ml-toc { display: none; }
+html.marklens .ml-toc-head { padding: 8px 12px; border-bottom: 1px solid var(--border-soft); }
+html.marklens .ml-toc-row { display: flex; gap: 6px; }
+html.marklens .ml-toc-search {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+html.marklens .ml-toc-close { font-size: 14px; padding: 0 9px; }
+html.marklens .ml-toc-stats { margin-top: 6px; color: var(--muted); font-size: 12px; }
+html.marklens .ml-toc-nav { flex: 1; overflow-y: auto; padding: 8px 0 24px; }
+html.marklens .ml-toc-list { list-style: none; margin: 0; padding: 0; }
+html.marklens .ml-toc-list li a {
+  /* 長標題最多顯示兩行 */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  padding: 3px 12px;
+  line-height: 1.4;
+  color: var(--muted);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  word-break: break-word;
+}
+html.marklens .ml-toc-list li a:hover { color: var(--fg); background: var(--hover); }
+html.marklens .ml-toc-list li.active > a { color: var(--accent); border-left-color: var(--accent); background: var(--accent-soft); }
+html.marklens .ml-toc-list li.ml-toc-folded > a::before { content: "▸ "; color: var(--muted); }
+html.marklens .ml-toc-list li.ml-toc-inside-fold > a { opacity: .5; }
+html.marklens .ml-toc-l1 > a { font-weight: 600; color: var(--fg) !important; }
+html.marklens .ml-toc-l2 > a { padding-left: 24px !important; }
+html.marklens .ml-toc-l3 > a { padding-left: 36px !important; }
+html.marklens .ml-toc-l4 > a { padding-left: 48px !important; }
+html.marklens .ml-toc-l5 > a { padding-left: 60px !important; }
+html.marklens .ml-toc-l6 > a { padding-left: 72px !important; }
+html.marklens .ml-toc-resizer {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+}
+html.marklens .ml-toc-resizer:hover { background: var(--accent); opacity: .4; }
+html.marklens .ml-backdrop { display: none; }
+
+/* ---------- 主內容 ---------- */
+html.marklens .ml-main {
+  margin-left: var(--ml-toc-width);
+  min-width: 0;
+}
+html.marklens.ml-toc-hidden .ml-main { margin-left: 0; }
+html.marklens .ml-body {
+  box-sizing: border-box;
+  padding: 24px 40px 96px;
+  font-family: var(--ml-font);
+  font-size: var(--ml-font-size);
+  line-height: var(--ml-line-height);
+  word-wrap: break-word;
+}
+/* 文字欄：段落、標題、清單等限制在文字寬度內置中 */
+html.marklens .markdown-body > * {
+  box-sizing: border-box;
+  max-width: var(--ml-text-max);
+  margin-left: auto;
+  margin-right: auto;
+}
+/* 表格與程式碼：可超出文字欄，依內容撐開直到版面邊緣，置中對齊 */
+html.marklens.ml-wide-blocks .markdown-body > :is(.ml-table, .ml-code) {
+  max-width: 100%;
+  width: fit-content;
+  min-width: var(--ml-text-min);
+}
+
+/* 窄螢幕：目錄改成抽屜 */
+@media (max-width: 900px) {
+  html.marklens .ml-toc { display: flex !important; transform: translateX(-100%); transition: transform .15s; box-shadow: var(--shadow); }
+  html.marklens.ml-toc-open .ml-toc { transform: none; }
+  html.marklens.ml-toc-open .ml-backdrop { display: block; position: fixed; inset: 0; background: rgba(0, 0, 0, .3); z-index: 15; }
+  html.marklens .ml-main { margin-left: 0; }
+  html.marklens .ml-body { padding: 16px 16px 80px 36px; }
+  html.marklens .ml-toc-resizer { display: none; }
+  html.marklens .ml-tool-width { display: none; }
+  html.marklens .ml-toolbar { overflow-x: auto; padding: 0 4px; }
+  html.marklens .ml-tool { padding: 6px 7px; }
+}
+
+/* ---------- Markdown 內容 ---------- */
+/* 只設定上下外距，左右交給文字欄置中 */
+html.marklens .markdown-body > *:first-child { margin-top: 0; }
+html.marklens .markdown-body :is(p, blockquote, ul, ol, dl, .ml-table, .ml-code, details, .ml-inline-group) { margin-top: 0; margin-bottom: 16px; }
+html.marklens .markdown-body a { color: var(--link); text-decoration: none; }
+html.marklens .markdown-body a:hover { text-decoration: underline; }
+html.marklens .markdown-body :is(h1, h2, h3, h4, h5, h6) {
+  position: relative;
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  scroll-margin-top: 56px;
+}
+html.marklens .markdown-body h1 { font-size: 2em; padding-bottom: .3em; border-bottom: 1px solid var(--border-soft); }
+html.marklens .markdown-body h2 { font-size: 1.5em; padding-bottom: .3em; border-bottom: 1px solid var(--border-soft); }
+html.marklens .markdown-body h3 { font-size: 1.25em; }
+html.marklens .markdown-body h4 { font-size: 1em; }
+html.marklens .markdown-body h5 { font-size: .875em; }
+html.marklens .markdown-body h6 { font-size: .85em; color: var(--muted); }
+
+/* 標題左側：摺疊鈕常駐（淡色），錨點滑過才出現 */
+html.marklens .markdown-body .ml-fold {
+  /* 尺寸以標題字級計算，高度等於標題第一行，三角形垂直置中 */
+  position: absolute;
+  left: -30px;
+  top: 0;
+  width: 22px;
+  height: 1.25em;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  opacity: .45;
+  font: inherit;
+  line-height: 1.25em;
+}
+html.marklens .markdown-body .ml-fold::before { content: "▾"; font-size: 12px; vertical-align: middle; }
+html.marklens .markdown-body .ml-folded .ml-fold::before { content: "▸"; }
+html.marklens .markdown-body .ml-fold:hover { opacity: 1; background: var(--hover); color: var(--fg); }
+html.marklens .markdown-body .ml-folded .ml-fold { opacity: 1; color: var(--accent); }
+html.marklens .markdown-body .ml-folded::after { content: " …"; color: var(--muted); font-weight: 400; }
+html.marklens .markdown-body > .ml-folded { margin-bottom: 4px; }
+/* 錨點放在標題文字後面，滑過才顯示，不造成文字位移 */
+html.marklens .markdown-body .ml-anchor {
+  margin-left: .35em;
+  color: var(--muted);
+  opacity: 0;
+  text-decoration: none !important;
+  font-weight: 400;
+}
+html.marklens .markdown-body :is(h1, h2, h3, h4, h5, h6):hover .ml-anchor { opacity: .6; }
+html.marklens .markdown-body .ml-folded .ml-anchor { display: none; }
+
+html.marklens .markdown-body ul,
+html.marklens .markdown-body ol { padding-left: 2em; }
+html.marklens .markdown-body li + li { margin-top: .25em; }
+html.marklens .markdown-body li > ul,
+html.marklens .markdown-body li > ol { margin-top: .25em; margin-bottom: 0; }
+html.marklens .markdown-body .contains-task-list { list-style: none; padding-left: 1.2em; }
+html.marklens .markdown-body .task-list-item input { margin: 0 .4em 0 -1.2em; vertical-align: middle; }
+html.marklens .markdown-body blockquote {
+  padding: 0 1em;
+  color: var(--muted);
+  border-left: .25em solid var(--border);
+}
+html.marklens .markdown-body hr { height: .25em; margin-top: 24px; margin-bottom: 24px; border: 0; background: var(--border-soft); }
+html.marklens .markdown-body img { max-width: 100%; box-sizing: content-box; }
+html.marklens .markdown-body img.ml-zoomable { cursor: zoom-in; }
+html.marklens .markdown-body mark { background: var(--mark); color: inherit; padding: 0 .1em; border-radius: 2px; }
+html.marklens .markdown-body kbd {
+  display: inline-block;
+  padding: 2px 5px;
+  font: 11px/1.2 var(--ml-mono);
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--subtle);
+}
+html.marklens .markdown-body details summary { cursor: pointer; }
+html.marklens .markdown-body dl dt { font-weight: 600; }
+html.marklens .markdown-body dl dd { margin: 0 0 8px 1.5em; }
+
+/* front matter */
+html.marklens .markdown-body .ml-frontmatter {
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+html.marklens .markdown-body .ml-frontmatter pre { margin: 8px 0 4px; }
+
+/* 行內程式碼 */
+html.marklens .markdown-body code {
+  font-family: var(--ml-mono);
+  font-size: 85%;
+  padding: .2em .4em;
+  border-radius: 6px;
+  background: var(--inline-code-bg);
+}
+html.marklens .markdown-body pre code { padding: 0; background: none; font-size: inherit; border-radius: 0; }
+
+/* 程式碼區塊 */
+html.marklens .markdown-body .ml-code { position: relative; }
+html.marklens .markdown-body pre {
+  margin: 0;
+  padding: 16px;
+  overflow: auto;
+  font: 13.6px/1.45 var(--ml-mono);
+  background: var(--code-bg);
+  border-radius: 6px;
+  white-space: pre;
+  tab-size: 4;
+}
+html.marklens.ml-code-wrap .markdown-body .ml-code:not(.ml-code-wrap-toggled) pre,
+html.marklens:not(.ml-code-wrap) .markdown-body .ml-code.ml-code-wrap-toggled pre {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+html.marklens .markdown-body .ml-code-bar {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  opacity: 0;
+  transition: opacity .1s;
+}
+html.marklens .markdown-body .ml-code:hover .ml-code-bar,
+html.marklens .markdown-body .ml-code-bar:focus-within { opacity: 1; }
+html.marklens .markdown-body .ml-code-lang { font: 11px var(--ml-mono); color: var(--muted); margin-right: 4px; }
+
+/* highlight.js 色彩 */
+html.marklens .hljs-doctag, html.marklens .hljs-keyword, html.marklens .hljs-meta .hljs-keyword,
+html.marklens .hljs-template-tag, html.marklens .hljs-template-variable, html.marklens .hljs-type,
+html.marklens .hljs-variable.language_ { color: var(--hl-keyword); }
+html.marklens .hljs-title, html.marklens .hljs-title.class_, html.marklens .hljs-title.function_ { color: var(--hl-title); }
+html.marklens .hljs-attr, html.marklens .hljs-attribute, html.marklens .hljs-literal, html.marklens .hljs-meta,
+html.marklens .hljs-number, html.marklens .hljs-operator, html.marklens .hljs-variable, html.marklens .hljs-selector-attr,
+html.marklens .hljs-selector-class, html.marklens .hljs-selector-id { color: var(--hl-number); }
+html.marklens .hljs-regexp, html.marklens .hljs-string, html.marklens .hljs-meta .hljs-string { color: var(--hl-string); }
+html.marklens .hljs-built_in, html.marklens .hljs-symbol { color: var(--hl-builtin); }
+html.marklens .hljs-comment, html.marklens .hljs-code, html.marklens .hljs-formula { color: var(--hl-comment); font-style: italic; }
+html.marklens .hljs-name, html.marklens .hljs-quote, html.marklens .hljs-selector-tag, html.marklens .hljs-selector-pseudo { color: var(--hl-addition); }
+html.marklens .hljs-section { color: var(--hl-meta); font-weight: 600; }
+html.marklens .hljs-bullet { color: var(--hl-builtin); }
+html.marklens .hljs-emphasis { font-style: italic; }
+html.marklens .hljs-strong { font-weight: 600; }
+html.marklens .hljs-addition { color: var(--hl-addition); background: var(--hl-addition-bg); }
+html.marklens .hljs-deletion { color: var(--hl-deletion); background: var(--hl-deletion-bg); }
+
+/* GitHub Alert */
+html.marklens .markdown-body .markdown-alert { color: inherit; padding: 8px 16px; }
+html.marklens .markdown-body .markdown-alert > :last-child { margin-bottom: 0; }
+html.marklens .markdown-body .markdown-alert-title { font-weight: 600; margin-bottom: 4px !important; }
+html.marklens .markdown-body .markdown-alert-note { border-left-color: var(--alert-note); }
+html.marklens .markdown-body .markdown-alert-note .markdown-alert-title { color: var(--alert-note); }
+html.marklens .markdown-body .markdown-alert-tip { border-left-color: var(--alert-tip); }
+html.marklens .markdown-body .markdown-alert-tip .markdown-alert-title { color: var(--alert-tip); }
+html.marklens .markdown-body .markdown-alert-important { border-left-color: var(--alert-important); }
+html.marklens .markdown-body .markdown-alert-important .markdown-alert-title { color: var(--alert-important); }
+html.marklens .markdown-body .markdown-alert-warning { border-left-color: var(--alert-warning); }
+html.marklens .markdown-body .markdown-alert-warning .markdown-alert-title { color: var(--alert-warning); }
+html.marklens .markdown-body .markdown-alert-caution { border-left-color: var(--alert-caution); }
+html.marklens .markdown-body .markdown-alert-caution .markdown-alert-title { color: var(--alert-caution); }
+
+/* 腳註 */
+html.marklens .markdown-body .footnotes { font-size: 85%; color: var(--muted); }
+html.marklens .markdown-body .footnotes-sep { margin-top: 32px; }
+
+/* ---------- 表格 ---------- */
+html.marklens .ml-table-inner { position: relative; width: fit-content; max-width: 100%; }
+/* 工具列浮在表格右上方，滑過才出現，不占版面 */
+html.marklens .ml-table-bar {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% - 1px);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 8px 8px 0 0;
+  background: var(--bg);
+  font: 12px var(--ml-font);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s .05s;
+}
+html.marklens .ml-table-inner:hover .ml-table-bar,
+html.marklens .ml-table-bar:focus-within,
+html.marklens .ml-table.ml-filtered .ml-table-bar { opacity: 1; pointer-events: auto; }
+html.marklens .ml-table-filter {
+  width: 150px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+html.marklens .ml-table-count { color: var(--muted); padding: 0 4px; }
+html.marklens .ml-table-count:empty { display: none; }
+html.marklens .ml-table-scroll { overflow-x: auto; }
+html.marklens .markdown-body table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+html.marklens .markdown-body th,
+html.marklens .markdown-body td {
+  padding: 6px 13px;
+  border: 1px solid var(--border);
+  vertical-align: top;
+  /* 只在單字之間換行，避免欄位被擠到一字一行 */
+  word-break: normal;
+  overflow-wrap: break-word;
+  max-width: 40em;
+}
+html.marklens .markdown-body th { font-weight: 600; background: var(--subtle); position: relative; }
+html.marklens .markdown-body tr:nth-child(2n) td { background: var(--subtle); }
+html.marklens .markdown-body tbody tr:hover td { background: var(--hover); }
+html.marklens .ml-nowrap :is(th, td) { white-space: nowrap; max-width: none; }
+
+/* 固定欄寬模式（拖拉過之後） */
+html.marklens .markdown-body table.ml-sized { table-layout: fixed; }
+html.marklens .markdown-body table.ml-sized :is(th, td) { max-width: none; overflow: hidden; overflow-wrap: anywhere; }
+html.marklens .ml-nowrap table.ml-sized :is(th, td) { text-overflow: ellipsis; }
+html.marklens .markdown-body table.ml-measure { width: auto !important; }
+html.marklens .markdown-body table.ml-measure :is(th, td) { white-space: nowrap; max-width: none; }
+
+/* 排序：圖示平常隱藏，滑過表頭或已排序才顯示 */
+html.marklens .markdown-body th.ml-sortable { cursor: pointer; user-select: none; padding-right: 22px; }
+html.marklens .markdown-body th.ml-sortable::after {
+  content: "⇅";
+  position: absolute;
+  right: 7px;
+  color: var(--muted);
+  opacity: 0;
+  font-weight: 400;
+}
+html.marklens .markdown-body th.ml-sortable:hover::after { opacity: .6; }
+html.marklens .markdown-body th[aria-sort="ascending"]::after { content: "▲"; opacity: 1; color: var(--accent); }
+html.marklens .markdown-body th[aria-sort="descending"]::after { content: "▼"; opacity: 1; color: var(--accent); }
+
+/* 欄寬拖拉把手 */
+html.marklens .ml-col-resizer {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+  z-index: 1;
+}
+html.marklens .ml-col-resizer:hover,
+html.marklens .ml-resizing .ml-col-resizer:active { background: var(--accent); opacity: .35; }
+html.marklens .ml-resizing { cursor: col-resize; user-select: none; }
+
+/* 全螢幕表格：可捲動、表頭固定、工具列常駐 */
+html.marklens .markdown-body > .ml-table.ml-table-full {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  width: auto;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+html.marklens .ml-table-full .ml-table-inner { display: flex; flex-direction: column; flex: 1; min-height: 0; width: auto; }
+html.marklens .ml-table-full .ml-table-bar { position: static; opacity: 1; pointer-events: auto; justify-content: flex-end; margin-bottom: 8px; }
+html.marklens .ml-table-full .ml-table-scroll { flex: 1; overflow: auto; }
+html.marklens .ml-table-full thead th { position: sticky; top: 0; z-index: 2; }
+
+/* ---------- 圖片檢視 ---------- */
+html.marklens .ml-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, .8);
+  cursor: zoom-out;
+}
+html.marklens .ml-viewer.open { display: flex; }
+html.marklens .ml-viewer img { max-width: 95vw; max-height: 95vh; object-fit: contain; background: #fff; }
+
+/* ---------- 列印 ---------- */
+@media print {
+  html.marklens :is(.ml-toc, .ml-toolbar, .ml-progress, .ml-table-bar, .ml-code-bar, .ml-anchor, .ml-fold, .ml-col-resizer) { display: none !important; }
+  html.marklens .ml-main { margin: 0 !important; }
+  html.marklens .ml-body { padding: 0; }
+  html.marklens .markdown-body > * { max-width: none !important; }
+  html.marklens .ml-table-scroll { overflow: visible; }
+  html.marklens .markdown-body pre { white-space: pre-wrap; word-break: break-all; }
+}

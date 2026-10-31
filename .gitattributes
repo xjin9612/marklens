@@ -1,0 +1,8 @@
+# 統一使用 LF，不受各人 core.autocrlf 設定影響
+* text=auto eol=lf
+
+# 第三方程式庫保持與官方發佈檔案完全一致，不做任何換行轉換
+vendor/** -text
+
+# 二進位檔
+*.png binary
