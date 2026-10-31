@@ -2,7 +2,7 @@
 // 側邊欄「檔案」分頁：資料夾裡的 Markdown 與子資料夾
 // 預設只讀取一層；子資料夾點開才讀取（大型資料夾不會一次掃描全部）。
 // 樹的起點（root）在同一個分頁中保持不變：從檔案分頁點進子資料夾的檔案後，仍可回到原本的資料夾；
-// 也可以用「↑」把起點往上一層。起點只能是目前檔案所在資料夾或它的上層。
+// 可以用「↑」把起點往上一層，或在資料夾上按右鍵「以此資料夾為起點」。
 var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
 ;(() => {
@@ -17,9 +17,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
   }
 
-  /** 起點是否為 dir 本身或它的上層資料夾 */
-  function isAncestor(root, dir) {
-    return typeof root === 'string' && root.startsWith('file:///') && root.endsWith('/') && dir.startsWith(root)
+  /** 是否為合法的本機資料夾網址 */
+  function isFolder(root) {
+    return typeof root === 'string' && root.startsWith('file:///') && root.endsWith('/') && !/\/\.\.?\//.test(root)
   }
 
   MarkLens.FileTree = class {
@@ -32,12 +32,10 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     constructor({ root, open = [], onChange }) {
       this.page = location.href.split(/[?#]/)[0]
       this.pageDir = this.page.slice(0, this.page.lastIndexOf('/') + 1)
-      const keep = isAncestor(root, this.pageDir)
+      const keep = isFolder(root)
       this.root = keep ? root : this.pageDir
       this.open = new Set(keep ? open : [])
-      // 自動展開到目前檔案所在的資料夾
-      const rel = decodeName(this.pageDir.slice(this.root.length)).split('/').filter(Boolean)
-      for (let i = 1; i <= rel.length; i++) this.open.add(key(rel.slice(0, i)))
+      this.expandToPage()
       this.onChange = onChange
       this.nodes = new Map() // 相對路徑 → { status: 'loading'|'ok'|'error', dirs, files }
       this.query = ''
@@ -47,6 +45,17 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.list = h('ul', { class: 'ml-files-list', attrs: { role: 'tree' } })
       this.el = h('nav', { class: 'ml-files' }, [h('div', { class: 'ml-files-bar' }, [this.upBtn, this.summary]), this.list])
       this.list.addEventListener('click', e => this.onClick(e))
+      this.list.addEventListener('contextmenu', e => {
+        const row = e.target.closest('[data-dir]')
+        if (row) this.showMenu(e, row.dataset.dir)
+      })
+    }
+
+    /** 目前檔案在起點底下時，自動展開到它所在的資料夾 */
+    expandToPage() {
+      if (!this.pageDir.startsWith(this.root)) return
+      const rel = decodeName(this.pageDir.slice(this.root.length)).split('/').filter(Boolean)
+      for (let i = 1; i <= rel.length; i++) this.open.add(key(rel.slice(0, i)))
     }
 
     get folder() {
@@ -100,6 +109,49 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.root = parent
       this.save()
       await this.init()
+    }
+
+    /** 以子資料夾為新的起點（右鍵選單） */
+    async setRoot(path) {
+      const prefix = `${path}/`
+      this.root += path.split('/').map(s => `${encodeURIComponent(s)}/`).join('')
+      this.open = new Set([...this.open].filter(p => p.startsWith(prefix)).map(p => p.slice(prefix.length)))
+      this.expandToPage()
+      this.save()
+      await this.init()
+    }
+
+    /** 資料夾的右鍵選單 */
+    showMenu(e, path) {
+      e.preventDefault()
+      this.closeMenu()
+      const item = h('button', {
+        class: 'ml-files-menu-item',
+        text: t('filesSetRoot'),
+        on: {
+          click: () => {
+            this.closeMenu()
+            this.setRoot(path)
+          },
+        },
+      })
+      this.menu = h('div', { class: 'ml-files-menu', attrs: { role: 'menu' }, style: { left: `${e.clientX}px`, top: `${e.clientY}px` } }, [item])
+      document.body.append(this.menu)
+      item.focus()
+      const close = ev => {
+        if (ev.type === 'keydown' && ev.key !== 'Escape') return
+        if (ev.type !== 'keydown' && this.menu?.contains(ev.target)) return
+        this.closeMenu()
+      }
+      this.menuClose = close
+      for (const type of ['pointerdown', 'keydown', 'scroll', 'blur']) addEventListener(type, close, true)
+    }
+
+    closeMenu() {
+      this.menu?.remove()
+      this.menu = null
+      if (this.menuClose) for (const type of ['pointerdown', 'keydown', 'scroll', 'blur']) removeEventListener(type, this.menuClose, true)
+      this.menuClose = null
     }
 
     async toggle(path) {

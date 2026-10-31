@@ -468,10 +468,10 @@ try {
     }
     const ok = await sw.evaluate(([u]) => HANDLERS['list-dir']({ path: ['sub'] }, { url: u }), [url])
     assert.deepEqual(ok.files.map(f => f.name), ['inner.md'])
-    // 起點只能是頁面所在資料夾或它的上層，不能是旁支或其他位置
+    // 起點必須是本機資料夾網址，不能帶 .. 或其他協定
     const deepUrl = pathToFileURL(join(work, 'nav', 'sub', 'inner.md')).href
     const navDir = pathToFileURL(join(work, 'nav')).href + '/'
-    for (const root of [pathToFileURL(join(work, 'other')).href + '/', 'file:///etc/', navDir + 'sub/../', 'http://example.com/']) {
+    for (const root of [navDir + 'sub/../', navDir + 'sub/./', navDir.slice(0, -1), 'http://example.com/', 'javascript:alert(1)//']) {
       const r = await sw.evaluate(([u, rt]) => HANDLERS['list-dir']({ root: rt, path: [] }, { url: u }), [deepUrl, root])
       assert.equal(r.status, 'error', root)
     }
@@ -509,6 +509,14 @@ try {
     await dp.waitForFunction(() => document.querySelector('.ml-files-summary').textContent === '📂 nav · 4 份')
     assert.equal(await dp.getAttribute('.ml-files-dir[data-dir="sub"]', 'aria-expanded'), 'true', '原本的資料夾維持展開')
     assert.equal(await dp.textContent('.ml-files-file.active'), '📄inner.md')
+    // 右鍵「以此資料夾為起點」：多按了 ↑ 也能切回來
+    await dp.click('.ml-files-up')
+    await dp.waitForSelector('.ml-files-dir[data-dir="nav"]')
+    await dp.click('.ml-files-dir[data-dir="nav"]', { button: 'right' })
+    await dp.click('.ml-files-menu-item:text("以此資料夾為起點")')
+    await dp.waitForFunction(() => document.querySelector('.ml-files-summary').textContent === '📂 nav · 4 份')
+    assert.equal(await dp.getAttribute('.ml-files-dir[data-dir="sub"]', 'aria-expanded'), 'true', '目前檔案所在的資料夾維持展開')
+    assert.equal(await dp.locator('.ml-files-menu').count(), 0, '選單已關閉')
     await np.close()
     await dp.close()
   })
@@ -1056,7 +1064,8 @@ try {
       // popup 切回自動時立即換回中文
       const pp = await ctx.newPage()
       await pp.goto(`chrome-extension://${extId}/src/popup/popup.html`)
-      assert.equal(await pp.locator('[data-i18n="secLayout"]').textContent(), 'Layout defaults')
+      // popup 的文字是非同步填入的，等填好再檢查
+      await pp.waitForFunction(() => document.querySelector('[data-i18n="secLayout"]').textContent === 'Layout defaults', null, { timeout: 3000 })
       await pp.selectOption('[name=uiLang]', 'auto')
       await pp.waitForFunction(() => document.querySelector('[data-i18n="secLayout"]').textContent === '版面預設值')
       assert.equal((await sw.evaluate(() => MarkLens.loadSettings())).uiLang, 'auto')
@@ -1081,7 +1090,7 @@ try {
       assert.match(await ep.textContent('.ml-toc-stats'), /^About [\d,]+ words · \d+ min$/)
       const pp = await enCtx.newPage()
       await pp.goto(`chrome-extension://${enSw.url().split('/')[2]}/src/popup/popup.html`)
-      assert.ok((await pp.textContent('body')).includes('Layout defaults'))
+      await pp.waitForFunction(() => document.body.textContent.includes('Layout defaults'), null, { timeout: 3000 })
       assert.equal(await pp.locator('[name=theme] option[value=auto]').textContent(), 'System')
       assert.equal(await pp.evaluate(() => document.documentElement.lang), 'en-US')
     } finally {
