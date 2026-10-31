@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- External `http(s)` links open in a new tab, so the document stays open; anchors, footnotes and same-site links are unchanged. Can be turned off in the popup
+
 ### Fixed
 - File names such as `README.md` and bare domains such as `example.com` are no longer turned into links (`.md` is a country domain). Autolinks now follow GitHub: `http(s)://`, `www.` and email addresses only
 

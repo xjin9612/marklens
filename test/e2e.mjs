@@ -393,6 +393,13 @@ try {
   await check('http:// 渲染', async () => {
     assert.equal(await p4.locator('.markdown-body h1').count(), 1)
   })
+  await check('外部連結開新分頁；錨點、腳註、同站連結不受影響', async () => {
+    const attrs = (pg, sel) => pg.locator(sel).first().evaluate(a => `${a.target}|${a.rel}`)
+    assert.equal(await attrs(page, '.markdown-body a[href="https://example.com"]'), '_blank|noopener noreferrer')
+    assert.equal(await attrs(p4, '.markdown-body a[href="https://example.com"]'), '_blank|noopener noreferrer')
+    assert.equal(await attrs(p4, '.markdown-body a[href="./other.md"]'), '|')
+    assert.equal(await page.locator('.markdown-body a[target]:is(.ml-anchor, [href^="#"])').count(), 0)
+  })
   await check('非 .md 網址不接管', async () => {
     await p4.goto(`http://127.0.0.1:${port}/notes.txt`)
     await p4.waitForTimeout(500)
