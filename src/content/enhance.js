@@ -260,6 +260,23 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     viewer.classList.add('open')
   }
 
+  /* ---------- 外部連結：開新分頁，不離開目前文件 ---------- */
+  // 只處理不同來源的 http(s) 連結；錨點、相對路徑的 .md、同站連結維持原本行為
+  MarkLens.processLinks = function (article, newTab) {
+    if (!newTab) return
+    for (const a of article.querySelectorAll('a[href]')) {
+      let url
+      try {
+        url = new URL(a.getAttribute('href'), location.href)
+      } catch {
+        continue
+      }
+      if (!/^https?:$/.test(url.protocol) || url.origin === location.origin) continue
+      a.target = '_blank'
+      a.rel = 'noopener noreferrer'
+    }
+  }
+
   MarkLens.processImages = function (article) {
     for (const img of article.querySelectorAll('img')) {
       img.loading = 'lazy'

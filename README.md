@@ -39,7 +39,7 @@ To upgrade, replace the folder with the new release and click the reload icon on
 | Theme | System / light / dark, from the toolbar, the `d` key or the popup; applies to every open tab |
 | Check off tasks | Click a task-list checkbox in a local file to save `[ ]` / `[x]` straight back to the file — no editor needed. Works in nested lists, ordered lists and blockquotes; checkboxes inside code blocks are never touched. Undo from the toast; refuses to write if the file changed elsewhere; keeps CRLF and BOM. Requires authorizing a folder once (see below) |
 | Live reload | Local files are checked every second and re-rendered only when changed — scroll position, folds, and table sort / widths / filters are preserved |
-| Misc | Remembers reading position per file, print stylesheet, relative `.md` links open in the reader |
+| Misc | External links open in a new tab (can be turned off), remembers reading position per file, print stylesheet, relative `.md` links open in the reader |
 
 ### Checking off tasks in local files
 

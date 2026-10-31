@@ -199,6 +199,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       MarkLens.processCodeBlocks(this.article)
       MarkLens.renderMermaid(this.article, this.settings.mermaid)
       MarkLens.processImages(this.article)
+      MarkLens.processLinks(this.article, this.settings.linkNewTab)
       this.tables = Array.from(this.article.querySelectorAll('table'), t => MarkLens.enhanceTable(t, this.settings))
 
       this.toc.build(headings, this.settings.tocDepth)

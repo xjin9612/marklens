@@ -21,6 +21,7 @@ MarkLens.DEFAULTS = Object.freeze({
   autoRefresh: 'local', // off | local（僅 file://）| all
   refreshInterval: 1000,
   rememberScroll: true,
+  linkNewTab: true, // 外部 http(s) 連結在新分頁開啟
   taskWrite: true, // 本機檔案的任務清單可直接勾選並存回原檔（需先授權資料夾）
   mermaid: true, // 本機檔案的 mermaid 區塊繪製成圖表
 })
