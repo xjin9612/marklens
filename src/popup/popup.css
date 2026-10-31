@@ -31,7 +31,9 @@ section { border-top: 1px solid var(--border); padding: 8px 0; display: grid; ga
 label { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 label.check { justify-content: flex-start; }
 select, input[type=number] {
-  width: 130px;
+  /* 下拉選單與數字欄位預設的寬度計算方式不同，統一以外框計算才會對齊 */
+  box-sizing: border-box;
+  width: 140px;
   padding: 3px 6px;
   border: 1px solid var(--border);
   border-radius: 6px;

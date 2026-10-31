@@ -372,15 +372,31 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
     /* ---------- 任務勾選寫回 ---------- */
     canWriteTasks() {
-      return this.settings.taskWrite && location.protocol === 'file:' && this.rawExact
+      return !this.taskReadonlyReason()
     }
 
-    /** 有原文行號的勾選框改為可點擊 */
+    /** 無法寫回的原因（訊息 key）；可以寫回時回傳 null */
+    taskReadonlyReason() {
+      if (location.protocol !== 'file:') return 'taskReadonlyRemote'
+      if (!this.settings.taskWrite) return 'taskReadonlyOff'
+      if (!this.rawExact) return 'taskNotUtf8' // 不是 UTF-8：寫回可能損壞原檔的文字
+      return null
+    }
+
+    /**
+     * 有原文行號的勾選框改為可點擊；無法寫回時維持原狀態，點擊與滑過時說明原因，
+     * 避免看起來像壞掉（停用的 checkbox 不會觸發任何事件，所以不用 disabled）
+     */
     enableTaskBoxes() {
-      if (!this.canWriteTasks()) return
+      const reason = this.taskReadonlyReason()
       for (const box of this.article.querySelectorAll('input.ml-task-box[data-ml-line]')) {
         box.disabled = false
-        box.title = t('taskTitle')
+        if (reason) {
+          box.dataset.mlReadonly = reason
+          box.title = t(reason)
+        } else {
+          box.title = t('taskTitle')
+        }
       }
     }
 
@@ -390,6 +406,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         if (!box || box.disabled) return
         // 先維持原狀，等寫回成功才改變勾選狀態
         e.preventDefault()
+        if (box.dataset.mlReadonly) return MarkLens.toast(t(box.dataset.mlReadonly))
         this.toggleTask(Number(box.dataset.mlLine))
       })
     }

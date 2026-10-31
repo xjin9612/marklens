@@ -14,6 +14,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Emoji shortcodes from GitHub's list (`:tada:` → 🎉). Code spans and code blocks are left alone, and text emoticons such as `:)` are not converted
 
 ### Fixed
+- Read-only task checkboxes (file not UTF-8, saving turned off, or a page on the web) no longer look broken: clicking or hovering explains why the checkbox can't be saved
+- Small tables that fit exactly no longer show a horizontal scrollbar (the last column's resize handle stuck out by a few pixels)
+- Popup fields line up, and the language option no longer gets cut off
 - File names such as `README.md` and bare domains such as `example.com` are no longer turned into links (`.md` is a country domain). Autolinks now follow GitHub: `http(s)://`, `www.` and email addresses only
 
 ### Security
