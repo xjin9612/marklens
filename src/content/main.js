@@ -63,6 +63,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         tocHidden: saved.tocHidden ?? settings.tocHidden,
         tocWidth: saved.tocWidth ?? settings.tocWidth,
         textWidth: saved.textWidth ?? settings.textWidth,
+        sideTab: saved.sideTab ?? 'toc', // 側邊欄分頁：toc | files
+        filesOpen: saved.filesOpen ?? [], // 檔案分頁已展開的子資料夾
       }
     }
 
@@ -98,7 +100,6 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.applyLive()
       this.applyView()
       this.startRefresh()
-      this.loadSiblings()
 
       this.saveScroll = MarkLens.debounce(() => this.persistScroll(), 400)
       addEventListener('scroll', MarkLens.rafThrottle(() => this.onScroll()), { passive: true })
@@ -129,10 +130,6 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     buildToolbar() {
       const btn = (cls, text, title, fn) => h('button', { class: `ml-tool ${cls}`, text, title, on: { click: fn } })
       this.tocBtn = btn('ml-tool-toc', t('toolToc'), t('toolTocTitle'), () => this.toggleToc())
-      // 同資料夾的上一份／下一份（本機檔案且資料夾內有兩份以上 Markdown 才顯示）
-      this.prevBtn = btn('ml-tool-nav', '‹', '', () => this.goSibling('prev'))
-      this.nextBtn = btn('ml-tool-nav', '›', '', () => this.goSibling('next'))
-      this.prevBtn.hidden = this.nextBtn.hidden = true
       this.widthBtn = btn('ml-tool-width', '', t('toolWidthTitle'), () => this.cycleWidth())
       this.themeBtn = btn('ml-tool-theme', '', t('toolThemeTitle'), () => this.cycleTheme())
       this.exportBtn = btn('ml-tool-export', '', t('toolExportTitle'), () => this.exportHtml())
@@ -142,8 +139,6 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.topBtn = btn('ml-tool-top', t('toolTop'), t('toolTopTitle'), () => scrollTo({ top: 0 }))
       return h('div', { class: 'ml-toolbar', attrs: { role: 'toolbar' } }, [
         this.tocBtn,
-        this.prevBtn,
-        this.nextBtn,
         h('span', { class: 'ml-spacer' }),
         h('span', { class: 'ml-reading-only' }, [
           btn('', t('toolFoldAll'), t('toolFoldAllTitle'), () => MarkLens.foldAll(this.article)),
@@ -179,6 +174,10 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return
       const t = e.target
       if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return
+      if (e.key === '/') {
+        e.preventDefault()
+        return this.toc.openSearch()
+      }
       const map = { t: 'toggle-toc', r: 'toggle-raw', w: 'cycle-width', d: 'cycle-theme', '[': 'fold-all', ']': 'unfold-all' }
       const name = map[e.key]
       if (!name) return
@@ -283,33 +282,6 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     cycleTheme() {
       if (!MarkLens.alive()) return
       MarkLens.saveSettings({ theme: MarkLens.nextOf(MarkLens.THEME_ORDER, this.settings.theme) }).catch(() => {})
-    }
-
-    /** 查詢同資料夾的上一份／下一份並更新按鈕 */
-    async loadSiblings() {
-      if (location.protocol !== 'file:') return
-      let res
-      try {
-        res = await chrome.runtime.sendMessage({ type: 'list-siblings' })
-      } catch {
-        return
-      }
-      if (res?.status !== 'ok' || res.total < 2 || res.index == null) return
-      this.siblings = res
-      for (const [btn, dir, key, endKey] of [
-        [this.prevBtn, 'prev', 'navPrev', 'navFirst'],
-        [this.nextBtn, 'next', 'navNext', 'navLast'],
-      ]) {
-        const f = res[dir]
-        btn.hidden = false
-        btn.disabled = !f
-        btn.title = f ? t(key, f.name) : t(endKey)
-      }
-    }
-
-    goSibling(dir) {
-      const f = this.siblings?.[dir]
-      if (f) location.href = f.url
     }
 
     async exportHtml() {

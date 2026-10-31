@@ -79,19 +79,25 @@ const HANDLERS = {
   'toggle-task': toggleTask,
 
   /**
-   * 同資料夾的上一份／下一份 Markdown（依檔名自然排序：2 排在 10 前面）
-   * 讀取 Chrome 對 file:// 資料夾產生的清單頁；只看發出請求的頁面所在的資料夾
+   * 側邊欄「檔案」分頁：列出頁面所在資料夾（或其子資料夾）的 Markdown 與子資料夾
+   * 讀取 Chrome 對 file:// 資料夾產生的清單頁。只能往下，不能用 .. 往上：
+   * path 是從頁面所在資料夾往下的資料夾名稱陣列
    */
-  async 'list-siblings'(_msg, sender) {
+  async 'list-dir'(msg, sender) {
     const url = (sender.url || '').split(/[?#]/)[0]
     if (!url.startsWith('file:')) return { status: 'unsupported' }
-    const dir = url.slice(0, url.lastIndexOf('/') + 1)
+    const segs = Array.isArray(msg.path) ? msg.path : []
+    if (segs.length > 32 || !segs.every(s => typeof s === 'string' && s && s !== '.' && s !== '..' && !/[\\/]/.test(s))) {
+      return { status: 'error', error: 'invalid path' }
+    }
+    const dir = url.slice(0, url.lastIndexOf('/') + 1) + segs.map(s => `${encodeURIComponent(s)}/`).join('')
     let html
     try {
       html = await (await fetch(dir)).text()
     } catch {
       return { status: 'error' }
     }
+    const ignore = ignorePatterns((await MarkLens.loadSettings()).fileIgnore)
     const decode = s => {
       try {
         return decodeURIComponent(s)
@@ -100,23 +106,23 @@ const HANDLERS = {
       }
     }
     // addRow("顯示名稱", "編碼後的網址", 是否為資料夾, …)；非 ASCII 檔名的顯示名稱可能是空字串，所以用網址欄位
+    const dirs = []
     const files = []
     for (const m of html.matchAll(/addRow\("(?:[^"\\]|\\.)*","((?:[^"\\]|\\.)*)",([01]),/g)) {
-      if (m[2] === '1') continue
       let href
       try {
         href = JSON.parse(`"${m[1]}"`)
       } catch {
         continue
       }
-      const name = decode(href)
-      if (MD_FILE_RE.test(name)) files.push({ name, url: dir + href })
+      const name = decode(href.replace(/\/$/, ''))
+      if (!name || name === '..' || ignore.some(re => re.test(name))) continue
+      if (m[2] === '1') dirs.push(name)
+      else if (MD_FILE_RE.test(name)) files.push({ name, url: dir + href })
     }
+    dirs.sort(NATURAL.compare)
     files.sort((a, b) => NATURAL.compare(a.name, b.name))
-    const current = decode(url.slice(dir.length))
-    const i = files.findIndex(f => f.name === current)
-    if (i < 0) return { status: 'ok', total: files.length, prev: null, next: null }
-    return { status: 'ok', total: files.length, index: i, prev: files[i - 1] || null, next: files[i + 1] || null }
+    return { status: 'ok', dirs, files }
   },
 
   /** 介面語言設定為指定語言時，content script 透過這裡取得語系檔（content script 無權直接讀取） */
@@ -144,6 +150,15 @@ const HANDLERS = {
 }
 
 const MD_FILE_RE = /\.(md|markdown|mkd|mdx)$/i
+
+/** 「檔案列表略過」設定：逗號或換行分隔，* 為萬用字元，不分大小寫（.* 代表以 . 開頭的名稱） */
+function ignorePatterns(text) {
+  return String(text || '')
+    .split(/[,\n]/)
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(p => new RegExp(`^${p.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.')}$`, 'i'))
+}
 const NATURAL = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
 
 const ASSET_RE = /^(?:src\/content\/content\.css|vendor\/katex\/katex\.min\.css|vendor\/katex\/fonts\/KaTeX_[A-Za-z0-9-]+\.woff2)$/

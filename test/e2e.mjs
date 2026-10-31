@@ -256,11 +256,21 @@ try {
     await page.keyboard.press('r')
     assert.equal(await visible(page, '.ml-body'), true)
   })
-  await check('輸入框內按 r 不觸發', async () => {
-    await page.locator('.ml-toc-search').focus()
-    await page.keyboard.press('r')
-    assert.equal(await visible(page, '.ml-body'), true)
-    await page.locator('.ml-toc-search').fill('')
+  await check('按 / 開啟搜尋；輸入框內按 r 不觸發；Esc 關閉', async () => {
+    await page.locator('.ml-body').click({ position: { x: 5, y: 5 } })
+    await page.keyboard.press('/')
+    assert.equal(await page.evaluate(() => document.activeElement.classList.contains('ml-toc-search')), true)
+    assert.equal(await visible(page, '.ml-side-tabs'), false, '搜尋時分頁標籤換成搜尋框')
+    try {
+      await page.keyboard.type('r')
+      assert.equal(await visible(page, '.ml-body'), true)
+      const shown = await page.locator('.ml-toc-list li:not([hidden])').allTextContents()
+      assert.ok(shown.every(s => s.toLowerCase().includes('r')), shown.join('|'))
+    } finally {
+      await page.keyboard.press('Escape')
+    }
+    assert.equal(await visible(page, '.ml-side-search'), false)
+    assert.equal(await page.inputValue('.ml-toc-search'), '')
     await page.locator('.ml-body').click({ position: { x: 5, y: 5 } })
   })
 
@@ -338,11 +348,13 @@ try {
 
   /* ---------- 目錄與分頁獨立 ---------- */
   const page2 = await openDoc()
-  await check('工具列的 ☰ 收合與展開目錄（目錄內不再有收合鈕）', async () => {
-    assert.equal(await page.locator('.ml-toc button').count(), 0)
-    assert.equal((await page.textContent('.ml-tool-toc')).trim(), '☰')
-    await page.click('.ml-tool-toc')
+  await check('側邊欄的 ☰ 收合；收合後工具列 ☰ 出現在同一位置', async () => {
+    const side = await page.locator('.ml-side-menu').boundingBox()
+    assert.equal(await visible(page, '.ml-toolbar .ml-tool-toc'), false, '側邊欄開著時工具列不顯示 ☰')
+    await page.click('.ml-side-menu')
     assert.equal(await visible(page, '.ml-toc'), false)
+    const bar = await page.locator('.ml-toolbar .ml-tool-toc').boundingBox()
+    assert.ok(Math.abs(bar.x - side.x) <= 2 && Math.abs(bar.y - side.y) <= 2, `${JSON.stringify(side)} vs ${JSON.stringify(bar)}`)
     const box = await page.locator('.ml-tool-toc').boundingBox()
     assert.ok(box.x < 30 && box.y < 10, JSON.stringify(box))
     await page.screenshot({ path: join(shotDir, 'ml-toc-hidden.png') })
@@ -410,30 +422,60 @@ try {
 
   /* ---------- http ---------- */
   const p4 = await openDoc(`http://127.0.0.1:${port}/docs/readme.md`)
-  await check('上一份／下一份：同資料夾的 Markdown 依檔名自然排序切換', async () => {
+  await check('檔案分頁：同層 Markdown 自然排序、資料夾在前、預設略過隱藏與套件資料夾', async () => {
     const nav = join(work, 'nav')
-    mkdirSync(join(nav, 'z.md'), { recursive: true }) // 名稱像 .md 的資料夾要排除
-    for (const [f, h] of [['1-a.md', 'A'], ['2-b.md', 'B'], ['10-c.md', 'C'], ['中文 檔名.md', '中文']]) writeFileSync(join(nav, f), `# ${h}\n`)
+    for (const d of ['sub/deeper', 'empty', 'node_modules/pkg', '.git', 'z.md']) mkdirSync(join(nav, d), { recursive: true })
+    for (const [f, h] of [['1-a.md', 'A'], ['2-b.md', 'B'], ['10-c.md', 'C'], ['中文 檔名.md', '中文'], ['sub/inner.md', 'Inner'], ['sub/deeper/deep.md', 'Deep'], ['node_modules/pkg/readme.md', 'X']]) {
+      writeFileSync(join(nav, f), `# ${h}\n`)
+    }
     writeFileSync(join(nav, 'readme.txt'), 'x')
     const np = await openDoc(pathToFileURL(join(nav, '2-b.md')).href)
-    await np.waitForSelector('.ml-tool-nav:not([hidden])')
-    const [prev, next] = [np.locator('.ml-tool-nav').nth(0), np.locator('.ml-tool-nav').nth(1)]
-    assert.equal(await prev.getAttribute('title'), '上一份：1-a.md')
-    assert.equal(await next.getAttribute('title'), '下一份：10-c.md', '2 應排在 10 前面')
-    await next.click()
+    await np.click('.ml-side-tab:text("檔案")')
+    await np.waitForSelector('.ml-files-file')
+    const rows = await np.locator('.ml-files-list > li').evaluateAll(lis => lis.map(li => li.textContent.trim()))
+    assert.deepEqual(rows, ['▸📁empty', '▸📁sub', '▸📁z.md', '📄1-a.md', '📄2-b.md', '📄10-c.md', '📄中文 檔名.md'])
+    assert.equal(await np.textContent('.ml-files-file.active'), '📄2-b.md')
+    assert.equal(await np.textContent('.ml-toc-stats'), '📂 nav · 4 份')
+    // 展開子資料夾：點開才讀取，再往下一層
+    await np.click('.ml-files-dir[data-dir="sub"]')
+    await np.waitForSelector('.ml-files-file a[href$="inner.md"]')
+    await np.click('.ml-files-dir[data-dir="sub/deeper"]')
+    await np.waitForSelector('.ml-files-file a[href$="deep.md"]')
+    await np.click('.ml-files-dir[data-dir="empty"]')
+    await np.waitForSelector('.ml-files-note:text("（沒有 Markdown）")')
+    // 重新整理後保留分頁與展開狀態
+    await np.reload()
+    await np.waitForSelector('.ml-files-file a[href$="deep.md"]')
+    assert.equal(await np.locator('.ml-side-tab.active').textContent(), '檔案')
+    // 搜尋：只找已展開的資料夾
+    await np.keyboard.press('/')
+    await np.keyboard.type('e')
+    await np.waitForFunction(() => document.querySelector('.ml-toc-stats').textContent.startsWith('已展開的資料夾中找到'))
+    const found = await np.locator('.ml-files-file').allTextContents()
+    assert.deepEqual(found.sort(), ['📄sub / inner.md', '📄sub/deeper / deep.md'])
+    await np.keyboard.press('Escape')
+    // 點檔案在同一分頁開啟
+    await np.click('.ml-files-file a[href$="10-c.md"]')
     await np.waitForURL(/10-c\.md$/)
-    await np.waitForSelector('.ml-tool-nav:not([hidden])')
     assert.equal(await np.getAttribute('.markdown-body h1', 'data-ml-text'), 'C')
-    await np.locator('.ml-tool-nav').nth(1).click()
-    await np.waitForURL(/%E4%B8%AD/)
-    await np.waitForSelector('.ml-tool-nav:not([hidden])')
-    assert.equal(await np.getAttribute('.markdown-body h1', 'data-ml-text'), '中文')
-    assert.equal(await np.locator('.ml-tool-nav').nth(1).isDisabled(), true, '最後一份')
-    assert.equal(await np.locator('.ml-tool-nav').nth(1).getAttribute('title'), '已是資料夾中的最後一份')
-    await np.goto(pathToFileURL(join(nav, '1-a.md')).href)
-    await np.waitForSelector('.ml-tool-nav:not([hidden])')
-    assert.equal(await np.locator('.ml-tool-nav').nth(0).isDisabled(), true, '第一份')
     await np.close()
+  })
+  await check('檔案分頁：不能以 .. 列出上層資料夾；略過名稱可自訂', async () => {
+    const url = pathToFileURL(join(work, 'nav', '1-a.md')).href
+    for (const path of [['..'], ['sub', '..', '..'], ['a/b'], ['a\\b'], ['.']]) {
+      const r = await sw.evaluate(([u, p]) => HANDLERS['list-dir']({ path: p }, { url: u }), [url, path])
+      assert.equal(r.status, 'error', JSON.stringify(path))
+    }
+    const ok = await sw.evaluate(([u]) => HANDLERS['list-dir']({ path: ['sub'] }, { url: u }), [url])
+    assert.deepEqual(ok.files.map(f => f.name), ['inner.md'])
+    await sw.evaluate(() => MarkLens.saveSettings({ fileIgnore: 'sub, *.md' }))
+    const ip = await openDoc(pathToFileURL(join(work, 'nav', '1-a.md')).href)
+    await ip.click('.ml-side-tab:text("檔案")')
+    await ip.waitForSelector('.ml-files-dir')
+    const rows = await ip.locator('.ml-files-list > li').evaluateAll(lis => lis.map(li => li.textContent.trim()))
+    assert.deepEqual(rows, ['▸📁.git', '▸📁empty', '▸📁node_modules'])
+    await ip.close()
+    await sw.evaluate(d => MarkLens.saveSettings({ fileIgnore: d }), '.*, node_modules, target, dist, build')
   })
   await check('剛好放得下的小表格不出現水平捲軸', async () => {
     const r = await page.locator('.ml-table-scroll', { has: page.locator('th', { hasText: '小表格' }) }).evaluate(s => [s.scrollWidth, s.clientWidth])

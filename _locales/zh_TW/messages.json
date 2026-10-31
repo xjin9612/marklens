@@ -50,18 +50,6 @@
   "toolTocTitle": {
     "message": "顯示／收合目錄（t）"
   },
-  "navPrev": {
-    "message": "上一份：$1"
-  },
-  "navNext": {
-    "message": "下一份：$1"
-  },
-  "navFirst": {
-    "message": "已是資料夾中的第一份"
-  },
-  "navLast": {
-    "message": "已是資料夾中的最後一份"
-  },
   "toolWidth": {
     "message": "⇔ 寬度：$1"
   },
@@ -214,6 +202,48 @@
   },
   "tableResizeTitle": {
     "message": "拖拉調整欄寬，雙擊自動適應"
+  },
+  "tabToc": {
+    "message": "目錄"
+  },
+  "tabFiles": {
+    "message": "檔案"
+  },
+  "searchTitle": {
+    "message": "搜尋（/）"
+  },
+  "searchClose": {
+    "message": "關閉搜尋（Esc）"
+  },
+  "filesSearch": {
+    "message": "搜尋檔名…"
+  },
+  "filesSummary": {
+    "message": "📂 $1 · $2 份"
+  },
+  "filesFound": {
+    "message": "已展開的資料夾中找到 $1 份"
+  },
+  "filesLoading": {
+    "message": "讀取中…"
+  },
+  "filesError": {
+    "message": "無法讀取此資料夾"
+  },
+  "filesEmpty": {
+    "message": "（沒有 Markdown）"
+  },
+  "secFiles": {
+    "message": "檔案列表"
+  },
+  "secFilesNote": {
+    "message": "側邊欄「檔案」分頁"
+  },
+  "fileIgnore": {
+    "message": "略過的名稱"
+  },
+  "fileIgnoreTitle": {
+    "message": "以逗號分隔；* 代表任意字元，.* 代表以 . 開頭的名稱"
   },
   "tocSearch": {
     "message": "搜尋標題…"
