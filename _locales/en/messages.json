@@ -45,10 +45,22 @@
     "message": "Dark"
   },
   "toolToc": {
-    "message": "☰ Outline"
+    "message": "☰"
   },
   "toolTocTitle": {
     "message": "Show / hide outline (t)"
+  },
+  "navPrev": {
+    "message": "Previous file: $1"
+  },
+  "navNext": {
+    "message": "Next file: $1"
+  },
+  "navFirst": {
+    "message": "This is the first file in the folder"
+  },
+  "navLast": {
+    "message": "This is the last file in the folder"
   },
   "toolWidth": {
     "message": "⇔ Width: $1"
@@ -205,9 +217,6 @@
   },
   "tocSearch": {
     "message": "Search headings…"
-  },
-  "tocCloseTitle": {
-    "message": "Hide outline (t)"
   },
   "tocResizeTitle": {
     "message": "Drag to resize"

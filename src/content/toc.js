@@ -19,16 +19,11 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         placeholder: t('tocSearch'),
         on: { input: () => this.applyFilter() },
       })
-      const closeBtn = h('button', {
-        class: 'ml-btn ml-toc-close',
-        text: '«',
-        title: t('tocCloseTitle'),
-        on: { click: () => this.app.toggleToc() },
-      })
       this.list = h('ul', { class: 'ml-toc-list' })
       this.resizer = h('div', { class: 'ml-toc-resizer', title: t('tocResizeTitle') })
       this.el = h('aside', { class: 'ml-toc', attrs: { 'aria-label': t('tocLabel') } }, [
-        h('div', { class: 'ml-toc-head' }, [h('div', { class: 'ml-toc-row' }, [this.search, closeBtn]), this.stats]),
+        // 顯示／收合統一由工具列的 ☰ 按鈕（或 t 鍵）切換
+        h('div', { class: 'ml-toc-head' }, [this.search, this.stats]),
         h('nav', { class: 'ml-toc-nav' }, [this.list]),
         this.resizer,
       ])

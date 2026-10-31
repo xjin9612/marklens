@@ -78,6 +78,47 @@ const HANDLERS = {
 
   'toggle-task': toggleTask,
 
+  /**
+   * 同資料夾的上一份／下一份 Markdown（依檔名自然排序：2 排在 10 前面）
+   * 讀取 Chrome 對 file:// 資料夾產生的清單頁；只看發出請求的頁面所在的資料夾
+   */
+  async 'list-siblings'(_msg, sender) {
+    const url = (sender.url || '').split(/[?#]/)[0]
+    if (!url.startsWith('file:')) return { status: 'unsupported' }
+    const dir = url.slice(0, url.lastIndexOf('/') + 1)
+    let html
+    try {
+      html = await (await fetch(dir)).text()
+    } catch {
+      return { status: 'error' }
+    }
+    const decode = s => {
+      try {
+        return decodeURIComponent(s)
+      } catch {
+        return s
+      }
+    }
+    // addRow("顯示名稱", "編碼後的網址", 是否為資料夾, …)；非 ASCII 檔名的顯示名稱可能是空字串，所以用網址欄位
+    const files = []
+    for (const m of html.matchAll(/addRow\("(?:[^"\\]|\\.)*","((?:[^"\\]|\\.)*)",([01]),/g)) {
+      if (m[2] === '1') continue
+      let href
+      try {
+        href = JSON.parse(`"${m[1]}"`)
+      } catch {
+        continue
+      }
+      const name = decode(href)
+      if (MD_FILE_RE.test(name)) files.push({ name, url: dir + href })
+    }
+    files.sort((a, b) => NATURAL.compare(a.name, b.name))
+    const current = decode(url.slice(dir.length))
+    const i = files.findIndex(f => f.name === current)
+    if (i < 0) return { status: 'ok', total: files.length, prev: null, next: null }
+    return { status: 'ok', total: files.length, index: i, prev: files[i - 1] || null, next: files[i + 1] || null }
+  },
+
   /** 介面語言設定為指定語言時，content script 透過這裡取得語系檔（content script 無權直接讀取） */
   async 'read-messages'(msg) {
     if (!MarkLens.UI_LANGS.includes(msg.lang)) return { status: 'error', error: 'unknown language' }
@@ -101,6 +142,9 @@ const HANDLERS = {
     return { status: 'ok', base64: btoa(bin) }
   },
 }
+
+const MD_FILE_RE = /\.(md|markdown|mkd|mdx)$/i
+const NATURAL = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
 
 const ASSET_RE = /^(?:src\/content\/content\.css|vendor\/katex\/katex\.min\.css|vendor\/katex\/fonts\/KaTeX_[A-Za-z0-9-]+\.woff2)$/
 
