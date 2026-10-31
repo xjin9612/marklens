@@ -461,6 +461,21 @@ try {
     await sw.evaluate(t => MarkLens.saveSettings({ theme: t }), before)
     await mp.waitForFunction(() => document.querySelector('.ml-mermaid').dataset.mlMermaidTheme !== 'dark')
   })
+  await check('工具列主題按鈕與 d 鍵：自動 → 淺色 → 深色，圖表跟著重繪', async () => {
+    const theme = () => sw.evaluate(async () => (await MarkLens.loadSettings()).theme)
+    const before = await theme()
+    await sw.evaluate(() => MarkLens.saveSettings({ theme: 'auto' }))
+    await mp.waitForFunction(() => document.querySelector('.ml-tool-theme').textContent.includes('自動'))
+    await mp.click('.ml-tool-theme')
+    await mp.waitForFunction(() => document.querySelector('.ml-tool-theme').textContent.includes('淺色'))
+    assert.equal(await theme(), 'light')
+    assert.equal(await mp.evaluate(() => document.documentElement.dataset.mlTheme), 'light')
+    await mp.keyboard.press('d')
+    await mp.waitForFunction(() => document.querySelector('.ml-tool-theme').textContent.includes('深色'))
+    assert.equal(await theme(), 'dark')
+    await mp.waitForFunction(() => document.querySelector('.ml-mermaid').dataset.mlMermaidTheme === 'dark')
+    await sw.evaluate(t => MarkLens.saveSettings({ theme: t }), before)
+  })
   await check('Mermaid：自動更新時沿用已繪製的圖，不閃爍', async () => {
     writeFileSync(localMermaid, readFileSync(mermaidFixture, 'utf8') + '\n自動更新後的段落\n')
     const pending = await mp.waitForFunction(

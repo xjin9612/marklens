@@ -9,6 +9,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   const POS_LIMIT = 300
   const VIEW_KEY = 'marklens:view' // 分頁狀態，存在 sessionStorage
   const NARROW = 900
+  const THEME_LABELS = { auto: ['◐', '自動'], light: ['☀', '淺色'], dark: ['☾', '深色'] }
 
   /** 瀏覽器把純文字顯示成 <body><pre>…</pre></body>，只接管這種頁面 */
   function sourcePre() {
@@ -126,6 +127,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       const btn = (cls, text, title, fn) => h('button', { class: `ml-tool ${cls}`, text, title, on: { click: fn } })
       this.tocBtn = btn('ml-tool-toc', '☰ 目錄', '顯示／收合目錄（t）', () => this.toggleToc())
       this.widthBtn = btn('ml-tool-width', '', '切換文字寬度（w）', () => this.cycleWidth())
+      this.themeBtn = btn('ml-tool-theme', '', '切換主題：自動 → 淺色 → 深色，所有分頁同步（d）', () => this.cycleTheme())
       this.rawBtn = btn('ml-tool-raw', '</> 原始文字', '切換原始文字（r）', () => this.toggleRaw())
       this.topBtn = btn('ml-tool-top', '↑ 頂部', '回到頂部', () => scrollTo({ top: 0 }))
       return h('div', { class: 'ml-toolbar', attrs: { role: 'toolbar' } }, [
@@ -136,6 +138,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           btn('', '▾ 全部展開', '全部展開（]）', () => MarkLens.unfoldAll(this.article)),
           this.widthBtn,
         ]),
+        this.themeBtn,
         this.rawBtn,
         this.topBtn,
       ])
@@ -147,6 +150,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           return this.toggleToc()
         case 'cycle-width':
           return this.cycleWidth()
+        case 'cycle-theme':
+          return this.cycleTheme()
         case 'toggle-raw':
           return this.toggleRaw()
         case 'fold-all':
@@ -161,7 +166,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return
       const t = e.target
       if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return
-      const map = { t: 'toggle-toc', r: 'toggle-raw', w: 'cycle-width', '[': 'fold-all', ']': 'unfold-all' }
+      const map = { t: 'toggle-toc', r: 'toggle-raw', w: 'cycle-width', d: 'cycle-theme', '[': 'fold-all', ']': 'unfold-all' }
       const name = map[e.key]
       if (!name) return
       e.preventDefault()
@@ -230,6 +235,11 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       rs.setProperty('--ml-line-height', String(s.lineHeight))
       const dark = s.theme === 'dark' || (s.theme === 'auto' && this.darkQuery.matches)
       document.documentElement.dataset.mlTheme = dark ? 'dark' : 'light'
+      if (this.themeBtn) {
+        // 窄螢幕只顯示圖示（文字部分由 CSS 隱藏）
+        const [icon, name] = THEME_LABELS[s.theme] || THEME_LABELS.auto
+        this.themeBtn.replaceChildren(icon, h('span', { class: 'ml-tool-label', text: ` 主題：${name}` }))
+      }
       if (this.article) MarkLens.rethemeMermaid(this.article)
     }
 
@@ -252,6 +262,12 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       Object.assign(this.view, patch)
       writeView(this.view)
       this.applyView()
+    }
+
+    /** 主題是全域設定：寫入後由 storage.onChanged 同步套用到所有分頁（含本分頁） */
+    cycleTheme() {
+      if (!MarkLens.alive()) return
+      MarkLens.saveSettings({ theme: MarkLens.nextOf(MarkLens.THEME_ORDER, this.settings.theme) }).catch(() => {})
     }
 
     cycleWidth() {

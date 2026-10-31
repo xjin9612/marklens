@@ -27,7 +27,7 @@ To upgrade, replace the folder with the new release and click the reload icon on
 | Area | What you get |
 |---|---|
 | Pages | Renders `.md` `.markdown` `.mkd` `.mdx` over `http(s)://` and `file://`; only takes over when the browser shows the file as plain text |
-| Toolbar | Sticky top bar: outline, fold all, unfold all, text width, raw source / back to reading, back to top |
+| Toolbar | Sticky top bar: outline, fold all, unfold all, text width, theme, raw source / back to reading, back to top |
 | Layout | Text column width: full / 1600 / 1200 / 960 / custom. Tables and code blocks can grow past the text column up to the page edge. Adjustable font size and line height; reading progress bar |
 | Outline | Sidebar TOC (collapse with «), active-section highlight, heading search, depth filter, resizable width, two-line titles, folded-section markers, word count and reading time |
 | Folding | Fold any section from the ▾ next to its heading. "Fold all" starts from the first heading level that has two or more headings. Folded content stays searchable with Ctrl+F and unfolds on match (in very large documents — roughly 400 KB+ — folded sections are hidden normally for speed and must be unfolded before searching) |
@@ -36,7 +36,7 @@ To upgrade, replace the folder with the new release and click the reload icon on
 | Code | highlight.js syntax highlighting (common languages), language label, copy button, per-block wrap toggle |
 | Diagrams | [Mermaid](https://mermaid.js.org/) flowcharts, sequence diagrams and more in local files. The library (~5 MB) loads only when a document contains a mermaid block; diagrams follow the theme, keep their place during live reload, and can be toggled back to source. Syntax errors are shown next to the source. Not drawn on `http(s)://` pages (see Security) |
 | Images | Lazy loading, click to zoom (Esc to close) |
-| Theme | System / light / dark |
+| Theme | System / light / dark, from the toolbar, the `d` key or the popup; applies to every open tab |
 | Check off tasks | Click a task-list checkbox in a local file to save `[ ]` / `[x]` straight back to the file — no editor needed. Works in nested lists, ordered lists and blockquotes; checkboxes inside code blocks are never touched. Undo from the toast; refuses to write if the file changed elsewhere; keeps CRLF and BOM. Requires authorizing a folder once (see below) |
 | Live reload | Local files are checked every second and re-rendered only when changed — scroll position, folds, and table sort / widths / filters are preserved |
 | Misc | Remembers reading position per file, print stylesheet, relative `.md` links open in the reader |
@@ -64,6 +64,7 @@ On a reading page (ignored while typing in an input):
 | `t` | Toggle outline |
 | `r` | Raw source / back to reading |
 | `w` | Cycle text width |
+| `d` | Cycle theme: system → light → dark (all tabs) |
 | `[` / `]` | Fold all / unfold all |
 
 Browser-level (change them at `chrome://extensions/shortcuts`):
@@ -73,7 +74,7 @@ Browser-level (change them at `chrome://extensions/shortcuts`):
 | `Alt+Shift+B` | Toggle outline (current tab) |
 | `Alt+Shift+C` | Cycle text width (current tab) |
 | `Alt+Shift+R` | Raw source / back to reading (current tab) |
-| `Alt+Shift+T` | Cycle theme (all tabs) |
+| `Alt+Shift+D` | Cycle theme (all tabs) |
 
 ## Security
 
