@@ -7,9 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 - **Mermaid diagrams** in local files: flowcharts, sequence diagrams and the rest of Mermaid 12.2.0. The library (~5 MB) is loaded only when a document contains a mermaid block. Diagrams follow the light/dark theme, stay in place during live reload, can be toggled back to source, and show the error message next to the source when the syntax is wrong. Can be turned off in the popup. Not drawn on `http(s)://` pages, so websites cannot detect MarkLens through its library files
+- Theme button in the toolbar and a `d` key on reading pages: system → light → dark, applied to every open tab
 - GitHub Actions: end-to-end tests on every push and pull request; tagging `vX.Y.Z` runs the tests, packages the extension and publishes a release with notes taken from this file
 
 ### Changed
+- The browser shortcut for cycling the theme is now `Alt+Shift+D`: `Alt+Shift+T` is taken by Chrome on Windows (focus toolbar), so it never reached MarkLens. Only new installs get the new default; existing installs can set it at `chrome://extensions/shortcuts`
 - New icon: a bold "M" inside focus brackets, designed to stay legible at 16 px; the SVG source is kept in `icons/icon.svg`
 - Large documents: "Fold all" is 10–20× faster (1 MB: 2.3 s → 0.2 s; 3 MB: 24 s → 1.1 s). Documents with more than ~3,000 top-level blocks (roughly 400 KB) now hide folded sections with plain CSS, so Ctrl+F no longer finds text inside folded sections there — unfold first. Smaller documents keep Ctrl+F reveal
 - Live reload no longer transfers the whole file every second when nothing changed (idle CPU on a 3 MB file: ~190 ms/s → ~1 ms/s)

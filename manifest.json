@@ -95,7 +95,7 @@
     "cycle-theme": {
       "description": "切換主題（自動 → 淺色 → 深色，所有分頁）",
       "suggested_key": {
-        "default": "Alt+Shift+T"
+        "default": "Alt+Shift+D"
       }
     },
     "cycle-width": {
