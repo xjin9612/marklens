@@ -7,6 +7,10 @@
 
 在 Chrome / Edge 直接閱讀 `.md` 檔案的擴充功能。功能參考 [md-reader 2.x](https://github.com/md-reader/md-reader)（MIT），程式碼全部重新撰寫，目標是**可稽核、無遠端依賴、無建置流程**。
 
+![淺色主題：側邊目錄、提示框、任務清單與表格](docs/screenshots/light.png)
+
+![深色主題：依欄位排序的表格與表格工具列，下方是 Mermaid 圖表](docs/screenshots/dark.png)
+
 ## 安裝
 
 1. 從[最新 Release](https://github.com/xjin9612/marklens/releases/latest) 下載 `marklens-vX.Y.Z.zip` 並解壓縮（或直接 clone 本 repo）。
@@ -102,6 +106,8 @@ src/
 vendor/                  第三方程式庫（版本見 VERSIONS.md，授權見 licenses/）
 scripts/vendor.mjs       升級 vendor 用的腳本
 scripts/release.mjs      發版輔助：版本檢查、取出 Release 說明、打包
+scripts/screenshots.mjs  由 docs/demo.md 重新產生 docs/screenshots/（npm run screenshots）
+docs/                    README 截圖與截圖用的示範文件
 .github/workflows/       自動測試與自動發布
 CHANGELOG.md             版本紀錄（GitHub Release 說明的來源）
 test/                    端對端測試與測試文件
