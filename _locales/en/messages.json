@@ -92,6 +92,18 @@
   "toolUnfoldAllTitle": {
     "message": "Unfold all (])"
   },
+  "toolExport": {
+    "message": " Export HTML"
+  },
+  "toolExportTitle": {
+    "message": "Download what you see as a single HTML file (no scripts; opens offline, easy to share)"
+  },
+  "exportDone": {
+    "message": "Exported $1"
+  },
+  "exportFailed": {
+    "message": "Export failed: $1"
+  },
   "taskTitle": {
     "message": "Click to check / uncheck and save to the file"
   },

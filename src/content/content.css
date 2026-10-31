@@ -258,7 +258,7 @@ html.marklens.ml-wide-blocks .markdown-body > :is(.ml-table, .ml-code) {
   html.marklens .ml-body { padding: 16px 16px 80px 36px; }
   html.marklens .ml-toc-resizer { display: none; }
   html.marklens .ml-tool-width { display: none; }
-  html.marklens .ml-tool-theme .ml-tool-label { display: none; }
+  html.marklens :is(.ml-tool-theme, .ml-tool-export) .ml-tool-label { display: none; }
   html.marklens .ml-toolbar { overflow-x: auto; padding: 0 4px; }
   html.marklens .ml-tool { padding: 6px 7px; }
 }
@@ -637,3 +637,7 @@ html.marklens .markdown-body .math-display { display: block; overflow-x: auto; o
 html.marklens .markdown-body .math-display .katex-display { margin: .5em 0; }
 html.marklens .markdown-body .katex { font-size: 1.1em; }
 html.marklens .markdown-body .katex-error { color: #d1242f; }
+
+/* 匯出的 HTML：沒有工具列與目錄，文章置中 */
+html.marklens.ml-export .ml-main { margin: 0; }
+html.marklens.ml-export .ml-body { padding-top: 32px; }

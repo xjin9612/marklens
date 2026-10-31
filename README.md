@@ -27,7 +27,8 @@ To upgrade, replace the folder with the new release and click the reload icon on
 | Area | What you get |
 |---|---|
 | Pages | Renders `.md` `.markdown` `.mkd` `.mdx` over `http(s)://` and `file://`; only takes over when the browser shows the file as plain text |
-| Toolbar | Sticky top bar: outline, fold all, unfold all, text width, theme, raw source / back to reading, back to top |
+| Toolbar | Sticky top bar: outline, fold all, unfold all, text width, export HTML, theme, raw source / back to reading, back to top |
+| Export | Save the current view as one self-contained HTML file (styles, diagrams and math fonts embedded, sections expanded, no JavaScript) to share with people who don't have MarkLens |
 | Layout | Text column width: full / 1600 / 1200 / 960 / custom. Tables and code blocks can grow past the text column up to the page edge. Adjustable font size and line height; reading progress bar |
 | Outline | Sidebar TOC (collapse with «), active-section highlight, heading search, depth filter, resizable width, two-line titles, folded-section markers, word count and reading time |
 | Folding | Fold any section from the ▾ next to its heading. "Fold all" starts from the first heading level that has two or more headings. Folded content stays searchable with Ctrl+F and unfolds on match (in very large documents — roughly 400 KB+ — folded sections are hidden normally for speed and must be unfolded before searching) |
@@ -83,6 +84,7 @@ Browser-level (change them at `chrome://extensions/shortcuts`):
 - **Allow-list HTML sanitizer** (`src/content/sanitize.js`): keeps common tags such as `<details>`, `<kbd>` and tables; drops `<script>`, `<iframe>`, `<svg>`, every event-handler attribute, `style` (except table alignment), and `javascript:` / non-image `data:` URLs.
 - **Math** renders with KaTeX `trust: false` (no `\href`, `\url`, `\includegraphics` or `\html…` commands) and a macro-expansion limit; like Mermaid, its files are reachable from `file://` pages only.
 - **No borrowing the interface**: HTML in a document cannot use MarkLens's own `ml-` class or id names (so it cannot draw a fake overlay or prompt over the page), and `name` is kept only on `<a>` to prevent DOM clobbering.
+- **Exported HTML** contains no JavaScript and carries a Content-Security-Policy that blocks scripts, so a shared export is safe to open.
 - **Attack suite**: `test/fixtures/security.md` collects 60+ attack samples; the tests render it, click every link and diagram node, and fail if anything runs.
 - **Minimal permissions**: only `storage`. Content scripts match Markdown file extensions only — no "read all sites" permission.
 - **Local file reads** go through the background worker, which only reads the URL of the page that asked.
@@ -110,6 +112,7 @@ src/
     enhance.js           heading anchors & folding, inline grouping, task lists, code blocks, images, stats
     mermaid.js           Mermaid diagrams, loaded on demand
     math.js              KaTeX math, loaded on demand
+    export.js            export the current view as a self-contained HTML file
     table.js             column resize, sorting, filter, copy, fullscreen, state save/restore
     toc.js               sidebar outline
     main.js              entry point: layout, toolbar, shortcuts, per-tab state, live reload, task write-back
@@ -171,6 +174,7 @@ The suite loads the extension into Chromium and opens local and http fixtures (`
 - Task write-back: correct line (with front matter), blockquote and ordered lists, undo, conflict detection, CRLF and BOM preserved, unauthorized folder, feature off. Folder access is simulated with the browser's private file system (OPFS); the folder picker itself has to be tested by hand
 - Mermaid (`test/fixtures/mermaid.md`): not loaded without diagrams, drawing, syntax errors, label injection, source toggle, theme switch, no flicker on live reload, not drawn over http, setting off
 - Math (`test/fixtures/math.md`): inline, display, ` ```math `, tables, prices and escapes left alone, errors, live reload, not drawn over http
+- Export: single file without scripts, sections expanded, styles and checkbox states kept, math fonts embedded
 - Interface language: matching keys in both locales, English UI smoke test
 - Popup settings
 

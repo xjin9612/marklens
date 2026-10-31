@@ -92,6 +92,18 @@
   "toolUnfoldAllTitle": {
     "message": "全部展開（]）"
   },
+  "toolExport": {
+    "message": " 匯出 HTML"
+  },
+  "toolExportTitle": {
+    "message": "把目前畫面下載成單一 HTML 檔（不含程式碼，可離線開啟、方便分享）"
+  },
+  "exportDone": {
+    "message": "已匯出 $1"
+  },
+  "exportFailed": {
+    "message": "匯出失敗：$1"
+  },
   "taskTitle": {
     "message": "點擊勾選／取消，並存回原檔"
   },
