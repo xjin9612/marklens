@@ -6,12 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Added
+- **Previous / next file** buttons (‹ ›) in the toolbar for local files: step through the Markdown files in the same folder, sorted by name the way people expect (`2-…` before `10-…`), even when the documents don't link to each other
 - External `http(s)` links open in a new tab, so the document stays open; anchors, footnotes and same-site links are unchanged. Can be turned off in the popup
 - Welcome page on first install: walks through turning on **Allow access to file URLs** (the status updates live), how to open a file, keyboard shortcuts and the main features. Reopen it any time from the popup → **Help**
 - **Export HTML** (toolbar ⤓): saves what you see as one self-contained HTML file to share with people who don't have MarkLens. Styles, Mermaid diagrams and math fonts are embedded, folded sections are expanded, relative links and images become absolute, checkbox states are kept, and the file contains no JavaScript (a Content-Security-Policy blocks scripts)
 - **Math** in local files with KaTeX 0.19.1: `$…$`, `$$…$$`, GitHub's `` $`…`$ `` and ` ```math ` blocks. KaTeX (~900 KB with fonts) loads only when a document contains math. Prices such as `$5 and $10`, escaped `\$` and code are left alone; a syntax error shows in red without affecting the rest. Can be turned off in the popup
 - Interface in English and Traditional Chinese: toolbar, outline, tables, popup, folder access page, welcome page and shortcut names. Follows the browser language by default (other languages get English); pick a language in the popup → **Language** without changing Chrome's language (the extension's name and shortcut names on `chrome://extensions` still follow Chrome)
 - Emoji shortcodes from GitHub's list (`:tada:` → 🎉). Code spans and code blocks are left alone, and text emoticons such as `:)` are not converted
+
+### Changed
+- The outline is shown and hidden with a single ☰ button in the toolbar (or `t`); the « button inside the outline is gone and the heading search box uses the full width
 
 ### Fixed
 - Read-only task checkboxes (file not UTF-8, saving turned off, or a page on the web) no longer look broken: clicking or hovering explains why the checkbox can't be saved

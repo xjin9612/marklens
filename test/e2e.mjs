@@ -338,8 +338,10 @@ try {
 
   /* ---------- 目錄與分頁獨立 ---------- */
   const page2 = await openDoc()
-  await check('目錄頂端收合鈕、工具列展開鈕', async () => {
-    await page.click('.ml-toc-close')
+  await check('工具列的 ☰ 收合與展開目錄（目錄內不再有收合鈕）', async () => {
+    assert.equal(await page.locator('.ml-toc button').count(), 0)
+    assert.equal((await page.textContent('.ml-tool-toc')).trim(), '☰')
+    await page.click('.ml-tool-toc')
     assert.equal(await visible(page, '.ml-toc'), false)
     const box = await page.locator('.ml-tool-toc').boundingBox()
     assert.ok(box.x < 30 && box.y < 10, JSON.stringify(box))
@@ -408,12 +410,38 @@ try {
 
   /* ---------- http ---------- */
   const p4 = await openDoc(`http://127.0.0.1:${port}/docs/readme.md`)
+  await check('上一份／下一份：同資料夾的 Markdown 依檔名自然排序切換', async () => {
+    const nav = join(work, 'nav')
+    mkdirSync(join(nav, 'z.md'), { recursive: true }) // 名稱像 .md 的資料夾要排除
+    for (const [f, h] of [['1-a.md', 'A'], ['2-b.md', 'B'], ['10-c.md', 'C'], ['中文 檔名.md', '中文']]) writeFileSync(join(nav, f), `# ${h}\n`)
+    writeFileSync(join(nav, 'readme.txt'), 'x')
+    const np = await openDoc(pathToFileURL(join(nav, '2-b.md')).href)
+    await np.waitForSelector('.ml-tool-nav:not([hidden])')
+    const [prev, next] = [np.locator('.ml-tool-nav').nth(0), np.locator('.ml-tool-nav').nth(1)]
+    assert.equal(await prev.getAttribute('title'), '上一份：1-a.md')
+    assert.equal(await next.getAttribute('title'), '下一份：10-c.md', '2 應排在 10 前面')
+    await next.click()
+    await np.waitForURL(/10-c\.md$/)
+    await np.waitForSelector('.ml-tool-nav:not([hidden])')
+    assert.equal(await np.getAttribute('.markdown-body h1', 'data-ml-text'), 'C')
+    await np.locator('.ml-tool-nav').nth(1).click()
+    await np.waitForURL(/%E4%B8%AD/)
+    await np.waitForSelector('.ml-tool-nav:not([hidden])')
+    assert.equal(await np.getAttribute('.markdown-body h1', 'data-ml-text'), '中文')
+    assert.equal(await np.locator('.ml-tool-nav').nth(1).isDisabled(), true, '最後一份')
+    assert.equal(await np.locator('.ml-tool-nav').nth(1).getAttribute('title'), '已是資料夾中的最後一份')
+    await np.goto(pathToFileURL(join(nav, '1-a.md')).href)
+    await np.waitForSelector('.ml-tool-nav:not([hidden])')
+    assert.equal(await np.locator('.ml-tool-nav').nth(0).isDisabled(), true, '第一份')
+    await np.close()
+  })
   await check('剛好放得下的小表格不出現水平捲軸', async () => {
     const r = await page.locator('.ml-table-scroll', { has: page.locator('th', { hasText: '小表格' }) }).evaluate(s => [s.scrollWidth, s.clientWidth])
     assert.ok(r[0] <= r[1], `scrollWidth ${r[0]} > clientWidth ${r[1]}`)
   })
   await check('http:// 渲染', async () => {
     assert.equal(await p4.locator('.markdown-body h1').count(), 1)
+    assert.equal(await p4.locator('.ml-tool-nav:not([hidden])').count(), 0, '網路上的頁面不顯示上一份／下一份')
   })
   await check('外部連結開新分頁；錨點、腳註、同站連結不受影響', async () => {
     const attrs = (pg, sel) => pg.locator(sel).first().evaluate(a => `${a.target}|${a.rel}`)

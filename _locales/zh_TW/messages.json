@@ -45,10 +45,22 @@
     "message": "深色"
   },
   "toolToc": {
-    "message": "☰ 目錄"
+    "message": "☰"
   },
   "toolTocTitle": {
     "message": "顯示／收合目錄（t）"
+  },
+  "navPrev": {
+    "message": "上一份：$1"
+  },
+  "navNext": {
+    "message": "下一份：$1"
+  },
+  "navFirst": {
+    "message": "已是資料夾中的第一份"
+  },
+  "navLast": {
+    "message": "已是資料夾中的最後一份"
   },
   "toolWidth": {
     "message": "⇔ 寬度：$1"
@@ -205,9 +217,6 @@
   },
   "tocSearch": {
     "message": "搜尋標題…"
-  },
-  "tocCloseTitle": {
-    "message": "收合目錄（t）"
   },
   "tocResizeTitle": {
     "message": "拖拉調整寬度"
