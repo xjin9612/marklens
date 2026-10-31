@@ -262,6 +262,14 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       rs.setProperty('--ml-line-height', String(s.lineHeight))
       const dark = s.theme === 'dark' || (s.theme === 'auto' && this.darkQuery.matches)
       document.documentElement.dataset.mlTheme = dark ? 'dark' : 'light'
+      // 給下一次開檔的等待畫面用（early.js）；只寫本機檔案的儲存空間，網站讀不到
+      if (location.protocol === 'file:') {
+        try {
+          localStorage.setItem('marklens:theme', dark ? 'dark' : 'light')
+        } catch {
+          // 無法寫入時下次等待畫面跟隨系統
+        }
+      }
       if (this.themeBtn) {
         // 窄螢幕只顯示圖示（文字部分由 CSS 隱藏）
         const [icon, name] = THEME_LABELS[s.theme] || THEME_LABELS.auto
@@ -528,9 +536,10 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
   }
 
-  /** 不接管這一頁：取消 content.css 載入期間對原始文字的隱藏 */
+  /** 不接管這一頁：取消 content.css 載入期間對原始文字的隱藏，並立刻結束換頁轉場 */
   function reveal() {
     document.documentElement.classList.add('ml-off')
+    MarkLens.revealPage?.()
   }
 
   async function boot() {
@@ -561,6 +570,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     await MarkLens.initI18n(settings.uiLang)
     MarkLens.app = new App(settings, pre, raw, exact)
     MarkLens.app.mount()
+    // 排版完成：結束換頁轉場，從舊畫面直接換成新頁
+    MarkLens.revealPage?.()
   }
 
   boot().catch(err => {

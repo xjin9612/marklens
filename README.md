@@ -109,6 +109,7 @@ src/
   grant/                 folder authorization page
   welcome/               first-run welcome page
   content/
+    early.js             runs first: keeps the previous page on screen while switching files, loading background color
     util.js              helpers, reading the page source
     fonts.js             CJK/ASCII width alignment for code blocks
     sanitize.js          allow-list HTML sanitizer
@@ -173,7 +174,7 @@ npm test
 The suite loads the extension into Chromium and opens local and http fixtures (`test/fixtures/sample.md`), covering:
 
 - Rendering: GFM, task lists (tight and loose), footnotes, alerts, front matter, code highlighting, emoji shortcodes, GitHub-style autolinks
-- Loading: raw text hidden until rendered (no flash), shown normally when MarkLens is turned off; non-Markdown URLs left alone
+- Loading: switching files keeps the previous page until the new one is rendered (no blank page, no "Loading…" in the Files tab), loading background follows the last theme, raw text shown normally when MarkLens is turned off; non-Markdown URLs left alone
 - Security: scripts, event handlers, `javascript:` links, style attributes; plus the attack suite in `test/fixtures/security.md` (dangerous tags and URLs, encoding tricks, DOM clobbering, fake interface, file names, Mermaid)
 - Layout: text column width, wide tables beyond the text column, small tables at every width, narrow-screen drawer sidebar
 - Tables: sorting (numbers / bytes / dates), column resize, filter, fullscreen and Esc, state kept across live reload

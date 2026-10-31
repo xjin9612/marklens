@@ -107,6 +107,7 @@ src/
   grant/                 資料夾授權頁
   welcome/               首次安裝引導頁
   content/
+    early.js             最早執行：換檔時保留舊畫面到新頁排好版、載入中的背景色
     util.js              小工具、讀取原始內容
     fonts.js             程式碼區塊中英字寬對齊
     sanitize.js          HTML 白名單過濾
@@ -171,7 +172,7 @@ npm test
 測試以 Chromium 載入擴充功能，開啟本機與 http 的測試文件（`test/fixtures/sample.md`），涵蓋：
 
 - 渲染：GFM、任務清單（緊湊／鬆散清單）、腳註、Alert、front matter、程式碼高亮、Emoji 短碼、比照 GitHub 的自動連結
-- 載入：渲染前隱藏原始文字（不閃爍）、停用 MarkLens 時原文照常顯示、非 Markdown 網址不接管
+- 載入：換檔時保留舊畫面到新頁排好版（沒有空白頁、檔案分頁不出現「讀取中」）、載入中背景沿用上次的主題、停用 MarkLens 時原文照常顯示、非 Markdown 網址不接管
 - 安全：script、事件屬性、`javascript:` 連結、style 屬性過濾；以及 `test/fixtures/security.md` 攻擊樣本（危險標籤與網址、編碼繞過、DOM clobbering、偽造介面、檔名、Mermaid）
 - 版面：文字欄寬度、寬表格超出文字欄、小表格在各種寬度下不出現捲軸、窄螢幕抽屜側邊欄
 - 表格：排序（數字／容量／日期）、拖拉欄寬、篩選、全螢幕與 Esc、自動更新後狀態保留

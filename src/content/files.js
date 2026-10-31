@@ -17,6 +17,32 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
   }
 
+  /*
+   * 資料夾清單快取（sessionStorage，只在本分頁）：同一分頁內換檔時先顯示上次的清單，
+   * 背景重新讀取後再更新，側邊欄不會每次都閃一下「讀取中」。
+   */
+  const CACHE_KEY = 'marklens:files'
+  const CACHE_LIMIT = 50 // 最多記住幾個資料夾，超過時丟掉最舊的
+  function readCache() {
+    try {
+      return JSON.parse(sessionStorage.getItem(CACHE_KEY)) || {}
+    } catch {
+      return {}
+    }
+  }
+  function writeCache(url, entry) {
+    try {
+      const cache = readCache()
+      delete cache[url] // 重新插入，讓它排到最後（最新）
+      cache[url] = entry
+      const urls = Object.keys(cache)
+      for (const old of urls.slice(0, Math.max(0, urls.length - CACHE_LIMIT))) delete cache[old]
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify(cache))
+    } catch {
+      // 寫不進去（空間不足等）就不快取
+    }
+  }
+
   /** 保存的起點是否像本機資料夾網址（實際檢查由背景程式負責） */
   function isFolder(root) {
     return typeof root === 'string' && root.startsWith('file:///') && root.endsWith('/')
@@ -77,11 +103,23 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.onChange?.({ root: this.root, open: [...this.open] })
     }
 
+    /** 子資料夾的網址（快取的鍵） */
+    dirUrl(segs) {
+      return this.root + segs.map(s => `${encodeURIComponent(s)}/`).join('')
+    }
+
     /** 讀取起點，並依序還原展開的子資料夾 */
     async init() {
       // 起點換了之後，舊的讀取結果全部作廢
       const gen = ++this.gen
       this.nodes.clear()
+      // 先同步畫出快取的清單（換檔時側邊欄維持原樣），再逐一重新讀取
+      const cache = readCache()
+      for (const segs of [[], ...[...this.open].map(p => p.split('/'))]) {
+        const c = cache[this.dirUrl(segs)]
+        if (c) this.nodes.set(key(segs), { status: 'ok', dirs: c.dirs, files: c.files })
+      }
+      this.render()
       await this.load([], gen)
       if (gen !== this.gen) return
       // 由淺到深讀取，父資料夾讀到後才知道子資料夾還在不在
@@ -97,8 +135,11 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
     async load(segs, gen = this.gen) {
       const k = key(segs)
-      this.nodes.set(k, { status: 'loading', dirs: [], files: [] })
-      this.render()
+      // 已有清單（快取或先前讀過）時重新讀取期間照常顯示，不換成「讀取中」
+      if (this.nodes.get(k)?.status !== 'ok') {
+        this.nodes.set(k, { status: 'loading', dirs: [], files: [] })
+        this.render()
+      }
       let res
       try {
         res = await chrome.runtime.sendMessage({ type: 'list-dir', root: this.root, path: segs })
@@ -106,7 +147,16 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         res = null
       }
       if (gen !== this.gen) return
-      this.nodes.set(k, res?.status === 'ok' ? { status: 'ok', dirs: res.dirs, files: res.files } : { status: 'error', dirs: [], files: [] })
+      if (res?.status === 'ok') {
+        const prev = this.nodes.get(k)
+        const same = prev?.status === 'ok' && JSON.stringify([prev.dirs, prev.files]) === JSON.stringify([res.dirs, res.files])
+        writeCache(this.dirUrl(segs), { dirs: res.dirs, files: res.files })
+        // 與快取相同就不重畫，捲動位置與滑鼠停留狀態都不受影響
+        if (same) return
+        this.nodes.set(k, { status: 'ok', dirs: res.dirs, files: res.files })
+      } else {
+        this.nodes.set(k, { status: 'error', dirs: [], files: [] })
+      }
       this.render()
     }
 

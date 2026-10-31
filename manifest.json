@@ -66,6 +66,50 @@
         "file:///*.MDX?*"
       ],
       "js": [
+        "src/content/early.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "*://*/*.md",
+        "*://*/*.md?*",
+        "*://*/*.markdown",
+        "*://*/*.markdown?*",
+        "*://*/*.mkd",
+        "*://*/*.mkd?*",
+        "*://*/*.mdx",
+        "*://*/*.mdx?*",
+        "*://*/*.MD",
+        "*://*/*.MD?*",
+        "*://*/*.Markdown",
+        "*://*/*.Markdown?*",
+        "*://*/*.MARKDOWN",
+        "*://*/*.MARKDOWN?*",
+        "*://*/*.MKD",
+        "*://*/*.MKD?*",
+        "*://*/*.MDX",
+        "*://*/*.MDX?*",
+        "file:///*.md",
+        "file:///*.md?*",
+        "file:///*.markdown",
+        "file:///*.markdown?*",
+        "file:///*.mkd",
+        "file:///*.mkd?*",
+        "file:///*.mdx",
+        "file:///*.mdx?*",
+        "file:///*.MD",
+        "file:///*.MD?*",
+        "file:///*.Markdown",
+        "file:///*.Markdown?*",
+        "file:///*.MARKDOWN",
+        "file:///*.MARKDOWN?*",
+        "file:///*.MKD",
+        "file:///*.MKD?*",
+        "file:///*.MDX",
+        "file:///*.MDX?*"
+      ],
+      "js": [
         "vendor/markdown-it.min.js",
         "vendor/markdown-it-footnote.min.js",
         "vendor/markdown-it-emoji.min.js",
@@ -125,7 +169,9 @@
         "vendor/katex/*",
         "vendor/katex/fonts/*"
       ],
-      "matches": ["file:///*"]
+      "matches": [
+        "file:///*"
+      ]
     }
   ],
   "content_security_policy": {

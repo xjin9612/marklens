@@ -23,7 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Read-only task checkboxes (file not UTF-8, saving turned off, or a page on the web) no longer look broken: clicking or hovering explains why the checkbox can't be saved
 - Small tables that fit exactly no longer show a horizontal scrollbar (the last column's resize handle stuck out by a few pixels)
 - Popup fields line up
-- Switching files no longer flashes the raw Markdown text before the page is rendered (with a dark system theme, the background no longer flashes white either). If MarkLens is turned off, or doesn't render within 1.5 s, the raw text is shown as usual
+- Switching files in the same tab no longer flashes: the previous page stays on screen until the new one is rendered (a cross-document view transition, Chrome 126+), and the Files tab shows the folder it already knows instead of "Loading…". Before, the whole page went blank for 60–400 ms and the raw Markdown could show through. In a new tab, the background while loading matches your last theme, so a dark MarkLens theme on a light system no longer flashes white. If MarkLens is turned off, or doesn't render within 1.5 s, the raw text is shown as usual
 - With the same file open in two tabs, live reload no longer misses changes in one of them
 - Checking off a task no longer writes to the wrong file when two authorized folders with the same name both contain the page's path (for example `C:\work\docs` and `D:\backup\docs`). MarkLens compares the files with the page; if it still can't tell which one is open (two identical copies), it refuses to write and says so instead of guessing
 - Reopening a page that was turned off and then quickly turned back on no longer stays on the raw text
