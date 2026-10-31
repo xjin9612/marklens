@@ -32,7 +32,7 @@ To upgrade, replace the folder with the new release and click the reload icon on
 | Editor | Optional ✎ button opens the local file in VS Code at the section you're reading, or in any editor that has a URL scheme (custom template with `{path}` and `{line}`). Notepad and Notepad++ can't be opened from a browser |
 | Export | Save the current view as one self-contained HTML file (styles, diagrams and math fonts embedded, sections expanded, no JavaScript) to share with people who don't have MarkLens |
 | Layout | Text column width: full / 1600 / 1200 / 960 / custom. Tables and code blocks can grow past the text column up to the page edge. Adjustable font size and line height; reading progress bar |
-| Sidebar | ☰ or `t` to show / hide. **Outline** tab: active-section highlight, heading search (`/`), depth filter, resizable width, two-line titles, folded-section markers, word count and reading time |
+| Sidebar | ☰ or `t` to show / hide. **Outline** tab: active-section highlight, heading search (`/`), resizable width, two-line titles, folded-section markers, word count and reading time. How many heading levels the outline shows is set in the popup |
 | Folding | Fold any section from the ▾ next to its heading. "Fold all" starts from the first heading level that has two or more headings. Folded content stays searchable with Ctrl+F and unfolds on match (in very large documents — roughly 400 KB+ — folded sections are hidden normally for speed and must be unfolded before searching) |
 | Tables | **Drag to resize columns** (double-click the handle to auto-fit), **click headers to sort** (numbers with thousands separators, byte units, dates, CJK text; empty cells last; third click restores the original order), row filter (5+ rows), copy as TSV (paste straight into Excel), wrap toggle, fullscreen with sticky header. The table toolbar only appears on hover |
 | Syntax | CommonMark + GFM, task lists, footnotes, `==highlight==`, emoji shortcodes (`:tada:`), GitHub alerts (`> [!NOTE]` etc.), collapsible front matter |
@@ -40,7 +40,7 @@ To upgrade, replace the folder with the new release and click the reload icon on
 | Diagrams | [Mermaid](https://mermaid.js.org/) flowcharts, sequence diagrams and more in local files. The library (~5 MB) loads only when a document contains a mermaid block; diagrams follow the theme, keep their place during live reload, and can be toggled back to source. Syntax errors are shown next to the source. Not drawn on `http(s)://` pages (see Security) |
 | Math | `$…$`, `$$…$$`, `` $`…`$ `` and ` ```math ` blocks rendered with [KaTeX](https://katex.org/) in local files; loaded only when a document contains math. Prices like `$5 and $10` stay as text. Like Pandoc and GitHub, `$HOME/$USER` would be read as math — put it in backticks or write `\$` |
 | Images | Lazy loading, click to zoom (Esc to close) |
-| Theme | System / light / dark, from the toolbar, the `d` key or the popup; applies to every open tab |
+| Theme | Auto (follows the system) / light / dark, from the toolbar, the `d` key or the popup; applies to every open tab |
 | Check off tasks | Click a task-list checkbox in a local file to save `[ ]` / `[x]` straight back to the file — no editor needed. Works in nested lists, ordered lists and blockquotes; checkboxes inside code blocks are never touched. Undo from the toast; refuses to write if the file changed elsewhere; keeps CRLF and BOM. Requires authorizing a folder once (see below) |
 | Live reload | Local files are checked every second and re-rendered only when changed — scroll position, folds, and table sort / widths / filters are preserved |
 | Language | English and Traditional Chinese interface. Follows the browser language by default, or pick one in the popup → **Language** |
@@ -56,9 +56,9 @@ Folder access is held by the extension itself (in its own storage, under its own
 
 ### Per-tab vs. global settings
 
-- **Current tab only**: outline visibility, outline width, text width, raw view, folds. Kept across reloads, cleared when the tab closes — handy for comparing documents side by side.
+- **Current tab only**: sidebar visibility, sidebar width, selected sidebar tab, text width, and the Files tab's top folder and open folders. Kept across reloads and when opening another file in the same tab, cleared when the tab closes — handy for comparing documents side by side. Raw view and folds are not kept.
 - **Synced live to every tab**: theme, font size, line height.
-- **Everything else in the popup** is the default for new tabs; open tabs pick it up after a reload. Dragging the outline width also saves it as the new default.
+- **Everything else in the popup** is the default for new tabs; open tabs pick it up after a reload. Dragging the sidebar width also saves it as the new default.
 
 ### Keyboard shortcuts
 
@@ -66,18 +66,18 @@ On a reading page (ignored while typing in an input):
 
 | Key | Action |
 |---|---|
-| `t` | Toggle outline |
+| `t` | Show / hide sidebar |
 | `r` | Raw source / back to reading |
 | `w` | Cycle text width |
 | `/` | Search headings (Outline tab) or file names (Files tab) |
-| `d` | Cycle theme: system → light → dark (all tabs) |
+| `d` | Cycle theme: auto → light → dark (all tabs) |
 | `[` / `]` | Fold all / unfold all |
 
 Browser-level (change them at `chrome://extensions/shortcuts`):
 
 | Key | Action |
 |---|---|
-| `Alt+Shift+B` | Toggle outline (current tab) |
+| `Alt+Shift+B` | Show / hide sidebar (current tab) |
 | `Alt+Shift+C` | Cycle text width (current tab) |
 | `Alt+Shift+R` | Raw source / back to reading (current tab) |
 | `Alt+Shift+D` | Cycle theme (all tabs) |
@@ -91,6 +91,7 @@ Browser-level (change them at `chrome://extensions/shortcuts`):
 - **Attack suite**: `test/fixtures/security.md` collects 60+ attack samples; the tests render it, click every link and diagram node, and fail if anything runs.
 - **Minimal permissions**: only `storage`. Content scripts match Markdown file extensions only — no "read all sites" permission.
 - **Local file reads** go through the background worker, which only reads the URL of the page that asked.
+- **Folder listings** for the Files tab are also read by the background worker: only `file://` folders (no network shares, no `.` / `..` segments), returning only Markdown file names and subfolder names — never file contents.
 - **Writes** happen only when you click a task checkbox: the background worker changes that single line after checking that the file still matches what the page shows. Which lines are writable is decided by the Markdown parser with a per-render random nonce, so HTML inside a document cannot fake a writable checkbox.
 - **Mermaid** renders with `securityLevel: 'strict'` (labels sanitized by DOMPurify, click handlers disabled). Its files must be web-accessible so they can be loaded on demand; access is limited to `file://` pages so ordinary websites cannot probe for them to detect that MarkLens is installed. That is also why diagrams are only drawn in local files.
 - **No remote code**: third-party libraries are pinned in `vendor/`; nothing is fetched or auto-updated at runtime.
@@ -101,7 +102,7 @@ Browser-level (change them at `chrome://extensions/shortcuts`):
 manifest.json
 _locales/                interface text: en (default) and zh_TW
 src/
-  background.js          shortcuts, local file reads
+  background.js          shortcuts, local file reads, folder listings, task write-back
   shared/settings.js     settings defaults and storage (shared by all contexts)
   shared/i18n.js         interface text lookup (strings live in _locales/)
   shared/roots.js        authorized folders (extension origin only)
@@ -126,10 +127,12 @@ vendor/                  third-party libraries (versions in VERSIONS.md, license
 scripts/vendor.mjs       script for upgrading vendor/
 scripts/release.mjs      release helper: version check, release notes, packaging
 scripts/screenshots.mjs  regenerates docs/screenshots/ from docs/demo.md (npm run screenshots)
+scripts/manual-bigfile.mjs  generates the large file for the manual tests (npm run manual:bigfile)
 docs/                    README screenshots and the demo document they are taken from
 .github/workflows/       CI tests and automated releases
 CHANGELOG.md             release notes (the source for GitHub releases)
-test/                    end-to-end tests and fixtures
+test/                    end-to-end tests (e2e.mjs) and fixtures
+test/manual/             manual test checklist (Traditional Chinese)
 package.json             dev tooling only (tests, vendor updates); the extension itself needs no build
 ```
 
@@ -169,18 +172,21 @@ npm test
 
 The suite loads the extension into Chromium and opens local and http fixtures (`test/fixtures/sample.md`), covering:
 
-- Rendering: GFM, task lists (tight and loose), footnotes, alerts, front matter, code highlighting
+- Rendering: GFM, task lists (tight and loose), footnotes, alerts, front matter, code highlighting, emoji shortcodes, GitHub-style autolinks
+- Loading: raw text hidden until rendered (no flash), shown normally when MarkLens is turned off; non-Markdown URLs left alone
 - Security: scripts, event handlers, `javascript:` links, style attributes; plus the attack suite in `test/fixtures/security.md` (dangerous tags and URLs, encoding tricks, DOM clobbering, fake interface, file names, Mermaid)
-- Layout: text column width, wide tables beyond the text column, narrow-screen drawer outline
-- Tables: sorting (numbers / bytes / dates), column resize, filter, state kept across live reload
-- Folding: fold / unfold all, Ctrl+F reveal, outline markers
-- Tabs: outline and width stay per tab, appearance syncs live, new tabs use updated defaults
-- Task write-back: correct line (with front matter), blockquote and ordered lists, undo, conflict detection, CRLF and BOM preserved, unauthorized folder, feature off. Folder access is simulated with the browser's private file system (OPFS); the folder picker itself has to be tested by hand
-- Mermaid (`test/fixtures/mermaid.md`): not loaded without diagrams, drawing, syntax errors, label injection, source toggle, theme switch, no flicker on live reload, not drawn over http, setting off
-- Math (`test/fixtures/math.md`): inline, display, ` ```math `, tables, prices and escapes left alone, errors, live reload, not drawn over http
+- Layout: text column width, wide tables beyond the text column, small tables at every width, narrow-screen drawer sidebar
+- Tables: sorting (numbers / bytes / dates), column resize, filter, fullscreen and Esc, state kept across live reload
+- Folding: fold / unfold all, Ctrl+F reveal, outline markers, outline links and `#hash` URLs into folded sections
+- Sidebar: ☰ position, `/` search, Files tab (natural sort, skipped folders, lazy subfolders, top folder kept across files, ↑, folder listing restrictions)
+- Tabs: sidebar and width stay per tab, appearance syncs live, new tabs use updated defaults, `Alt+Shift` shortcuts, reading position remembered
+- Links: external links open in a new tab (and the setting to turn it off); editor button and its URL template restrictions
+- Task write-back: correct line (with front matter), blockquote and ordered lists, undo, conflict detection, CRLF and BOM preserved, unauthorized folder, feature off, non-UTF-8 files. Folder access is simulated with the browser's private file system (OPFS); the folder picker itself has to be tested by hand
+- Mermaid (`test/fixtures/mermaid.md`): not loaded without diagrams, drawing, syntax errors, label injection and click handlers, source toggle, theme switch, no flicker on live reload, not drawn over http, setting off
+- Math (`test/fixtures/math.md`): inline, display, ` ```math `, tables, prices and escapes left alone, errors, live reload, not drawn over http, setting off
 - Export: single file without scripts, sections expanded, styles and checkbox states kept, math fonts embedded
-- Interface language: matching keys in both locales, English UI smoke test
-- Popup settings
+- Interface language: matching keys in both locales, language override, English UI smoke test
+- Welcome page on install, popup settings, notice in open tabs after the extension is reloaded
 
 Screenshots go to the directory in the `SHOT_DIR` environment variable (system temp by default).
 
@@ -199,13 +205,12 @@ Some things can't be automated: the folder picker, permission prompts after a Ch
 3. Check locally: `node scripts/release.mjs check vX.Y.Z`
 4. Commit, then `git tag vX.Y.Z` and `git push origin main --tags`.
 
-The **Release** workflow verifies that the tag, `manifest.json`, `package.json` and `CHANGELOG.md` agree, runs the tests, packages `marklens-vX.Y.Z.zip` (extension files only) and publishes a GitHub release using that CHANGELOG section as the notes. Every push and pull request runs the tests through the **Tests** workflow.
+The **Release** workflow verifies that the tag, `manifest.json`, `package.json` and `CHANGELOG.md` agree, runs the tests, packages `marklens-vX.Y.Z.zip` (extension files only) and publishes a GitHub release using that CHANGELOG section as the notes. Every push to `main` and every pull request runs the tests through the **Tests** workflow.
 
 ## Roadmap
 
-- First-run page that walks through enabling file access
-- UI translations
 - Chrome Web Store / Edge Add-ons listing
+- More interface languages
 
 ## License
 
