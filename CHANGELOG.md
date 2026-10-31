@@ -17,24 +17,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 - Sidebar header is now `☰ | Outline  Files | 🔍`: the ☰ sits in the same spot whether the sidebar is open or closed, the « button is gone, and search opens from the magnifier or the `/` key (Esc closes). Search filters headings on the Outline tab and file names on the Files tab
+- The toolbar's sidebar button is now just ☰ (no "Outline" text), and the sidebar, its shortcut and the `t` key are named "sidebar" instead of "outline"
 
 ### Fixed
 - Read-only task checkboxes (file not UTF-8, saving turned off, or a page on the web) no longer look broken: clicking or hovering explains why the checkbox can't be saved
 - Small tables that fit exactly no longer show a horizontal scrollbar (the last column's resize handle stuck out by a few pixels)
-- Popup fields line up, and the language option no longer gets cut off
+- Popup fields line up
+- Switching files no longer flashes the raw Markdown text before the page is rendered (with a dark system theme, the background no longer flashes white either). If MarkLens is turned off, or doesn't render within 1.5 s, the raw text is shown as usual
+- With the same file open in two tabs, live reload no longer misses changes in one of them
+- Checking off a task no longer writes to the wrong file when two authorized folders with the same name both contain the page's path (for example `C:\work\docs` and `D:\backup\docs`). MarkLens compares the files with the page; if it still can't tell which one is open (two identical copies), it refuses to write and says so instead of guessing
+- Reopening a page that was turned off and then quickly turned back on no longer stays on the raw text
 - File names such as `README.md` and bare domains such as `example.com` are no longer turned into links (`.md` is a country domain). Autolinks now follow GitHub: `http(s)://`, `www.` and email addresses only
 
 ### Security
 - HTML in a document can no longer use MarkLens's own `ml-` class and id names, so it cannot fake a full-screen overlay, a toast or a toolbar on top of the page
 - The `name` attribute is kept only on `<a>`, so elements such as `<img name="querySelector">` cannot overwrite methods on `document` (DOM clobbering)
-- New end-to-end attack suite (`test/fixtures/security.md`, adapted in part from local-markdown-viewer, MIT): scripts, event handlers, `javascript:` / `vbscript:` / `data:` URLs with case, entity and whitespace tricks, iframes, objects, SVG, MathML, forms, `<meta>` / `<base>`, styles, headings, file names and Mermaid diagrams of several types. Every link, node and summary is clicked and nothing may run
+- Folder listings for the Files tab are read only from local `file://` folders (no network shares or `.` / `..` segments) and return only Markdown file names and subfolder names
+- New end-to-end attack suite (`test/fixtures/security.md`, partly adapted from local-markdown-viewer, MIT) with 60+ samples; every link, diagram node and summary is clicked and nothing may run
 
 ## [1.2.0] - 2026-10-31
 
 ### Added
 - **Mermaid diagrams** in local files: flowcharts, sequence diagrams and the rest of Mermaid 12.2.0. The library (~5 MB) is loaded only when a document contains a mermaid block. Diagrams follow the light/dark theme, stay in place during live reload, can be toggled back to source, and show the error message next to the source when the syntax is wrong. Can be turned off in the popup. Not drawn on `http(s)://` pages, so websites cannot detect MarkLens through its library files
 - Theme button in the toolbar and a `d` key on reading pages: system → light → dark, applied to every open tab
-- GitHub Actions: end-to-end tests on every push and pull request; tagging `vX.Y.Z` runs the tests, packages the extension and publishes a release with notes taken from this file
+- GitHub Actions: end-to-end tests on every push to `main` and every pull request; tagging `vX.Y.Z` runs the tests, packages the extension and publishes a release with notes taken from this file
 
 ### Changed
 - The browser shortcut for cycling the theme is now `Alt+Shift+D`: `Alt+Shift+T` is taken by Chrome on Windows (focus toolbar), so it never reached MarkLens. Only new installs get the new default; existing installs can set it at `chrome://extensions/shortcuts`
