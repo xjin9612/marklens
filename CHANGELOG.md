@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-31
+
 ### Added
 - **Mermaid diagrams** in local files: flowcharts, sequence diagrams and the rest of Mermaid 12.2.0. The library (~5 MB) is loaded only when a document contains a mermaid block. Diagrams follow the light/dark theme, stay in place during live reload, can be toggled back to source, and show the error message next to the source when the syntax is wrong. Can be turned off in the popup. Not drawn on `http(s)://` pages, so websites cannot detect MarkLens through its library files
 - Theme button in the toolbar and a `d` key on reading pages: system → light → dark, applied to every open tab
@@ -45,6 +47,7 @@ First public release.
 ### Security
 - Allow-list HTML sanitizer, minimal permissions (`storage` only), no remote code
 
-[Unreleased]: https://github.com/xjin9612/marklens/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/xjin9612/marklens/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/xjin9612/marklens/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/xjin9612/marklens/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/xjin9612/marklens/releases/tag/v1.0.0
