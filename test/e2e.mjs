@@ -74,6 +74,10 @@ try {
   await check('UTF-8 中文正確', async () => {
     assert.ok((await page.textContent('.markdown-body p')).includes('這是一段中文段落'))
   })
+  await check('Emoji 短碼；程式碼、時間與 :) 不轉換', async () => {
+    const t = await page.locator('.markdown-body p', { hasText: 'Emoji：' }).innerText()
+    assert.equal(t, 'Emoji：🎉 👍 :)，程式碼 :tada: 與時間 10:30:45 不轉換。')
+  })
   await check('front matter 顯示為可收合區塊', async () => {
     assert.ok((await page.textContent('.ml-frontmatter pre')).includes('title: MarkLens 測試文件'))
   })

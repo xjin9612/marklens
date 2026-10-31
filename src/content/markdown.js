@@ -170,6 +170,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     })
     md.set({ highlight: highlight(md) })
     if (globalThis.markdownitFootnote) md.use(globalThis.markdownitFootnote)
+    // GitHub 短碼（:tada: → 🎉）；關閉 :) 之類的表情符號自動轉換，技術文件常有冒號與括號連用
+    if (globalThis.markdownitEmoji) md.use(globalThis.markdownitEmoji, { shortcuts: {} })
     md.use(markPlugin)
     md.use(alertPlugin)
     md.use(gfmAutolinkPlugin)

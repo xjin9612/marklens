@@ -67,6 +67,7 @@
       "js": [
         "vendor/markdown-it.min.js",
         "vendor/markdown-it-footnote.min.js",
+        "vendor/markdown-it-emoji.min.js",
         "vendor/highlight.min.js",
         "src/shared/settings.js",
         "src/content/util.js",
