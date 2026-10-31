@@ -21,6 +21,7 @@ MarkLens.DEFAULTS = Object.freeze({
   autoRefresh: 'local', // off | local（僅 file://）| all
   refreshInterval: 1000,
   rememberScroll: true,
+  taskWrite: true, // 本機檔案的任務清單可直接勾選並存回原檔（需先授權資料夾）
 })
 
 // 會即時同步到所有已開分頁的設定

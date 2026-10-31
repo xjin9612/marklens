@@ -113,6 +113,25 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
   }
 
+  /* ---------- 任務清單行號（供勾選寫回） ---------- */
+  // 在清單項目上標記「原文第幾行」：class 帶入每次建立時隨機產生的 nonce，
+  // 文件作者寫的 HTML 無法猜到 nonce，因此無法偽造可寫回的勾選框
+  const TASK_MARK_RE = /^\[([ xX])\][ \u00a0]/
+
+  function taskLinePlugin(md, nonce) {
+    md.core.ruler.after('block', 'marklens_task_lines', state => {
+      const offset = state.env?.lineOffset || 0
+      const tokens = state.tokens
+      for (let i = 0; i < tokens.length - 2; i++) {
+        const t = tokens[i]
+        if (t.type !== 'list_item_open' || !t.map) continue
+        if (tokens[i + 1].type !== 'paragraph_open' || tokens[i + 2].type !== 'inline') continue
+        if (!TASK_MARK_RE.test(tokens[i + 2].content)) continue
+        t.attrJoin('class', `ml-task-${nonce}-${t.map[0] + offset}`)
+      }
+    })
+  }
+
   MarkLens.createMarkdown = function () {
     const md = globalThis.markdownit({
       html: true, // 允許內嵌 HTML，輸出一律經過 MarkLens.sanitize
@@ -124,6 +143,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     if (globalThis.markdownitFootnote) md.use(globalThis.markdownitFootnote)
     md.use(markPlugin)
     md.use(alertPlugin)
+    md.marklensNonce = Array.from(crypto.getRandomValues(new Uint8Array(8)), b => b.toString(16).padStart(2, '0')).join('')
+    md.use(taskLinePlugin, md.marklensNonce)
     return md
   }
 

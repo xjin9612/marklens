@@ -2,7 +2,7 @@
 // 用法：node test/e2e.mjs（需要 playwright；截圖輸出到 SHOT_DIR，預設為系統暫存目錄）
 import { createRequire } from 'node:module'
 import { createServer } from 'node:http'
-import { readFileSync, mkdtempSync, writeFileSync, copyFileSync } from 'node:fs'
+import { readFileSync, mkdtempSync, writeFileSync, copyFileSync, mkdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -93,6 +93,25 @@ try {
   await check('程式碼高亮與語言標籤', async () => {
     assert.ok((await page.locator('.ml-code .hljs-keyword').count()) > 0)
     assert.equal(await page.textContent('.ml-code-lang'), 'js')
+  })
+  await check('程式碼區塊中英對齊（罫線表格每列等寬）', async () => {
+    await page.waitForFunction(() => document.documentElement.dataset.mlCodeFont)
+    const info = JSON.parse(await page.evaluate(() => document.documentElement.dataset.mlCodeFont))
+    const widths = await page.$eval('.ml-code code.language-text', code => {
+      const node = code.firstChild
+      const lines = node.textContent.split('\n').filter(Boolean)
+      let pos = 0
+      return lines.map(line => {
+        const start = node.textContent.indexOf(line, pos)
+        pos = start + line.length
+        const r = document.createRange()
+        r.setStart(node, start)
+        r.setEnd(node, pos)
+        return r.getBoundingClientRect().width
+      })
+    })
+    const spread = Math.max(...widths) - Math.min(...widths)
+    assert.ok(spread < 0.5, `各列寬度差 ${spread.toFixed(2)}px：${widths.map(w => w.toFixed(1)).join(', ')}；${JSON.stringify(info)}`)
   })
   await check('腳註', async () => {
     assert.equal(await page.locator('.footnotes li').count(), 1)
@@ -378,6 +397,139 @@ try {
   await pop.setViewportSize({ width: 330, height: 700 })
   await pop.screenshot({ path: join(shotDir, 'ml-popup.png') })
   await pop.close()
+
+  /* ---------- 任務勾選寫回 ---------- */
+  // 資料夾選擇視窗無法自動化：改用 OPFS（瀏覽器私有檔案系統）裡同名的「work」資料夾當作已授權資料夾，
+  // 網址路徑中的 work/ 會對應到它，寫回的結果從 OPFS 讀出驗證。授權視窗本身需手動測試。
+  await sw.evaluate(() => MarkLens.saveSettings({ autoRefresh: 'off' })) // 避免自動更新以實體檔覆蓋 OPFS 的寫回結果
+  const tasksSrc = readFileSync(join(root, 'test/fixtures/tasks.md'), 'utf8')
+  const crlfSrc = tasksSrc.replace(/\n/g, '\r\n')
+  const taskDir = join(work, 'work')
+  mkdirSync(taskDir)
+  writeFileSync(join(taskDir, 'tasks.md'), tasksSrc)
+  writeFileSync(join(taskDir, 'tasks-crlf.md'), Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), Buffer.from(crlfSrc)]))
+  const opfs = {
+    async setup() {
+      await sw.evaluate(async ([a, b]) => {
+        const rootDir = await navigator.storage.getDirectory()
+        await rootDir.removeEntry('work', { recursive: true }).catch(() => {})
+        const dir = await rootDir.getDirectoryHandle('work', { create: true })
+        const put = async (name, data) => {
+          const w = await (await dir.getFileHandle(name, { create: true })).createWritable()
+          await w.write(data)
+          await w.close()
+        }
+        await put('tasks.md', a)
+        await put('tasks-crlf.md', new Uint8Array([0xef, 0xbb, 0xbf, ...new TextEncoder().encode(b)]))
+        for (const r of await MarkLens.Roots.list()) await MarkLens.Roots.remove(r.id)
+        await MarkLens.Roots.add(dir)
+      }, [tasksSrc, crlfSrc])
+    },
+    read(name) {
+      return sw.evaluate(async n => {
+        const dir = await (await navigator.storage.getDirectory()).getDirectoryHandle('work')
+        const bytes = new Uint8Array(await (await (await dir.getFileHandle(n)).getFile()).arrayBuffer())
+        return { text: new TextDecoder().decode(bytes), bom: bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf }
+      }, name)
+    },
+    append(name, extra) {
+      return sw.evaluate(async ([n, x]) => {
+        const dir = await (await navigator.storage.getDirectory()).getDirectoryHandle('work')
+        const fh = await dir.getFileHandle(n)
+        const text = await (await fh.getFile()).text()
+        const w = await fh.createWritable()
+        await w.write(text + x)
+        await w.close()
+      }, [name, extra])
+    },
+  }
+  await opfs.setup()
+  const tp = await openDoc(pathToFileURL(join(taskDir, 'tasks.md')).href)
+  const box = text => tp.locator('.task-list-item', { hasText: text }).last().locator(':scope > input.ml-task-box, :scope > p > input.ml-task-box')
+  const toast = () => tp.locator('.ml-toast.show').textContent()
+
+  await check('勾選寫回：可勾選範圍（程式碼區塊與 HTML 清單不可勾）', async () => {
+    assert.equal(await tp.locator('input.ml-task-box:not([disabled])').count(), 5)
+    assert.equal(await box('HTML 寫的').isDisabled(), true)
+    assert.equal(await tp.locator('pre input').count(), 0)
+  })
+  await check('勾選寫回：寫入正確的行（含 front matter 偏移）', async () => {
+    await box('第一項').click()
+    await tp.waitForSelector('.ml-toast.show')
+    assert.equal(await toast(), '已勾選並存檔復原')
+    assert.equal(await box('第一項').isChecked(), true)
+    assert.equal((await opfs.read('tasks.md')).text, tasksSrc.replace('- [ ] 第一項', '- [x] 第一項'))
+  })
+  await check('勾選寫回：引用區塊、有序清單、巢狀清單', async () => {
+    await box('引用中的任務').click()
+    await tp.waitForFunction(() => document.querySelectorAll('input.ml-task-box:checked').length === 3)
+    await box('有序清單任務').click()
+    await tp.waitForFunction(() => document.querySelectorAll('input.ml-task-box:checked').length === 4)
+    await tp.locator('li li', { hasText: '巢狀任務' }).locator('input').click()
+    await tp.waitForFunction(() => document.querySelectorAll('input.ml-task-box:checked').length === 5)
+    const t = (await opfs.read('tasks.md')).text
+    assert.ok(t.includes('> - [x] 引用中的任務') && t.includes('1. [x] 有序清單任務') && t.includes('  - [x] 巢狀任務'), t)
+    assert.ok(t.includes('- [x] 第二項\n'), '巢狀項目不應改到父項目')
+    assert.ok(t.includes('- [ ] 程式碼區塊內，不可勾'))
+  })
+  await check('勾選寫回：取消勾選與復原', async () => {
+    await box('第二項').click()
+    await tp.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent.startsWith('已取消勾選'))
+    assert.ok((await opfs.read('tasks.md')).text.includes('- [ ] 第二項'))
+    await tp.click('.ml-toast-btn:text("復原")')
+    await tp.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent.startsWith('已勾選'))
+    assert.ok((await opfs.read('tasks.md')).text.includes('- [x] 第二項'))
+  })
+  await check('勾選寫回：檔案被其他地方修改時不寫入並重新載入', async () => {
+    await opfs.append('tasks.md', '\n- [ ] 編輯器新增的項目\n')
+    const before = (await opfs.read('tasks.md')).text
+    await box('第一項').click()
+    await tp.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent.includes('其他地方修改'))
+    assert.equal((await opfs.read('tasks.md')).text, before)
+    assert.equal(await box('編輯器新增的項目').count(), 1)
+    await box('編輯器新增的項目').click()
+    await tp.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent.startsWith('已勾選'))
+    assert.ok((await opfs.read('tasks.md')).text.includes('- [x] 編輯器新增的項目'))
+  })
+  await check('勾選寫回：保留 CRLF 與 BOM', async () => {
+    const cp = await openDoc(pathToFileURL(join(taskDir, 'tasks-crlf.md')).href)
+    await cp.locator('.task-list-item', { hasText: '有序清單任務' }).locator('input').click()
+    await cp.waitForSelector('.ml-toast.show')
+    const r = await opfs.read('tasks-crlf.md')
+    assert.equal(r.bom, true)
+    assert.equal(r.text.replace(/^\ufeff/, ''), crlfSrc.replace('1. [ ] 有序清單任務', '1. [x] 有序清單任務'))
+    await cp.close()
+  })
+  await check('勾選寫回：未授權時提示授權', async () => {
+    await sw.evaluate(async () => {
+      for (const r of await MarkLens.Roots.list()) await MarkLens.Roots.remove(r.id)
+    })
+    const before = (await opfs.read('tasks.md')).text
+    await box('第一項').click()
+    await tp.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent.includes('尚未授權'))
+    assert.equal(await tp.locator('.ml-toast-btn:text("授權資料夾")').count(), 1)
+    assert.equal((await opfs.read('tasks.md')).text, before)
+  })
+  await check('勾選寫回：關閉設定後勾選框唯讀', async () => {
+    await sw.evaluate(() => MarkLens.saveSettings({ taskWrite: false }))
+    const p2 = await openDoc(pathToFileURL(join(taskDir, 'tasks.md')).href)
+    assert.equal(await p2.locator('input.ml-task-box:not([disabled])').count(), 0)
+    await p2.close()
+    await sw.evaluate(() => MarkLens.saveSettings({ taskWrite: true, autoRefresh: 'local' }))
+  })
+  await check('授權頁載入', async () => {
+    const g = await ctx.newPage()
+    g.on('pageerror', e => errors.push(e.message))
+    await g.goto(`chrome-extension://${sw.url().split('/')[2]}/src/grant/grant.html?back=1`)
+    await g.waitForSelector('#empty:not([hidden])')
+    assert.equal(await g.locator('#back-row').isVisible(), true)
+    await g.screenshot({ path: join(shotDir, 'ml-grant.png') })
+    await g.close()
+  })
+  await tp.close()
+  await check('勾選寫回過程沒有 JS 錯誤', async () => {
+    assert.deepEqual(errors.filter(e => !e.includes('ERR_FILE_NOT_FOUND') && !e.includes('404')), [])
+  })
 
   /* ---------- 擴充功能重新載入：已開分頁的 content script 失去連線 ---------- */
   // 放在最後：重新載入後原本的 service worker 會失效

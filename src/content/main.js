@@ -43,10 +43,15 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   }
 
   class App {
-    constructor(settings, pre, raw) {
+    /**
+     * @param {boolean} exact raw 是否為以 UTF-8 精確讀到的原文（只有這種情況才允許勾選寫回）
+     */
+    constructor(settings, pre, raw, exact) {
       this.settings = settings
       this.pre = pre
       this.raw = raw
+      this.rawExact = exact
+      this.taskBusy = false
       this.md = MarkLens.createMarkdown()
       this.tables = []
       this.refreshTimer = null
@@ -76,11 +81,16 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       document.body.append(this.appRoot)
 
       MarkLens.bindFoldSearch(this.article)
+      this.bindTaskClicks()
       this.article.addEventListener('marklens:fold', () => {
         this.toc.syncFold()
         this.onScroll()
       })
 
+      // 程式碼區塊中英對齊（非同步，字型加入後瀏覽器會自動重排）
+      MarkLens.alignCodeFont().then(info => {
+        if (info) root.dataset.mlCodeFont = JSON.stringify(info)
+      })
       this.render(this.raw)
       this.applyLive()
       this.applyView()
@@ -161,7 +171,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     /* ---------- 渲染 ---------- */
     render(src) {
       const { frontMatter, body } = MarkLens.splitFrontMatter(src)
-      const frag = MarkLens.sanitize(this.md.render(body))
+      // 去掉 front matter 後的行號要加回偏移，才能對應原文
+      const lineOffset = (src.slice(0, src.length - body.length).match(/\n/g) || []).length
+      const frag = MarkLens.sanitize(this.md.render(body, { lineOffset }))
       this.article.textContent = ''
       if (frontMatter != null) {
         this.article.append(
@@ -175,7 +187,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       MarkLens.groupInline(this.article)
 
       const headings = MarkLens.processHeadings(this.article)
-      MarkLens.processTaskLists(this.article)
+      MarkLens.processTaskLists(this.article, this.md.marklensNonce)
+      this.enableTaskBoxes()
       MarkLens.processAlerts(this.article)
       MarkLens.processCodeBlocks(this.article)
       MarkLens.processImages(this.article)
@@ -195,6 +208,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       // 全螢幕表格會鎖住頁面捲動，先解除，還原狀態時再套回
       document.documentElement.classList.remove('ml-noscroll')
       this.raw = src
+      this.rawExact = location.protocol === 'file:' // 自動更新與衝突重載都是以 UTF-8 精確讀取
       this.pre.textContent = src
       this.render(src)
       this.tables.forEach((t, i) => t.setState(tableStates[i]))
@@ -316,6 +330,83 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       }
     }
 
+    /* ---------- 任務勾選寫回 ---------- */
+    canWriteTasks() {
+      return this.settings.taskWrite && location.protocol === 'file:' && this.rawExact
+    }
+
+    /** 有原文行號的勾選框改為可點擊 */
+    enableTaskBoxes() {
+      if (!this.canWriteTasks()) return
+      for (const box of this.article.querySelectorAll('input.ml-task-box[data-ml-line]')) {
+        box.disabled = false
+        box.title = '點擊勾選／取消，並存回原檔'
+      }
+    }
+
+    bindTaskClicks() {
+      this.article.addEventListener('click', e => {
+        const box = e.target.closest?.('input.ml-task-box[data-ml-line]')
+        if (!box || box.disabled) return
+        // 先維持原狀，等寫回成功才改變勾選狀態
+        e.preventDefault()
+        this.toggleTask(Number(box.dataset.mlLine))
+      })
+    }
+
+    async toggleTask(line) {
+      const box = this.article.querySelector(`input.ml-task-box[data-ml-line="${line}"]`)
+      if (!box || this.taskBusy) return
+      if (!MarkLens.alive()) return this.onOrphaned()
+      const from = box.dataset.mlState
+      const to = from === 'x' ? ' ' : 'x'
+      this.taskBusy = true
+      box.classList.add('ml-busy')
+      let res
+      try {
+        res = await chrome.runtime.sendMessage({
+          type: 'toggle-task',
+          line,
+          from,
+          to,
+          hash: await MarkLens.sha256(this.raw),
+        })
+      } catch (err) {
+        res = { status: 'error', error: err.message }
+      } finally {
+        this.taskBusy = false
+        box.classList.remove('ml-busy')
+      }
+
+      const openGrant = () => chrome.runtime.sendMessage({ type: 'open-grant' })
+      switch (res?.status) {
+        case 'ok': {
+          // 頁面原文同步為寫入後的內容，自動更新就不會重新渲染
+          this.raw = res.text
+          this.pre.textContent = res.text
+          box.checked = to === 'x'
+          box.dataset.mlState = to
+          MarkLens.toast(to === 'x' ? '已勾選並存檔' : '已取消勾選並存檔', [{ label: '復原', fn: () => this.toggleTask(line) }])
+          break
+        }
+        case 'no-root':
+          MarkLens.toast('此檔案所在的資料夾尚未授權寫回', [{ label: '授權資料夾', fn: openGrant }], 8000)
+          break
+        case 'permission':
+          MarkLens.toast(`需要重新確認「${res.root}」的存取權限`, [{ label: '前往確認', fn: openGrant }], 8000)
+          break
+        case 'conflict':
+          this.update(res.text)
+          MarkLens.toast('檔案已在其他地方修改，已重新載入，請再點一次')
+          break
+        case 'not-utf8':
+          MarkLens.toast('此檔案不是 UTF-8 編碼，無法寫回')
+          break
+        default:
+          MarkLens.toast(`寫回失敗：${res?.error || '未知錯誤'}`)
+      }
+    }
+
     /**
      * 擴充功能被重新載入後，這個分頁的 content script 已失去連線：
      * 停止所有需要 chrome.* 的背景工作，保留目前畫面，並提示重新整理
@@ -362,15 +453,17 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       return
     }
     let raw = pre.textContent
+    let exact = false
     if (location.protocol === 'file:') {
       // 以 UTF-8 重新讀取，修正瀏覽器猜錯編碼的情況
-      const exact = await MarkLens.fetchSource()
-      if (exact != null) {
-        raw = exact
-        pre.textContent = exact
+      const text = await MarkLens.fetchSource()
+      if (text != null) {
+        raw = text
+        exact = true
+        pre.textContent = text
       }
     }
-    MarkLens.app = new App(settings, pre, raw)
+    MarkLens.app = new App(settings, pre, raw, exact)
     MarkLens.app.mount()
   }
 
