@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-31
+
 ### Added
 - **Files tab** in the sidebar for local files: the Markdown files and subfolders next to the current document, folders first, sorted by name the way people expect (`2-…` before `10-…`). Only one folder is read up front; a subfolder is read when you open it, so large trees stay fast. Opening a file from the tree keeps the tree where it was (it expands to the new file), ↑ moves the tree up a folder, and right-click a folder → **Make this the top folder** to jump back down. Open folders and the selected tab are kept per tab. Hidden and dependency folders (`.*, node_modules, target, dist, build`) are skipped — edit the list in the popup → **File list**
 - External `http(s)` links open in a new tab, so the document stays open; anchors, footnotes and same-site links are unchanged. Can be turned off in the popup
@@ -78,7 +80,8 @@ First public release.
 ### Security
 - Allow-list HTML sanitizer, minimal permissions (`storage` only), no remote code
 
-[Unreleased]: https://github.com/xjin9612/marklens/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/xjin9612/marklens/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/xjin9612/marklens/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/xjin9612/marklens/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/xjin9612/marklens/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/xjin9612/marklens/releases/tag/v1.0.0
