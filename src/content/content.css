@@ -607,3 +607,26 @@ html.marklens .ml-toast-btn {
   white-space: nowrap;
 }
 @media print { html.marklens .ml-toast { display: none !important; } }
+
+/* Mermaid 圖表 */
+html.marklens .markdown-body .ml-mermaid .ml-mermaid-view {
+  padding: 16px;
+  overflow: auto;
+  text-align: center;
+  background: var(--code-bg);
+  border-radius: 6px;
+}
+html.marklens .markdown-body .ml-mermaid .ml-mermaid-view svg { max-width: 100%; height: auto; }
+html.marklens .markdown-body .ml-mermaid > pre { display: none; }
+html.marklens .markdown-body .ml-mermaid.ml-mermaid-source > pre { display: block; }
+html.marklens .markdown-body .ml-mermaid.ml-mermaid-source .ml-mermaid-view:not(.ml-mermaid-error) { display: none; }
+html.marklens .markdown-body .ml-mermaid-pending { color: var(--muted); font-size: 13px; }
+/* 顯示圖表時「換行」按鈕沒有作用 */
+html.marklens .markdown-body .ml-mermaid:not(.ml-mermaid-source) .ml-code-wrap-btn { display: none; }
+html.marklens .markdown-body .ml-mermaid .ml-mermaid-view.ml-mermaid-error {
+  text-align: left;
+  color: var(--fg);
+  border-left: 4px solid #d1242f;
+  margin-bottom: 8px;
+}
+html.marklens .markdown-body .ml-mermaid-error pre { padding: 8px 0 0; background: none; white-space: pre-wrap; text-align: left; }

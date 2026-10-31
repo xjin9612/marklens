@@ -21,9 +21,13 @@ const localMd = join(work, 'sample.md')
 copyFileSync(fixture, localMd)
 const localUrl = pathToFileURL(localMd).href
 
+const mermaidFixture = join(root, 'test/fixtures/mermaid.md')
+const localMermaid = join(work, 'mermaid.md')
+copyFileSync(mermaidFixture, localMermaid)
+
 const server = createServer((req, res) => {
   res.writeHead(200, { 'content-type': 'text/markdown; charset=utf-8' })
-  res.end(readFileSync(fixture))
+  res.end(readFileSync(req.url.includes('mermaid') ? mermaidFixture : fixture))
 }).listen(0)
 const port = server.address().port
 
@@ -414,6 +418,75 @@ try {
   await pop.setViewportSize({ width: 330, height: 700 })
   await pop.screenshot({ path: join(shotDir, 'ml-popup.png') })
   await pop.close()
+
+  /* ---------- Mermaid ---------- */
+  await check('Mermaid：沒有 mermaid 區塊的文件不載入程式庫', async () => {
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.mlMermaid), undefined)
+  })
+  const mp = await openDoc(pathToFileURL(localMermaid).href)
+  await mp.bringToFront()
+  const mermaidThemes = () => mp.$$eval('.ml-mermaid', els => els.map(el => el.dataset.mlMermaidTheme ?? 'none'))
+  await check('Mermaid：本機檔案繪製成圖表', async () => {
+    await mp.waitForFunction(() => document.querySelectorAll('.ml-mermaid-view svg').length === 2, null, { timeout: 15000 })
+    assert.equal(await mp.evaluate(() => document.documentElement.dataset.mlMermaid), 'loaded')
+    assert.ok((await mp.textContent('.ml-mermaid-view svg')).includes('載入程式庫'))
+    assert.equal(await mp.locator('.ml-code:not(.ml-mermaid) pre').count(), 1, '一般程式碼區塊不受影響')
+  })
+  await check('Mermaid：語法錯誤顯示訊息與原始碼', async () => {
+    const bad = mp.locator('.ml-mermaid').nth(2)
+    await bad.locator('.ml-mermaid-error').waitFor()
+    assert.ok((await bad.textContent()).includes('Mermaid 語法錯誤'))
+    assert.equal(await bad.locator(':scope > pre').isVisible(), true)
+  })
+  await check('Mermaid：標籤注入與點擊事件無效', async () => {
+    await mp.waitForTimeout(300)
+    assert.equal(await mp.evaluate(() => document.body.dataset.xss), undefined)
+    assert.equal(await mp.locator('.ml-mermaid-view img[onerror], .ml-mermaid-view script').count(), 0)
+  })
+  await check('Mermaid：切換圖表／原始碼', async () => {
+    const first = mp.locator('.ml-mermaid').first()
+    await first.hover()
+    await first.locator('.ml-mermaid-toggle').click()
+    assert.equal(await first.locator(':scope > pre').isVisible(), true)
+    assert.equal(await first.locator('svg').isVisible(), false)
+    await first.locator('.ml-mermaid-toggle').click()
+    assert.equal(await first.locator('svg').isVisible(), true)
+  })
+  await mp.screenshot({ path: join(shotDir, 'ml-mermaid.png'), fullPage: true })
+  await check('Mermaid：切換主題後重繪', async () => {
+    const before = (await sw.evaluate(() => MarkLens.loadSettings())).theme
+    await sw.evaluate(() => MarkLens.saveSettings({ theme: 'dark' }))
+    await mp.waitForFunction(() => [...document.querySelectorAll('.ml-mermaid[data-ml-mermaid-theme]')].every(el => el.dataset.mlMermaidTheme === 'dark'))
+    assert.deepEqual(await mermaidThemes(), ['dark', 'dark', 'none'])
+    await sw.evaluate(t => MarkLens.saveSettings({ theme: t }), before)
+    await mp.waitForFunction(() => document.querySelector('.ml-mermaid').dataset.mlMermaidTheme !== 'dark')
+  })
+  await check('Mermaid：自動更新時沿用已繪製的圖，不閃爍', async () => {
+    writeFileSync(localMermaid, readFileSync(mermaidFixture, 'utf8') + '\n自動更新後的段落\n')
+    const pending = await mp.waitForFunction(
+      () => document.body.innerText.includes('自動更新後的段落') && document.querySelectorAll('.ml-mermaid-pending').length + 1,
+      null,
+      { timeout: 4000, polling: 'raf' },
+    )
+    assert.equal(await pending.jsonValue(), 1)
+  })
+  await mp.close()
+  await check('Mermaid：http:// 頁面不載入，保留程式碼', async () => {
+    const hp = await openDoc(`http://127.0.0.1:${port}/docs/mermaid.md`)
+    await hp.waitForTimeout(500)
+    assert.equal(await hp.locator('.ml-mermaid').count(), 0)
+    assert.equal(await hp.locator('code.language-mermaid').count(), 3)
+    assert.equal(await hp.evaluate(() => document.documentElement.dataset.mlMermaid), undefined)
+    await hp.close()
+  })
+  await check('Mermaid：關閉設定後不繪製', async () => {
+    await sw.evaluate(() => MarkLens.saveSettings({ mermaid: false }))
+    const op = await openDoc(pathToFileURL(localMermaid).href)
+    await op.waitForTimeout(500)
+    assert.equal(await op.locator('.ml-mermaid').count(), 0)
+    await op.close()
+    await sw.evaluate(() => MarkLens.saveSettings({ mermaid: true }))
+  })
 
   /* ---------- 任務勾選寫回 ---------- */
   // 資料夾選擇視窗無法自動化：改用 OPFS（瀏覽器私有檔案系統）裡同名的「work」資料夾當作已授權資料夾，

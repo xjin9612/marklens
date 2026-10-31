@@ -30,6 +30,7 @@ To upgrade, replace the folder with the new release and click the reload icon on
 | Tables | **Drag to resize columns** (double-click the handle to auto-fit), **click headers to sort** (numbers with thousands separators, byte units, dates, CJK text; empty cells last; third click restores the original order), row filter (5+ rows), copy as TSV (paste straight into Excel), wrap toggle, fullscreen with sticky header. The table toolbar only appears on hover |
 | Syntax | CommonMark + GFM, task lists, footnotes, `==highlight==`, GitHub alerts (`> [!NOTE]` etc.), collapsible front matter |
 | Code | highlight.js syntax highlighting (common languages), language label, copy button, per-block wrap toggle |
+| Diagrams | [Mermaid](https://mermaid.js.org/) flowcharts, sequence diagrams and more in local files. The library (~5 MB) loads only when a document contains a mermaid block; diagrams follow the theme, keep their place during live reload, and can be toggled back to source. Syntax errors are shown next to the source. Not drawn on `http(s)://` pages (see Security) |
 | Images | Lazy loading, click to zoom (Esc to close) |
 | Theme | System / light / dark |
 | Check off tasks | Click a task-list checkbox in a local file to save `[ ]` / `[x]` straight back to the file — no editor needed. Works in nested lists, ordered lists and blockquotes; checkboxes inside code blocks are never touched. Undo from the toast; refuses to write if the file changed elsewhere; keeps CRLF and BOM. Requires authorizing a folder once (see below) |
@@ -76,6 +77,7 @@ Browser-level (change them at `chrome://extensions/shortcuts`):
 - **Minimal permissions**: only `storage`. Content scripts match Markdown file extensions only — no "read all sites" permission.
 - **Local file reads** go through the background worker, which only reads the URL of the page that asked.
 - **Writes** happen only when you click a task checkbox: the background worker changes that single line after checking that the file still matches what the page shows. Which lines are writable is decided by the Markdown parser with a per-render random nonce, so HTML inside a document cannot fake a writable checkbox.
+- **Mermaid** renders with `securityLevel: 'strict'` (labels sanitized by DOMPurify, click handlers disabled). Its files must be web-accessible so they can be loaded on demand; access is limited to `file://` pages so ordinary websites cannot probe for them to detect that MarkLens is installed. That is also why diagrams are only drawn in local files.
 - **No remote code**: third-party libraries are pinned in `vendor/`; nothing is fetched or auto-updated at runtime.
 
 ## Project layout
@@ -93,6 +95,7 @@ src/
     sanitize.js          allow-list HTML sanitizer
     markdown.js          markdown-it setup, ==mark==, alerts, front matter
     enhance.js           heading anchors & folding, inline grouping, task lists, code blocks, images, stats
+    mermaid.js           Mermaid diagrams, loaded on demand
     table.js             column resize, sorting, filter, copy, fullscreen, state save/restore
     toc.js               sidebar outline
     main.js              entry point: layout, toolbar, shortcuts, per-tab state, live reload, task write-back
@@ -150,6 +153,7 @@ The suite loads the extension into Chromium and opens local and http fixtures (`
 - Folding: fold / unfold all, Ctrl+F reveal, outline markers
 - Tabs: outline and width stay per tab, appearance syncs live, new tabs use updated defaults
 - Task write-back: correct line (with front matter), blockquote and ordered lists, undo, conflict detection, CRLF and BOM preserved, unauthorized folder, feature off. Folder access is simulated with the browser's private file system (OPFS); the folder picker itself has to be tested by hand
+- Mermaid (`test/fixtures/mermaid.md`): not loaded without diagrams, drawing, syntax errors, label injection, source toggle, theme switch, no flicker on live reload, not drawn over http, setting off
 - Popup settings
 
 Screenshots go to the directory in the `SHOT_DIR` environment variable (system temp by default).
@@ -165,9 +169,10 @@ The **Release** workflow verifies that the tag, `manifest.json`, `package.json` 
 
 ## Roadmap
 
-- **Mermaid**, loaded only when a document contains a mermaid block
-- **Large files**: defer off-screen rendering and highlight code lazily for documents over 1 MB
+- First-run page that walks through enabling file access
+- UI translations
+- Chrome Web Store / Edge Add-ons listing
 
 ## License
 
-MIT. Third-party licenses are in `vendor/licenses/`.
+MIT. Third-party licenses are in `vendor/licenses/` (Mermaid's bundle also includes its own dependencies such as D3 and DOMPurify, under their respective licenses).
