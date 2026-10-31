@@ -503,6 +503,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         pre.textContent = text
       }
     }
+    await MarkLens.initI18n(settings.uiLang)
     MarkLens.app = new App(settings, pre, raw, exact)
     MarkLens.app.mount()
   }

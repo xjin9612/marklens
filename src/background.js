@@ -1,6 +1,6 @@
 'use strict'
 // Service worker：快捷鍵、代讀本機檔案、任務勾選寫回
-importScripts('/src/shared/settings.js', '/src/shared/roots.js')
+importScripts('/src/shared/settings.js', '/src/shared/i18n.js', '/src/shared/roots.js')
 
 // 首次安裝：開啟引導頁（說明如何開啟「允許存取檔案網址」）；更新時不打擾
 chrome.runtime.onInstalled.addListener(({ reason }) => {
@@ -77,6 +77,13 @@ const HANDLERS = {
   },
 
   'toggle-task': toggleTask,
+
+  /** 介面語言設定為指定語言時，content script 透過這裡取得語系檔（content script 無權直接讀取） */
+  async 'read-messages'(msg) {
+    if (!MarkLens.UI_LANGS.includes(msg.lang)) return { status: 'error', error: 'unknown language' }
+    const res = await fetch(chrome.runtime.getURL(`_locales/${msg.lang}/messages.json`))
+    return { status: 'ok', messages: await res.json() }
+  },
 
   /**
    * 匯出 HTML 用：讀取擴充功能內的樣式與字型
