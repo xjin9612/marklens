@@ -774,6 +774,8 @@ html.marklens .markdown-body .ml-mermaid .ml-mermaid-view {
   border-radius: 6px;
 }
 html.marklens .markdown-body .ml-mermaid .ml-mermaid-view svg { max-width: 100%; height: auto; }
+/* mermaid 內建的節點陰影在深色主題像一圈光暈：圖表與頁面一樣只用框線分層 */
+html.marklens .markdown-body .ml-mermaid-view svg * { filter: none !important; }
 html.marklens .markdown-body .ml-mermaid > pre { display: none; }
 html.marklens .markdown-body .ml-mermaid.ml-mermaid-source > pre { display: block; }
 html.marklens .markdown-body .ml-mermaid.ml-mermaid-source .ml-mermaid-view:not(.ml-mermaid-error) { display: none; }

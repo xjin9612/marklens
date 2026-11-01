@@ -16,6 +16,67 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     return document.documentElement.dataset.mlTheme === 'dark' ? 'dark' : 'default'
   }
 
+  /**
+   * 圖表配色取自目前主題的設計變數（shared/tokens.css），不用 mermaid 內建的 default／dark：
+   * 節點是頁面底色的卡片、細框線，連線與標籤用次要文字色；
+   * 圓餅圖、甘特圖、時間軸等需要多種顏色的圖，依序使用提示框的五種語意色與兩個語法標示色
+   */
+  function themeVariables(theme) {
+    const css = getComputedStyle(document.documentElement)
+    const v = name => css.getPropertyValue(name).trim()
+    const dark = theme === 'dark'
+    const palette = ['--alert-note', '--ok', '--warn', '--alert-important', '--danger', '--hl-builtin', '--hl-meta', '--muted'].map(v)
+    const onPalette = dark ? v('--bg') : '#ffffff'
+    const vars = {
+      darkMode: dark,
+      background: v('--code-bg'),
+      fontSize: '14px',
+      primaryColor: v('--bg'),
+      primaryTextColor: v('--fg'),
+      primaryBorderColor: v('--border'),
+      secondaryColor: v('--subtle'),
+      tertiaryColor: v('--hover'),
+      lineColor: v('--muted'),
+      textColor: v('--fg'),
+      edgeLabelBackground: v('--code-bg'),
+      clusterBkg: v('--subtle'),
+      clusterBorder: v('--border'),
+      noteBkgColor: v('--accent-soft'),
+      noteTextColor: v('--fg'),
+      noteBorderColor: v('--accent'),
+      pieSectionTextColor: onPalette,
+      pieStrokeColor: v('--code-bg'),
+      pieOuterStrokeColor: v('--border'),
+      pieTitleTextColor: v('--fg'),
+      pieLegendTextColor: v('--fg'),
+      // 甘特圖：進行中用強調色，完成用次要文字色，關鍵任務與今天線用警示紅
+      taskBkgColor: v('--accent'),
+      taskBorderColor: v('--accent'),
+      taskTextColor: onPalette,
+      taskTextOutsideColor: v('--fg'),
+      taskTextDarkColor: v('--fg'),
+      activeTaskBkgColor: v('--accent-soft'),
+      activeTaskBorderColor: v('--accent'),
+      doneTaskBkgColor: v('--border'),
+      doneTaskBorderColor: v('--border'),
+      critBkgColor: v('--danger'),
+      critBorderColor: v('--danger'),
+      sectionBkgColor: v('--subtle'),
+      altSectionBkgColor: v('--code-bg'),
+      sectionBkgColor2: v('--subtle'),
+      gridColor: v('--border-soft'),
+      todayLineColor: v('--danger'),
+    }
+    palette.forEach((c, i) => {
+      vars[`pie${i + 1}`] = c
+      vars[`git${i}`] = c
+      vars[`gitBranchLabel${i}`] = onPalette
+      vars[`cScale${i}`] = c
+      vars[`cScaleLabel${i}`] = onPalette
+    })
+    return vars
+  }
+
   function remember(key, svg) {
     cache.delete(key)
     cache.set(key, svg)
@@ -72,7 +133,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     mermaid.initialize({
       startOnLoad: false,
       securityLevel: 'strict',
-      theme,
+      theme: 'base',
+      themeVariables: themeVariables(theme),
       fontFamily: getComputedStyle(wrap).fontFamily,
     })
     const id = `ml-mermaid-${++seq}`
