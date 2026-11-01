@@ -179,7 +179,7 @@ html.marklens .ml-toc {
   box-sizing: border-box;
 }
 html.marklens.ml-toc-hidden .ml-toc { display: none; }
-/* 標題列：☰ ｜ 目錄 檔案 ｜ 🔍，高度與工具列相同 */
+/* 標題列：選單 ｜ 目錄 檔案 ｜ 搜尋，高度與工具列相同 */
 html.marklens .ml-toc-head {
   display: flex;
   align-items: center;
