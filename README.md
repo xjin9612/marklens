@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="icons/icon.svg" width="96" height="96" alt="MarkLens">
+</p>
+
 # MarkLens
 
 [![Tests](https://github.com/xjin9612/marklens/actions/workflows/ci.yml/badge.svg)](https://github.com/xjin9612/marklens/actions/workflows/ci.yml)
