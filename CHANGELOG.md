@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-11-01
+
 ### Added
 - Keyboard support: sort a table by focusing its header and pressing Enter or Space; enlarge an image with Enter, close it with Esc (focus returns to the image); open the folder menu in the Files tab with the context-menu key or Shift+F10
 - Enlarged images have a visible close button
@@ -97,7 +99,8 @@ First public release.
 ### Security
 - Allow-list HTML sanitizer, minimal permissions (`storage` only), no remote code
 
-[Unreleased]: https://github.com/xjin9612/marklens/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/xjin9612/marklens/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/xjin9612/marklens/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/xjin9612/marklens/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/xjin9612/marklens/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/xjin9612/marklens/compare/v1.0.0...v1.1.0
