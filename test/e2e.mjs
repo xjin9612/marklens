@@ -1304,6 +1304,36 @@ try {
     assert.equal(await b.isChecked(), false)
     await p3.close()
   })
+  await check('Big5 檔案：照常渲染，中文不出現替代字元，勾選框唯讀並以滑過提示說明原因', async () => {
+    // 使用手動測試的 Big5 檔（真實內容：標題、提示框、清單、表格、任務清單），複製一份避免改到原檔
+    const big5 = join(taskDir, 'big5-manual.md')
+    copyFileSync(join(root, 'test/manual/02-編碼-Big5.md'), big5)
+    const p4 = await openDoc(pathToFileURL(big5).href)
+    try {
+      const r = await p4.evaluate(() => ({
+        h1: document.querySelector('.markdown-body h1')?.dataset.mlText,
+        alerts: document.querySelectorAll('.markdown-alert').length,
+        items: document.querySelectorAll('.markdown-body li').length,
+        tables: document.querySelectorAll('.markdown-body table').length,
+        text: document.querySelector('.markdown-body').textContent,
+        boxes: Array.from(document.querySelectorAll('input.ml-task-box'), b => [b.dataset.mlReadonly, b.title]),
+      }))
+      assert.ok(r.h1?.includes('Big5'), `標題：${r.h1}`)
+      assert.equal(r.alerts, 2)
+      assert.equal(r.tables, 1)
+      assert.ok(r.items >= 6, `清單項目 ${r.items}`)
+      // UTF-8 解碼失敗時要退回瀏覽器的解碼結果，不能留下 U+FFFD
+      assert.equal(r.text.includes('\ufffd'), false, '出現替代字元')
+      assert.ok(r.text.includes('繁體中文'), '中文內容')
+      assert.equal(r.boxes.length, 4)
+      for (const [reason, title] of r.boxes) {
+        assert.equal(reason, 'taskNotUtf8')
+        assert.equal(title, '此檔案不是 UTF-8 編碼，無法寫回')
+      }
+    } finally {
+      await p4.close()
+    }
+  })
   await check('勾選寫回：多個授權資料夾都有這個路徑時，寫入內容與頁面相同的那一份；分不出來就不寫', async () => {
     // OPFS：<暫存目錄名>/work/tasks.md（與頁面相同）、copy/work/tasks.md（另一份同名檔案）
     // 授權 <暫存目錄名>、<暫存目錄名>/work（巢狀，指向同一個檔案）與 copy/work
