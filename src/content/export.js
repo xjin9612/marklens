@@ -51,6 +51,12 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       box.disabled = true
       box.removeAttribute('title')
     })
+    // 匯出的檔案沒有放大功能：圖片不再是按鈕；表頭不再可聚焦排序
+    for (const img of clone.querySelectorAll('img.ml-zoomable')) {
+      img.classList.remove('ml-zoomable')
+      for (const a of ['tabindex', 'role', 'aria-label']) img.removeAttribute(a)
+    }
+    for (const th of clone.querySelectorAll('th.ml-sortable')) th.removeAttribute('tabindex')
     // 相對路徑改成絕對路徑，檔案搬到別處後圖片與連結仍有效；頁內錨點維持原樣
     for (const img of clone.querySelectorAll('img[src], source[src], video[src], audio[src]')) {
       img.setAttribute('src', new URL(img.getAttribute('src'), location.href).href)

@@ -249,18 +249,35 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
   /* ---------- 圖片：延遲載入、點擊放大 ---------- */
   let viewer = null
+  let opener = null // 開啟前有焦點的元素，關閉後把焦點還給它
+  function closeViewer() {
+    if (!viewer?.classList.contains('open')) return
+    viewer.classList.remove('open')
+    opener?.focus?.()
+    opener = null
+  }
   function openViewer(src, alt) {
     if (!viewer) {
-      viewer = h('div', { class: 'ml-viewer', on: { click: () => viewer.classList.remove('open') } }, [h('img')])
+      const close = h('button', { class: 'ml-viewer-close', title: MarkLens.t('imageClose'), attrs: { 'aria-label': MarkLens.t('imageClose') } }, [
+        MarkLens.icon('close'),
+      ])
+      viewer = h('div', { class: 'ml-viewer', attrs: { role: 'dialog', 'aria-modal': 'true' }, on: { click: closeViewer } }, [h('img'), close])
       document.addEventListener('keydown', e => {
-        if (e.key === 'Escape') viewer.classList.remove('open')
+        if (e.key === 'Escape') closeViewer()
+        // 只有一個可操作的按鈕：Tab 鍵停在對話框裡
+        else if (e.key === 'Tab' && viewer.classList.contains('open')) {
+          e.preventDefault()
+          close.focus()
+        }
       })
       document.body.append(viewer)
     }
     const img = viewer.firstChild
     img.src = src
     img.alt = alt || ''
+    opener = document.activeElement
     viewer.classList.add('open')
+    viewer.lastChild.focus()
   }
 
   /* ---------- 外部連結：開新分頁，不離開目前文件 ---------- */
@@ -285,7 +302,16 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       img.loading = 'lazy'
       if (img.closest('a')) continue // 外層是連結就讓連結生效
       img.classList.add('ml-zoomable')
+      // 鍵盤也能放大：Tab 移到圖片，Enter 或空白鍵
+      img.tabIndex = 0
+      img.setAttribute('role', 'button')
+      img.setAttribute('aria-label', img.alt ? `${MarkLens.t('imageOpen')}：${img.alt}` : MarkLens.t('imageOpen'))
       img.addEventListener('click', () => openViewer(img.currentSrc || img.src, img.alt))
+      img.addEventListener('keydown', e => {
+        if (e.key !== 'Enter' && e.key !== ' ') return
+        e.preventDefault()
+        openViewer(img.currentSrc || img.src, img.alt)
+      })
     }
   }
 
