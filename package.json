@@ -6,6 +6,7 @@
   "license": "MIT",
   "scripts": {
     "test": "node test/e2e.mjs",
+    "test:visual": "node test/visual.mjs",
     "vendor": "node scripts/vendor.mjs",
     "screenshots": "node scripts/screenshots.mjs",
     "manual:bigfile": "node scripts/manual-bigfile.mjs"
