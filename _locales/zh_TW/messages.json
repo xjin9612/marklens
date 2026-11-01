@@ -51,7 +51,7 @@
     "message": "寬度：$1"
   },
   "toolWidthTitle": {
-    "message": "切換文字寬度（w）"
+    "message": "文字寬度（w 鍵依序切換）"
   },
   "widthFull": {
     "message": "滿版"
@@ -60,7 +60,7 @@
     "message": "主題：$1"
   },
   "toolThemeTitle": {
-    "message": "切換主題：自動 → 淺色 → 深色，所有分頁同步（d）"
+    "message": "主題，所有分頁同步（d 鍵依序切換：自動 → 淺色 → 深色）"
   },
   "toolRaw": {
     "message": "原始文字"
@@ -601,5 +601,14 @@
   },
   "imageOpen": {
     "message": "放大圖片"
+  },
+  "widthCustomItem": {
+    "message": "自訂：$1 px"
+  },
+  "widthMenu": {
+    "message": "文字寬度"
+  },
+  "themeMenu": {
+    "message": "主題"
   }
 }

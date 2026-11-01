@@ -69,7 +69,7 @@ html.marklens .markdown-body > [hidden="until-found"] {
 /* ---------- 鍵盤焦點：所有可操作元素統一外框（只在鍵盤操作時出現） ---------- */
 html.marklens #ml-root :focus-visible,
 html.marklens .ml-toast :focus-visible,
-html.marklens .ml-files-menu :focus-visible {
+html.marklens .ml-menu :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
   border-radius: 4px;
@@ -139,6 +139,8 @@ html.marklens .ml-tool {
 }
 html.marklens .ml-tool:hover { background: var(--hover); color: var(--fg); }
 html.marklens .ml-tool.active { color: var(--accent); }
+/* 選單開著時，觸發的按鈕維持按下的樣子 */
+html.marklens .ml-tool[aria-expanded="true"] { background: var(--hover); color: var(--fg); }
 html.marklens .ml-spacer { flex: 1; }
 html.marklens .ml-orphan { margin-left: 8px; color: var(--alert-warning); white-space: nowrap; }
 /* 只有圖示的按鈕：正方形 */
@@ -819,31 +821,42 @@ html.marklens .markdown-body .katex-error { color: var(--danger); }
 html.marklens.ml-export .ml-main { margin: 0; }
 html.marklens.ml-export .ml-body { padding-top: 32px; }
 
-/* 檔案分頁的右鍵選單 */
-html.marklens .ml-files-menu {
+/* 下拉選單（menu.js）：工具列的寬度與主題、檔案分頁的右鍵選單 */
+html.marklens .ml-menu {
   position: fixed;
   z-index: 60;
   min-width: 160px;
   padding: 4px;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--ml-radius-md);
   box-shadow: var(--shadow);
   font: 13px/1.4 var(--ml-font);
 }
-html.marklens .ml-files-menu-item {
-  display: block;
+html.marklens .ml-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: 100%;
-  padding: 6px 10px;
+  min-height: 28px;
+  padding: 4px 10px 4px 8px;
   border: 0;
-  border-radius: 5px;
+  border-radius: 4px;
   background: none;
   color: var(--fg);
   font: inherit;
   text-align: left;
+  white-space: nowrap;
   cursor: pointer;
 }
-html.marklens .ml-files-menu-item:is(:hover, :focus) { background: var(--hover); }
+html.marklens .ml-menu-item:is(:hover, :focus) { background: var(--hover); }
+html.marklens .ml-menu-item > .ml-icon { color: var(--muted); }
+/* 勾號欄固定寬度，有勾與沒勾的項目文字對齊 */
+html.marklens .ml-menu-check { display: grid; place-items: center; width: 16px; flex: none; color: var(--accent); }
+html.marklens .ml-menu-item.checked { font-weight: 600; }
+/* 會展開選單的工具列按鈕：最後的小箭頭 */
+html.marklens .ml-tool-caret { display: grid; margin-left: -2px; }
+html.marklens .ml-tool-caret .ml-icon { width: 12px; height: 12px; }
 
 /* ---------- 系統設定「減少動態效果」：關閉轉場與滑動，狀態直接切換 ---------- */
 @media (prefers-reduced-motion: reduce) {

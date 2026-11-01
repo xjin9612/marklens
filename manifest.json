@@ -118,6 +118,7 @@
         "src/shared/i18n.js",
         "src/content/util.js",
         "src/content/icons.js",
+        "src/content/menu.js",
         "src/content/sanitize.js",
         "src/content/markdown.js",
         "src/content/fonts.js",

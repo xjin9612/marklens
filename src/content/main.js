@@ -11,9 +11,16 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   const NARROW = 900
   const THEME_LABELS = { auto: ['auto', 'themeAuto'], light: ['sun', 'themeLight'], dark: ['moon', 'themeDark'] }
 
-  /** 工具列按鈕的內容：圖示＋文字（窄螢幕時文字只在畫面上隱藏，螢幕閱讀器仍念得到） */
+  /**
+   * 工具列按鈕的內容：圖示＋文字（窄螢幕時文字只在畫面上隱藏，螢幕閱讀器仍念得到）
+   * 會展開選單的按鈕（aria-haspopup）在最後加一個向下的小箭頭
+   */
   function setTool(btn, icon, label) {
-    btn.replaceChildren(MarkLens.icon(icon), label ? h('span', { class: 'ml-tool-label', text: label }) : '')
+    btn.replaceChildren(
+      MarkLens.icon(icon),
+      label ? h('span', { class: 'ml-tool-label', text: label }) : '',
+      btn.hasAttribute('aria-haspopup') ? h('span', { class: 'ml-tool-caret' }, [MarkLens.icon('chevron-down')]) : '',
+    )
   }
 
   /** 瀏覽器把純文字顯示成 <body><pre>…</pre></body>，只接管這種頁面 */
@@ -131,7 +138,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         this.applyLive()
       })
       chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
-        if (msg?.type === 'command') this.runCommand(msg.name)
+        if (msg?.type === 'command') this.runCommand(msg.name, true)
         reply({ ok: true })
       })
 
@@ -148,8 +155,13 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       }
       this.tocBtn = btn('ml-tool-toc', 'menu', '', t('toolTocTitle'), () => this.toggleToc())
       this.tocBtn.setAttribute('aria-label', t('toggleSidebar'))
-      this.widthBtn = btn('ml-tool-width', 'width', '', t('toolWidthTitle'), () => this.cycleWidth())
-      this.themeBtn = btn('ml-tool-theme', 'auto', '', t('toolThemeTitle'), () => this.cycleTheme())
+      // 寬度與主題：按下展開選項清單（目前的值打勾）；快捷鍵 w／d 仍依序切換
+      this.widthBtn = btn('ml-tool-width', 'width', '', t('toolWidthTitle'), () => this.toggleMenu(this.widthBtn, () => this.widthMenu()))
+      this.themeBtn = btn('ml-tool-theme', 'auto', '', t('toolThemeTitle'), () => this.toggleMenu(this.themeBtn, () => this.themeMenu()))
+      for (const b of [this.widthBtn, this.themeBtn]) {
+        b.setAttribute('aria-haspopup', 'menu')
+        b.setAttribute('aria-expanded', 'false')
+      }
       this.exportBtn = btn('ml-tool-export', 'download', t('toolExport'), t('toolExportTitle'), () => this.exportHtml())
       this.rawBtn = btn('ml-tool-raw', 'code', t('toolRaw'), t('toolRawTitle'), () => this.toggleRaw())
       // 用編輯器開啟：設定中選了編輯器且為本機檔案才顯示
@@ -172,14 +184,50 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       ])
     }
 
-    runCommand(name) {
+    /** 按鈕再按一次＝關閉選單 */
+    toggleMenu(anchor, open) {
+      if (MarkLens.menuOpenFor(anchor)) MarkLens.closeMenu()
+      else open()
+    }
+
+    widthMenu() {
+      const cur = this.view.textWidth
+      const items = MarkLens.WIDTH_PRESETS.map(w => ({
+        label: w ? `${w} px` : t('widthFull'),
+        checked: w === cur,
+        fn: () => this.setWidth(w),
+      }))
+      // popup 設定的自訂寬度不在預設選項裡：列在最後並打勾
+      if (!MarkLens.WIDTH_PRESETS.includes(cur)) items.push({ label: t('widthCustomItem', cur), checked: true, fn: () => {} })
+      MarkLens.openMenu({ anchor: this.widthBtn, items, radio: true, label: t('widthMenu') })
+    }
+
+    themeMenu() {
+      const items = MarkLens.THEME_ORDER.map(theme => {
+        const [icon, name] = THEME_LABELS[theme]
+        return { label: t(name), icon, checked: theme === this.settings.theme, fn: () => this.setTheme(theme) }
+      })
+      MarkLens.openMenu({ anchor: this.themeBtn, items, radio: true, label: t('themeMenu') })
+    }
+
+    /**
+     * @param {string} name 指令名稱
+     * @param {boolean} [announce] 由快捷鍵觸發：寬度與主題切換後以提示顯示切到哪一個（按鍵時看不到選單）
+     */
+    runCommand(name, announce = false) {
       switch (name) {
         case 'toggle-toc':
           return this.toggleToc()
         case 'cycle-width':
-          return this.cycleWidth()
-        case 'cycle-theme':
-          return this.cycleTheme()
+          this.cycleWidth()
+          if (announce) MarkLens.toast(t('toolWidth', MarkLens.widthLabel(this.view.textWidth)), [], 1500)
+          return
+        case 'cycle-theme': {
+          const next = MarkLens.nextOf(MarkLens.THEME_ORDER, this.settings.theme)
+          this.setTheme(next)
+          if (announce) MarkLens.toast(t('toolTheme', t(THEME_LABELS[next][1])), [], 1500)
+          return
+        }
         case 'toggle-raw':
           return this.toggleRaw()
         case 'fold-all':
@@ -194,6 +242,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return
       const t = e.target
       if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return
+      if (t?.closest?.('.ml-menu')) return // 選單開著時按鍵交給選單
       if (e.key === '/') {
         e.preventDefault()
         return this.toc.openSearch()
@@ -202,7 +251,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       const name = map[e.key]
       if (!name) return
       e.preventDefault()
-      this.runCommand(name)
+      this.runCommand(name, true)
     }
 
     /* ---------- 渲染 ---------- */
@@ -313,9 +362,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
 
     /** 主題是全域設定：寫入後由 storage.onChanged 同步套用到所有分頁（含本分頁） */
-    cycleTheme() {
-      if (!MarkLens.alive()) return
-      MarkLens.saveSettings({ theme: MarkLens.nextOf(MarkLens.THEME_ORDER, this.settings.theme) }).catch(() => {})
+    setTheme(theme) {
+      if (!MarkLens.alive()) return this.onOrphaned()
+      MarkLens.saveSettings({ theme }).catch(() => {})
     }
 
     /** 以設定的編輯器開啟目前檔案；正在閱讀某個章節時跳到該標題所在行 */
@@ -344,7 +393,11 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
 
     cycleWidth() {
-      this.setView({ textWidth: MarkLens.nextOf(MarkLens.WIDTH_PRESETS, this.view.textWidth) })
+      this.setWidth(MarkLens.nextOf(MarkLens.WIDTH_PRESETS, this.view.textWidth))
+    }
+
+    setWidth(textWidth) {
+      this.setView({ textWidth })
       this.onScroll()
     }
 

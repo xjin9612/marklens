@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 - Keyboard support: sort a table by focusing its header and pressing Enter or Space; enlarge an image with Enter, close it with Esc (focus returns to the image); open the folder menu in the Files tab with the context-menu key or Shift+F10
 - Enlarged images have a visible close button
+- **Text width** and **Theme** buttons open a menu listing every option with the current one checked, instead of stepping to the next option on each click. The `w` and `d` keys still step through them and briefly show which one was picked
 - Popup: the File list, Editor, Task check-off and Auto refresh sections can be collapsed (collapsed by default; remembered on this computer)
 
 ### Changed
