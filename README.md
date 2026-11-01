@@ -110,11 +110,14 @@ src/
   shared/settings.js     settings defaults and storage (shared by all contexts)
   shared/i18n.js         interface text lookup (strings live in _locales/)
   shared/roots.js        authorized folders (extension origin only)
+  shared/tokens.css      design tokens (colors, fonts, motion) shared by the reader and extension pages
+  shared/theme.js        applies the theme setting to the popup, welcome and folder pages
   grant/                 folder authorization page
   welcome/               first-run welcome page
   content/
     early.js             runs first: keeps the previous page on screen while switching files, loading background color
     util.js              helpers, reading the page source
+    icons.js             interface line icons (SVG)
     fonts.js             CJK/ASCII width alignment for code blocks
     sanitize.js          allow-list HTML sanitizer
     markdown.js          markdown-it setup, ==mark==, alerts, front matter
@@ -136,7 +139,8 @@ scripts/manual-bigfile.mjs  generates the large file for the manual tests (npm r
 docs/                    README screenshots and the demo document they are taken from
 .github/workflows/       CI tests and automated releases
 CHANGELOG.md             release notes (the source for GitHub releases)
-test/                    end-to-end tests (e2e.mjs) and fixtures
+test/                    end-to-end tests (e2e.mjs), visual regression tests (visual.mjs) and fixtures
+test/visual/<platform>/  visual baselines, one folder per OS
 test/manual/             manual test checklist (Traditional Chinese)
 package.json             dev tooling only (tests, vendor updates); the extension itself needs no build
 ```
@@ -183,10 +187,11 @@ The suite loads the extension into Chromium and opens local and http fixtures (`
 - Layout: text column width, wide tables beyond the text column, small tables at every width, narrow-screen drawer sidebar
 - Tables: sorting (numbers / bytes / dates), column resize, filter, fullscreen and Esc, state kept across live reload
 - Folding: fold / unfold all, Ctrl+F reveal, outline markers, outline links and `#hash` URLs into folded sections
-- Sidebar: ☰ position, `/` search, Files tab (natural sort, skipped folders, lazy subfolders, top folder kept across files, ↑, folder listing restrictions)
+- Sidebar: menu button position, `/` search, Files tab (natural sort, skipped folders, lazy subfolders, top folder kept across files, ↑, folder listing restrictions)
 - Tabs: sidebar and width stay per tab, appearance syncs live, new tabs use updated defaults, `Alt+Shift` shortcuts, reading position remembered
 - Links: external links open in a new tab (and the setting to turn it off); editor button and its URL template restrictions
-- Task write-back: correct line (with front matter), blockquote and ordered lists, undo, conflict detection, CRLF and BOM preserved, unauthorized folder, feature off, non-UTF-8 files. Folder access is simulated with the browser's private file system (OPFS); the folder picker itself has to be tested by hand
+- Accessibility: every button has a spoken name, keyboard focus outline, controls at least 24×24 px, sorting tables and enlarging images from the keyboard
+- Task write-back: correct line (with front matter), blockquote and ordered lists, undo, conflict detection, CRLF and BOM preserved, unauthorized folder, feature off, non-UTF-8 files (including the real Big5 document from the manual tests: it renders without replacement characters and its checkboxes explain why they are read-only). Folder access is simulated with the browser's private file system (OPFS); the folder picker itself has to be tested by hand
 - Mermaid (`test/fixtures/mermaid.md`): not loaded without diagrams, drawing, syntax errors, label injection and click handlers, source toggle, theme switch, no flicker on live reload, not drawn over http, setting off
 - Math (`test/fixtures/math.md`): inline, display, ` ```math `, tables, prices and escapes left alone, errors, live reload, not drawn over http, setting off
 - Export: single file without scripts, sections expanded, styles and checkbox states kept, math fonts embedded
@@ -194,6 +199,15 @@ The suite loads the extension into Chromium and opens local and http fixtures (`
 - Welcome page on install, popup settings, notice in open tabs after the extension is reloaded
 
 Screenshots go to the directory in the `SHOT_DIR` environment variable (system temp by default).
+
+### Visual regression tests
+
+```bash
+npm run test:visual                  # compare with the baselines
+npm run test:visual -- --update      # accept the current look as the new baseline
+```
+
+Takes screenshots of a fixed set of views (reader light / dark / narrow, Files tab, Mermaid in dark mode, popup, welcome page) and compares them pixel by pixel with `test/visual/<platform>/`. Fonts differ between operating systems, so each OS keeps its own baselines; the first run on a new OS creates them. A view fails when more than 0.1% of its pixels differ (`VISUAL_TOLERANCE` to change); the diff images (changed pixels in red) go to `ml-visual/` under `SHOT_DIR`. After an intended UI change, check the diffs, then run with `--update` and commit the new baselines. Not part of CI.
 
 ### Manual tests
 
