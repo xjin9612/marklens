@@ -592,5 +592,11 @@
   },
   "changelog": {
     "message": "Changelog"
+  },
+  "toggleSidebar": {
+    "message": "Show or hide sidebar"
+  },
+  "filesUpLabel": {
+    "message": "Parent folder"
   }
 }

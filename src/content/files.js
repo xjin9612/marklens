@@ -67,14 +67,15 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.gen = 0 // 每次 init() 加一，用來丟棄起點變更前發出的讀取
       this.query = ''
 
-      this.upBtn = h('button', { class: 'ml-files-up', text: '↑', on: { click: () => this.goUp() } })
+      this.upBtn = h('button', { class: 'ml-files-up', text: '↑', attrs: { 'aria-label': t('filesUpLabel') }, on: { click: () => this.goUp() } })
       this.summary = h('span', { class: 'ml-files-summary' })
-      this.list = h('ul', { class: 'ml-files-list', attrs: { role: 'tree' } })
+      // 一般清單＋按鈕與連結：用 Tab 鍵逐列移動，Enter 展開資料夾（不宣告 tree，tree 需要完整的方向鍵操作）
+      this.list = h('ul', { class: 'ml-files-list' })
       this.el = h('nav', { class: 'ml-files' }, [h('div', { class: 'ml-files-bar' }, [this.upBtn, this.summary]), this.list])
       this.list.addEventListener('click', e => this.onClick(e))
       this.list.addEventListener('contextmenu', e => {
         const row = e.target.closest('[data-dir]')
-        if (row) this.showMenu(e, row.dataset.dir)
+        if (row) this.showMenu(e, row)
       })
     }
 
@@ -181,13 +182,21 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       await this.init()
     }
 
-    /** 資料夾的右鍵選單 */
-    showMenu(e, path) {
+    /** 資料夾的右鍵選單；鍵盤（選單鍵、Shift+F10）觸發時沒有滑鼠座標，改貼在該列下方 */
+    showMenu(e, row) {
       e.preventDefault()
       this.closeMenu()
+      const path = row.dataset.dir
+      let { clientX: x, clientY: y } = e
+      if (!x && !y) {
+        const r = row.getBoundingClientRect()
+        x = r.left + 24
+        y = r.bottom
+      }
       const item = h('button', {
         class: 'ml-files-menu-item',
         text: t('filesSetRoot'),
+        attrs: { role: 'menuitem' },
         on: {
           click: () => {
             this.closeMenu()
@@ -195,7 +204,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           },
         },
       })
-      this.menu = h('div', { class: 'ml-files-menu', attrs: { role: 'menu' }, style: { left: `${e.clientX}px`, top: `${e.clientY}px` } }, [item])
+      this.menu = h('div', { class: 'ml-files-menu', attrs: { role: 'menu' }, style: { left: `${x}px`, top: `${y}px` } }, [item])
       document.body.append(this.menu)
       item.focus()
       const close = ev => {
@@ -265,10 +274,12 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         const path = key([...segs, name])
         const open = this.open.has(path)
         ul.append(
-          h('li', { class: 'ml-files-dir', attrs: { 'data-dir': path, role: 'treeitem', 'aria-expanded': String(open), style: `--depth:${depth}` } }, [
-            h('span', { class: 'ml-files-twisty', text: open ? '▾' : '▸' }),
-            h('span', { class: 'ml-files-icon', text: '📁' }),
-            h('span', { class: 'ml-files-name', text: name, title: name }),
+          h('li', { class: 'ml-files-dir', attrs: { 'data-dir': path, style: `--depth:${depth}` } }, [
+            h('button', { class: 'ml-files-row', type: 'button', title: name, attrs: { 'aria-expanded': String(open) } }, [
+              h('span', { class: 'ml-files-twisty', text: open ? '▾' : '▸' }),
+              h('span', { class: 'ml-files-icon', text: '📁' }),
+              h('span', { class: 'ml-files-name', text: name }),
+            ]),
           ]),
         )
         if (open) this.renderDir([...segs, name], depth + 1, ul)
@@ -278,8 +289,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
     fileItem(f, depth, label) {
       const current = this.isCurrent(f)
-      return h('li', { class: `ml-files-file${current ? ' active' : ''}`, attrs: { role: 'treeitem', style: `--depth:${depth}` } }, [
-        h('a', { href: f.url, title: label, attrs: current ? { 'aria-current': 'page' } : {} }, [
+      return h('li', { class: `ml-files-file${current ? ' active' : ''}`, attrs: { style: `--depth:${depth}` } }, [
+        h('a', { class: 'ml-files-row', href: f.url, title: label, attrs: current ? { 'aria-current': 'page' } : {} }, [
           h('span', { class: 'ml-files-twisty' }),
           h('span', { class: 'ml-files-icon', text: '📄' }),
           h('span', { class: 'ml-files-name' }, highlight(label, this.query)),

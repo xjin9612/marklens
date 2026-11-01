@@ -70,3 +70,6 @@ input[type=text] {
   font: 12px/1.5 Consolas, "Cascadia Code", monospace;
 }
 .hint { margin: 0; color: var(--muted); font-size: 12px; }
+
+/* 鍵盤焦點：與閱讀頁一致的外框 */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }

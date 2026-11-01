@@ -74,3 +74,6 @@ footer { color: var(--muted); font-size: 13px; text-align: center; margin: 24px 
 footer { display: flex; justify-content: center; align-items: center; gap: 6px; }
 .gh-link { display: inline-flex; color: var(--fg); }
 .gh-link:hover { color: var(--accent); }
+
+/* 鍵盤焦點：與閱讀頁一致的外框 */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }

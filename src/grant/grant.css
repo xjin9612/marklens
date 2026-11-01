@@ -64,3 +64,6 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .state.prompt, .state.denied { color: var(--warn); }
 .tips ul { margin: 8px 0 0; padding-left: 20px; color: var(--muted); }
 code { background: var(--subtle); padding: 1px 4px; border-radius: 4px; }
+
+/* 鍵盤焦點：與閱讀頁一致的外框 */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }

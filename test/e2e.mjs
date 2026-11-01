@@ -220,6 +220,16 @@ try {
     await th(3).click()
     assert.deepEqual(await firstCol(), ['Date', 'Elder', 'Banana', '櫻桃', '蘋果'])
   })
+  await check('排序：鍵盤（Tab 到表頭，Enter／空白鍵）', async () => {
+    await th(3).focus()
+    await page.keyboard.press('Enter')
+    assert.equal(await th(3).getAttribute('aria-sort'), 'descending')
+    await page.keyboard.press(' ')
+    assert.equal(await th(3).getAttribute('aria-sort'), null)
+    await page.keyboard.press('Enter')
+    assert.equal(await th(3).getAttribute('aria-sort'), 'ascending')
+    assert.equal(await page.evaluate(() => document.activeElement.tagName), 'TH', '焦點留在表頭')
+  })
   await check('拖拉欄寬', async () => {
     const before = (await th(4).boundingBox()).width
     const b = await th(4).locator('.ml-col-resizer').boundingBox()
@@ -260,6 +270,44 @@ try {
     await page.click('.ml-tool-raw')
     assert.equal(await visible(page, '.ml-body'), true)
     assert.equal(await visible(page, 'pre.ml-source'), false)
+  })
+  /* ---------- 無障礙 ---------- */
+  await check('無障礙：按鈕都有可念的名稱，不宣告未實作方向鍵的 tree／tablist', async () => {
+    const bad = await page.$$eval('#ml-root button', btns =>
+      btns
+        .filter(b => b.offsetParent)
+        .map(b => {
+          // 名稱：aria-label，否則是沒有 aria-hidden 的文字
+          const clone = b.cloneNode(true)
+          clone.querySelectorAll('[aria-hidden="true"]').forEach(n => n.remove())
+          return { cls: b.className, name: (b.getAttribute('aria-label') || clone.textContent).trim() }
+        })
+        .filter(x => !/[\p{L}\p{N}]/u.test(x.name)),
+    )
+    assert.deepEqual(bad, [], JSON.stringify(bad))
+    assert.equal(await page.locator('[role="tree"], [role="treeitem"], [role="tablist"]').count(), 0)
+  })
+  await check('無障礙：鍵盤焦點有外框；可點擊元素至少 24×24', async () => {
+    await page.locator('.ml-body').click({ position: { x: 5, y: 5 } })
+    await page.keyboard.press('Tab')
+    const outline = await page.evaluate(() => {
+      const s = getComputedStyle(document.activeElement)
+      return `${s.outlineStyle} ${s.outlineWidth}`
+    })
+    assert.equal(outline, 'solid 2px')
+    const small = await page.$$eval('#ml-root :is(.ml-btn, .ml-tool, .ml-side-tab, .ml-files-up, .ml-fold, .ml-table-filter)', els =>
+      els
+        .filter(el => el.offsetParent)
+        .map(el => {
+          const r = el.getBoundingClientRect()
+          // 摺疊鈕以 ::after 延伸點擊範圍
+          const hit = el.classList.contains('ml-fold') ? parseFloat(getComputedStyle(el, '::after').height) : r.height
+          return { cls: el.className, w: Math.round(r.width), h: Math.round(hit) }
+        })
+        .filter(x => x.w < 24 || x.h < 24),
+    )
+    assert.deepEqual(small, [], JSON.stringify(small))
+    await page.keyboard.press('Escape')
   })
   await check('原始文字：快捷鍵 r 來回切換', async () => {
     await page.keyboard.press('r')
@@ -534,7 +582,7 @@ try {
     assert.equal(await dp.getAttribute('.ml-files-up', 'title'), '上一層：nav')
     await dp.click('.ml-files-up')
     await dp.waitForFunction(() => document.querySelector('.ml-files-summary').textContent === '📂 nav · 4 份')
-    assert.equal(await dp.getAttribute('.ml-files-dir[data-dir="sub"]', 'aria-expanded'), 'true', '原本的資料夾維持展開')
+    assert.equal(await dp.getAttribute('.ml-files-dir[data-dir="sub"] > button', 'aria-expanded'), 'true', '原本的資料夾維持展開')
     assert.equal(await dp.textContent('.ml-files-file.active'), '📄inner.md')
     // 右鍵「以此資料夾為起點」：多按了 ↑ 也能切回來
     await dp.click('.ml-files-up')
@@ -542,7 +590,7 @@ try {
     await dp.click('.ml-files-dir[data-dir="nav"]', { button: 'right' })
     await dp.click('.ml-files-menu-item:text("以此資料夾為起點")')
     await dp.waitForFunction(() => document.querySelector('.ml-files-summary').textContent === '📂 nav · 4 份')
-    assert.equal(await dp.getAttribute('.ml-files-dir[data-dir="sub"]', 'aria-expanded'), 'true', '目前檔案所在的資料夾維持展開')
+    assert.equal(await dp.getAttribute('.ml-files-dir[data-dir="sub"] > button', 'aria-expanded'), 'true', '目前檔案所在的資料夾維持展開')
     assert.equal(await dp.locator('.ml-files-menu').count(), 0, '選單已關閉')
     await np.close()
     await dp.close()
