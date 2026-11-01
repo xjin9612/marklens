@@ -2,11 +2,11 @@
 // 側邊欄「檔案」分頁：資料夾裡的 Markdown 與子資料夾
 // 預設只讀取一層；子資料夾點開才讀取（大型資料夾不會一次掃描全部）。
 // 樹的起點（root）在同一個分頁中保持不變：從檔案分頁點進子資料夾的檔案後，仍可回到原本的資料夾；
-// 可以用「↑」把起點往上一層，或在資料夾上按右鍵「以此資料夾為起點」。
+// 可以用「上一層」按鈕把起點往上一層，或在資料夾上按右鍵「以此資料夾為起點」。
 var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
 ;(() => {
-  const { h, t } = MarkLens
+  const { h, t, icon } = MarkLens
   const key = segs => segs.join('/')
 
   function decodeName(s) {
@@ -67,11 +67,11 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.gen = 0 // 每次 init() 加一，用來丟棄起點變更前發出的讀取
       this.query = ''
 
-      this.upBtn = h('button', { class: 'ml-files-up', text: '↑', attrs: { 'aria-label': t('filesUpLabel') }, on: { click: () => this.goUp() } })
+      this.upBtn = h('button', { class: 'ml-files-up', attrs: { 'aria-label': t('filesUpLabel') }, on: { click: () => this.goUp() } }, [icon('arrow-up')])
       this.summary = h('span', { class: 'ml-files-summary' })
       // 一般清單＋按鈕與連結：用 Tab 鍵逐列移動，Enter 展開資料夾（不宣告 tree，tree 需要完整的方向鍵操作）
       this.list = h('ul', { class: 'ml-files-list' })
-      this.el = h('nav', { class: 'ml-files' }, [h('div', { class: 'ml-files-bar' }, [this.upBtn, this.summary]), this.list])
+      this.el = h('nav', { class: 'ml-files' }, [h('div', { class: 'ml-files-bar' }, [this.upBtn, (this.barIcon = icon('folder')), this.summary]), this.list])
       this.list.addEventListener('click', e => this.onClick(e))
       this.list.addEventListener('contextmenu', e => {
         const row = e.target.closest('[data-dir]')
@@ -260,6 +260,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.upBtn.title = parent ? t('filesUp', decodeName(parent.split('/').slice(-2, -1)[0] || '/')) : ''
       const root = this.nodes.get('')
       if (!root) return
+      // 資料夾圖示只在列出資料夾時顯示；搜尋時摘要是「找到幾份」
+      this.barIcon.style.display = this.query ? 'none' : ''
       if (this.query) return this.renderSearch()
       this.renderDir([], 0, this.list)
       this.summary.textContent = root.status === 'ok' ? t('filesSummary', this.folder, root.files.length) : this.folder
@@ -276,8 +278,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         ul.append(
           h('li', { class: 'ml-files-dir', attrs: { 'data-dir': path, style: `--depth:${depth}` } }, [
             h('button', { class: 'ml-files-row', type: 'button', title: name, attrs: { 'aria-expanded': String(open) } }, [
-              h('span', { class: 'ml-files-twisty', text: open ? '▾' : '▸' }),
-              h('span', { class: 'ml-files-icon', text: '📁' }),
+              h('span', { class: 'ml-files-twisty' }, [icon(open ? 'chevron-down' : 'chevron-right')]),
+              icon('folder'),
               h('span', { class: 'ml-files-name', text: name }),
             ]),
           ]),
@@ -292,7 +294,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       return h('li', { class: `ml-files-file${current ? ' active' : ''}`, attrs: { style: `--depth:${depth}` } }, [
         h('a', { class: 'ml-files-row', href: f.url, title: label, attrs: current ? { 'aria-current': 'page' } : {} }, [
           h('span', { class: 'ml-files-twisty' }),
-          h('span', { class: 'ml-files-icon', text: '📄' }),
+          icon('file'),
           h('span', { class: 'ml-files-name' }, highlight(label, this.query)),
         ]),
       ])

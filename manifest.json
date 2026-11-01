@@ -117,6 +117,7 @@
         "src/shared/settings.js",
         "src/shared/i18n.js",
         "src/content/util.js",
+        "src/content/icons.js",
         "src/content/sanitize.js",
         "src/content/markdown.js",
         "src/content/fonts.js",
@@ -130,6 +131,7 @@
         "src/content/main.js"
       ],
       "css": [
+        "src/shared/tokens.css",
         "src/content/content.css"
       ],
       "run_at": "document_end"

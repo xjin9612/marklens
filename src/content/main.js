@@ -9,10 +9,12 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   const POS_LIMIT = 300
   const VIEW_KEY = 'marklens:view' // 分頁狀態，存在 sessionStorage
   const NARROW = 900
-  const THEME_LABELS = { auto: ['◐', 'themeAuto'], light: ['☀', 'themeLight'], dark: ['☾', 'themeDark'] }
+  const THEME_LABELS = { auto: ['auto', 'themeAuto'], light: ['sun', 'themeLight'], dark: ['moon', 'themeDark'] }
 
-  /** 裝飾用的符號：螢幕閱讀器略過，只念旁邊的文字 */
-  const glyph = text => h('span', { class: 'ml-glyph', text, attrs: { 'aria-hidden': 'true' } })
+  /** 工具列按鈕的內容：圖示＋文字（窄螢幕時文字只在畫面上隱藏，螢幕閱讀器仍念得到） */
+  function setTool(btn, icon, label) {
+    btn.replaceChildren(MarkLens.icon(icon), label ? h('span', { class: 'ml-tool-label', text: label }) : '')
+  }
 
   /** 瀏覽器把純文字顯示成 <body><pre>…</pre></body>，只接管這種頁面 */
   function sourcePre() {
@@ -139,26 +141,27 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
     /* ---------- 工具列 ---------- */
     buildToolbar() {
-      const btn = (cls, text, title, fn) => h('button', { class: `ml-tool ${cls}`, text, title, on: { click: fn } })
-      this.tocBtn = btn('ml-tool-toc', t('toolToc'), t('toolTocTitle'), () => this.toggleToc())
+      const btn = (cls, icon, label, title, fn) => {
+        const b = h('button', { class: `ml-tool ${cls}`, title, on: { click: fn } })
+        setTool(b, icon, label)
+        return b
+      }
+      this.tocBtn = btn('ml-tool-toc', 'menu', '', t('toolTocTitle'), () => this.toggleToc())
       this.tocBtn.setAttribute('aria-label', t('toggleSidebar'))
-      this.widthBtn = btn('ml-tool-width', '', t('toolWidthTitle'), () => this.cycleWidth())
-      this.themeBtn = btn('ml-tool-theme', '', t('toolThemeTitle'), () => this.cycleTheme())
-      this.exportBtn = btn('ml-tool-export', '', t('toolExportTitle'), () => this.exportHtml())
-      // 窄螢幕只顯示圖示（文字只在畫面上隱藏，螢幕閱讀器仍念得到）
-      this.exportBtn.append(glyph('⤓'), h('span', { class: 'ml-tool-label', text: t('toolExport') }))
-      this.rawBtn = btn('ml-tool-raw', t('toolRaw'), t('toolRawTitle'), () => this.toggleRaw())
+      this.widthBtn = btn('ml-tool-width', 'width', '', t('toolWidthTitle'), () => this.cycleWidth())
+      this.themeBtn = btn('ml-tool-theme', 'auto', '', t('toolThemeTitle'), () => this.cycleTheme())
+      this.exportBtn = btn('ml-tool-export', 'download', t('toolExport'), t('toolExportTitle'), () => this.exportHtml())
+      this.rawBtn = btn('ml-tool-raw', 'code', t('toolRaw'), t('toolRawTitle'), () => this.toggleRaw())
       // 用編輯器開啟：設定中選了編輯器且為本機檔案才顯示
-      this.editBtn = btn('ml-tool-edit', '', t('toolEditTitle'), () => this.openInEditor())
-      this.editBtn.append(glyph('✎'), h('span', { class: 'ml-tool-label', text: t('toolEdit') }))
+      this.editBtn = btn('ml-tool-edit', 'edit', t('toolEdit'), t('toolEditTitle'), () => this.openInEditor())
       this.editBtn.hidden = !(location.protocol === 'file:' && MarkLens.editorTemplate(this.settings))
-      this.topBtn = btn('ml-tool-top', t('toolTop'), t('toolTopTitle'), () => scrollTo({ top: 0 }))
+      this.topBtn = btn('ml-tool-top', 'arrow-up', t('toolTop'), t('toolTopTitle'), () => scrollTo({ top: 0 }))
       return h('div', { class: 'ml-toolbar', attrs: { role: 'toolbar' } }, [
         this.tocBtn,
         h('span', { class: 'ml-spacer' }),
         h('span', { class: 'ml-reading-only' }, [
-          btn('', t('toolFoldAll'), t('toolFoldAllTitle'), () => MarkLens.foldAll(this.article)),
-          btn('', t('toolUnfoldAll'), t('toolUnfoldAllTitle'), () => MarkLens.unfoldAll(this.article)),
+          btn('ml-tool-fold', 'fold-all', t('toolFoldAll'), t('toolFoldAllTitle'), () => MarkLens.foldAll(this.article)),
+          btn('ml-tool-unfold', 'unfold-all', t('toolUnfoldAll'), t('toolUnfoldAllTitle'), () => MarkLens.unfoldAll(this.article)),
           this.widthBtn,
           this.exportBtn,
         ]),
@@ -282,9 +285,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         }
       }
       if (this.themeBtn) {
-        // 窄螢幕只顯示圖示（文字部分由 CSS 隱藏）
         const [icon, name] = THEME_LABELS[s.theme] || THEME_LABELS.auto
-        this.themeBtn.replaceChildren(glyph(icon), h('span', { class: 'ml-tool-label', text: t('toolTheme', t(name)) }))
+        setTool(this.themeBtn, icon, t('toolTheme', t(name)))
       }
       if (this.article) MarkLens.rethemeMermaid(this.article)
     }
@@ -300,7 +302,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       root.classList.toggle('ml-toc-hidden', v.tocHidden)
       root.classList.toggle('ml-code-wrap', this.settings.codeWrap)
       root.classList.toggle('ml-wide-blocks', this.settings.tableWidth !== 'text')
-      this.widthBtn.textContent = t('toolWidth', MarkLens.widthLabel(v.textWidth))
+      setTool(this.widthBtn, 'width', t('toolWidth', MarkLens.widthLabel(v.textWidth)))
       this.tocBtn.classList.toggle('active', !v.tocHidden)
     }
 
@@ -363,7 +365,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     /* ---------- 原始文字 ---------- */
     toggleRaw() {
       const on = document.documentElement.classList.toggle('ml-raw')
-      this.rawBtn.textContent = t(on ? 'toolBack' : 'toolRaw')
+      setTool(this.rawBtn, on ? 'arrow-left' : 'code', t(on ? 'toolBack' : 'toolRaw'))
       this.rawBtn.classList.toggle('active', on)
       scrollTo(0, 0)
     }

@@ -1,31 +1,9 @@
-:root {
-  color-scheme: light dark;
-  --bg: #fff;
-  --fg: #1f2328;
-  --muted: #59636e;
-  --border: #d1d9e0;
-  --subtle: #f6f8fa;
-  --accent: #0969da;
-  --ok: #1a7f37;
-  --warn: #9a6700;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0d1117;
-    --fg: #e6edf3;
-    --muted: #9198a1;
-    --border: #3d444d;
-    --subtle: #151b23;
-    --accent: #4493f8;
-    --ok: #3fb950;
-    --warn: #d29922;
-  }
-}
+/* 色彩與字型變數在 ../shared/tokens.css */
 body {
   margin: 0;
   background: var(--bg);
   color: var(--fg);
-  font: 14px/1.6 "Segoe UI", "Microsoft JhengHei", system-ui, sans-serif;
+  font: 14px/1.6 var(--ml-font);
 }
 main { max-width: 720px; margin: 40px auto; padding: 0 16px; }
 h1 { font-size: 22px; margin: 0 0 8px; }
@@ -53,7 +31,7 @@ button {
   cursor: pointer;
 }
 button:hover { border-color: var(--accent); }
-button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 #roots { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: 8px; }
 #roots:empty { display: none; }
 #roots li { display: flex; align-items: center; gap: 8px; padding: 8px 12px; }

@@ -266,7 +266,7 @@ try {
     await page.click('.ml-tool-raw')
     assert.equal(await visible(page, 'pre.ml-source'), true)
     assert.equal(await visible(page, '.ml-body'), false)
-    assert.equal(await page.textContent('.ml-tool-raw'), '← 返回閱讀')
+    assert.equal(await page.textContent('.ml-tool-raw'), '返回閱讀')
     await page.click('.ml-tool-raw')
     assert.equal(await visible(page, '.ml-body'), true)
     assert.equal(await visible(page, 'pre.ml-source'), false)
@@ -337,7 +337,7 @@ try {
   /* ---------- 摺疊 ---------- */
   const hiddenCount = () => page.locator('.markdown-body > [hidden]').count()
   await check('全部摺疊：單一 H1 時改摺 H2，H1 不摺', async () => {
-    await page.click('text=▸ 全部摺疊')
+    await page.click('text=全部摺疊')
     const h1Folded = await page.$eval('.markdown-body > h1', el => el.classList.contains('ml-folded'))
     assert.equal(h1Folded, false)
     assert.ok((await hiddenCount()) > 5)
@@ -352,9 +352,9 @@ try {
     assert.ok((await page.locator('.ml-toc-inside-fold').count()) >= 1)
   })
   await check('再按全部摺疊不會卡住；全部展開恢復', async () => {
-    await page.click('text=▸ 全部摺疊')
+    await page.click('text=全部摺疊')
     assert.ok((await hiddenCount()) > 0, '再按一次仍是摺疊狀態')
-    await page.click('text=▾ 全部展開')
+    await page.click('text=全部展開')
     assert.equal(await hiddenCount(), 0)
     assert.equal(await page.locator('.ml-toc-folded').count(), 0)
   })
@@ -416,9 +416,9 @@ try {
 
   /* ---------- 目錄與分頁獨立 ---------- */
   const page2 = await openDoc()
-  await check('側邊欄的 ☰ 收合；收合後工具列 ☰ 出現在同一位置', async () => {
+  await check('側邊欄的選單鈕收合；收合後工具列的選單鈕出現在同一位置', async () => {
     const side = await page.locator('.ml-side-menu').boundingBox()
-    assert.equal(await visible(page, '.ml-toolbar .ml-tool-toc'), false, '側邊欄開著時工具列不顯示 ☰')
+    assert.equal(await visible(page, '.ml-toolbar .ml-tool-toc'), false, '側邊欄開著時工具列不顯示選單鈕')
     await page.click('.ml-side-menu')
     assert.equal(await visible(page, '.ml-toc'), false)
     const bar = await page.locator('.ml-toolbar .ml-tool-toc').boundingBox()
@@ -440,22 +440,22 @@ try {
   })
   await check('寬度切換只影響目前分頁', async () => {
     await page.click('.ml-tool-width')
-    assert.equal(await page.textContent('.ml-tool-width'), '⇔ 寬度：960')
-    assert.equal(await page2.textContent('.ml-tool-width'), '⇔ 寬度：1200')
+    assert.equal(await page.textContent('.ml-tool-width'), '寬度：960')
+    assert.equal(await page2.textContent('.ml-tool-width'), '寬度：1200')
     assert.equal((await sw.evaluate(() => MarkLens.loadSettings())).textWidth, 1200, '全域預設值不應改變')
     await page.keyboard.press('w')
-    assert.equal(await page.textContent('.ml-tool-width'), '⇔ 寬度：滿版')
+    assert.equal(await page.textContent('.ml-tool-width'), '寬度：滿版')
   })
   await check('主題即時同步所有分頁；版面設定不推送', async () => {
     await sw.evaluate(() => MarkLens.saveSettings({ theme: 'dark', textWidth: 960, tocHidden: true }))
     await page2.waitForFunction(() => document.documentElement.dataset.mlTheme === 'dark')
     await page.waitForFunction(() => document.documentElement.dataset.mlTheme === 'dark')
-    assert.equal(await page2.textContent('.ml-tool-width'), '⇔ 寬度：1200')
+    assert.equal(await page2.textContent('.ml-tool-width'), '寬度：1200')
     assert.equal(await visible(page2, '.ml-toc'), true)
   })
   await check('新分頁套用新的預設值', async () => {
     const p3 = await openDoc()
-    assert.equal(await p3.textContent('.ml-tool-width'), '⇔ 寬度：960')
+    assert.equal(await p3.textContent('.ml-tool-width'), '寬度：960')
     assert.equal(await visible(p3, '.ml-toc'), false)
     await p3.screenshot({ path: join(shotDir, 'ml-dark.png') })
     await p3.close()
@@ -508,9 +508,9 @@ try {
     await np.click('.ml-side-tab:text("檔案")')
     await np.waitForSelector('.ml-files-file')
     const rows = await np.locator('.ml-files-list > li').evaluateAll(lis => lis.map(li => li.textContent.trim()))
-    assert.deepEqual(rows, ['▸📁empty', '▸📁sub', '▸📁z.md', '📄1-a.md', '📄2-b.md', '📄10-c.md', '📄中文 檔名.md'])
-    assert.equal(await np.textContent('.ml-files-file.active'), '📄2-b.md')
-    assert.equal(await np.textContent('.ml-files-summary'), '📂 nav · 4 份')
+    assert.deepEqual(rows, ['empty', 'sub', 'z.md', '1-a.md', '2-b.md', '10-c.md', '中文 檔名.md'])
+    assert.equal(await np.textContent('.ml-files-file.active'), '2-b.md')
+    assert.equal(await np.textContent('.ml-files-summary'), 'nav · 4 份')
     // 展開子資料夾：點開才讀取，再往下一層
     await np.click('.ml-files-dir[data-dir="sub"]')
     await np.waitForSelector('.ml-files-file a[href$="inner.md"]')
@@ -527,7 +527,7 @@ try {
     await np.keyboard.type('e')
     await np.waitForFunction(() => document.querySelector('.ml-files-summary').textContent.startsWith('已展開的資料夾中找到'))
     const found = await np.locator('.ml-files-file').allTextContents()
-    assert.deepEqual(found.sort(), ['📄sub / inner.md', '📄sub/deeper / deep.md'])
+    assert.deepEqual(found.sort(), ['sub / inner.md', 'sub/deeper / deep.md'])
     await np.keyboard.press('Escape')
     // 點檔案在同一分頁開啟
     await np.click('.ml-files-file a[href$="10-c.md"]')
@@ -557,11 +557,11 @@ try {
     await ip.click('.ml-side-tab:text("檔案")')
     await ip.waitForSelector('.ml-files-dir')
     const rows = await ip.locator('.ml-files-list > li').evaluateAll(lis => lis.map(li => li.textContent.trim()))
-    assert.deepEqual(rows, ['▸📁.git', '▸📁empty', '▸📁node_modules'])
+    assert.deepEqual(rows, ['.git', 'empty', 'node_modules'])
     await ip.close()
     await sw.evaluate(d => MarkLens.saveSettings({ fileIgnore: d }), '.*, node_modules, target, dist, build')
   })
-  await check('檔案分頁：點進子資料夾的檔案後起點不變，可再點回上層；↑ 可往上一層', async () => {
+  await check('檔案分頁：點進子資料夾的檔案後起點不變，可再點回上層；「上一層」可往上一層', async () => {
     const np = await openDoc(pathToFileURL(join(work, 'nav', '1-a.md')).href)
     await np.click('.ml-side-tab:text("檔案")')
     await np.click('.ml-files-dir[data-dir="sub"]')
@@ -570,26 +570,26 @@ try {
     await np.waitForURL(/deep\.md$/)
     // 起點仍是 nav，樹自動展開到目前檔案並標亮
     await np.waitForSelector('.ml-files-file.active')
-    assert.equal(await np.textContent('.ml-files-summary'), '📂 nav · 4 份')
-    assert.equal(await np.textContent('.ml-files-file.active'), '📄deep.md')
+    assert.equal(await np.textContent('.ml-files-summary'), 'nav · 4 份')
+    assert.equal(await np.textContent('.ml-files-file.active'), 'deep.md')
     await np.click('.ml-files-file a[href$="1-a.md"]')
     await np.waitForURL(/1-a\.md$/)
     // 另開新分頁直接開子資料夾的檔案：起點是該資料夾，按 ↑ 回到上一層
     const dp = await openDoc(pathToFileURL(join(work, 'nav', 'sub', 'inner.md')).href)
     await dp.click('.ml-side-tab:text("檔案")')
     await dp.waitForSelector('.ml-files-file.active')
-    assert.equal(await dp.textContent('.ml-files-summary'), '📂 sub · 1 份')
+    assert.equal(await dp.textContent('.ml-files-summary'), 'sub · 1 份')
     assert.equal(await dp.getAttribute('.ml-files-up', 'title'), '上一層：nav')
     await dp.click('.ml-files-up')
-    await dp.waitForFunction(() => document.querySelector('.ml-files-summary').textContent === '📂 nav · 4 份')
+    await dp.waitForFunction(() => document.querySelector('.ml-files-summary').textContent === 'nav · 4 份')
     assert.equal(await dp.getAttribute('.ml-files-dir[data-dir="sub"] > button', 'aria-expanded'), 'true', '原本的資料夾維持展開')
-    assert.equal(await dp.textContent('.ml-files-file.active'), '📄inner.md')
+    assert.equal(await dp.textContent('.ml-files-file.active'), 'inner.md')
     // 右鍵「以此資料夾為起點」：多按了 ↑ 也能切回來
     await dp.click('.ml-files-up')
     await dp.waitForSelector('.ml-files-dir[data-dir="nav"]')
     await dp.click('.ml-files-dir[data-dir="nav"]', { button: 'right' })
     await dp.click('.ml-files-menu-item:text("以此資料夾為起點")')
-    await dp.waitForFunction(() => document.querySelector('.ml-files-summary').textContent === '📂 nav · 4 份')
+    await dp.waitForFunction(() => document.querySelector('.ml-files-summary').textContent === 'nav · 4 份')
     assert.equal(await dp.getAttribute('.ml-files-dir[data-dir="sub"] > button', 'aria-expanded'), 'true', '目前檔案所在的資料夾維持展開')
     assert.equal(await dp.locator('.ml-files-menu').count(), 0, '選單已關閉')
     await np.close()
@@ -1126,7 +1126,7 @@ try {
       // 排版完成就結束轉場（不是等 1.5 秒的保底）
       assert.ok(r.vtEnd - r.root < 300, JSON.stringify(r))
       assert.equal(r.loading, false, '不應出現「讀取中」')
-      assert.equal(await vp.textContent('.ml-files-file.active'), '📄2-b.md')
+      assert.equal(await vp.textContent('.ml-files-file.active'), '2-b.md')
     } finally {
       await vp.close()
     }

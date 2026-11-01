@@ -69,7 +69,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   /** 產生匯出用的完整 HTML 字串 */
   MarkLens.buildExportHtml = async function (article) {
     const root = document.documentElement
-    let css = (await asset('src/content/content.css')).text
+    let css = `${(await asset('src/shared/tokens.css')).text}\n${(await asset('src/content/content.css')).text}`
     if (article.querySelector('.katex')) css += `\n${await katexCss()}`
     // 程式碼區塊中英對齊（fonts.js 依本機字型算出的設定）
     if (MarkLens.codeFontCss) css += `\n${MarkLens.codeFontCss}`

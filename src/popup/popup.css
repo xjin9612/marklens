@@ -1,30 +1,12 @@
 [hidden] { display: none !important; }
-:root {
-  color-scheme: light dark;
-  --bg: #fff;
-  --fg: #1f2328;
-  --muted: #59636e;
-  --border: #d1d9e0;
-  --accent: #0969da;
-  --warn-bg: #fff8c5;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0d1117;
-    --fg: #e6edf3;
-    --muted: #9198a1;
-    --border: #3d444d;
-    --accent: #4493f8;
-    --warn-bg: #3b2e0a;
-  }
-}
+/* 色彩與字型變數在 ../shared/tokens.css */
 body {
   width: 300px;
   margin: 0;
   padding: 12px 14px;
   background: var(--bg);
   color: var(--fg);
-  font: 13px/1.5 "Segoe UI", "Microsoft JhengHei", system-ui, sans-serif;
+  font: 13px/1.5 var(--ml-font);
 }
 header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 section { border-top: 1px solid var(--border); padding: 8px 0; display: grid; gap: 6px; }
@@ -67,7 +49,7 @@ input[type=text] {
   border-radius: 6px;
   background: var(--bg);
   color: var(--fg);
-  font: 12px/1.5 Consolas, "Cascadia Code", monospace;
+  font: 12px/1.5 var(--ml-mono);
 }
 .hint { margin: 0; color: var(--muted); font-size: 12px; }
 
