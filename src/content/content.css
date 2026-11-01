@@ -52,6 +52,7 @@ html.marklens[data-ml-theme="light"] {
   --bg: #ffffff;
   --fg: #1f2328;
   --muted: #59636e;
+  --faint: #6b737c; /* 次要中的次要（摺疊段落裡的目錄項目）；在側邊欄底色上仍有 4.5:1 */
   --border: #d1d9e0;
   --border-soft: #e5e9ee;
   --subtle: #f6f8fa;
@@ -73,6 +74,7 @@ html.marklens[data-ml-theme="dark"] {
   --bg: #0d1117;
   --fg: #e6edf3;
   --muted: #9198a1;
+  --faint: #7d8590;
   --border: #3d444d;
   --border-soft: #2a3038;
   --subtle: #151b23;
@@ -114,10 +116,24 @@ html.marklens .markdown-body > [hidden="until-found"] {
   overflow: hidden !important;
 }
 
+/* ---------- 鍵盤焦點：所有可操作元素統一外框（只在鍵盤操作時出現） ---------- */
+html.marklens #ml-root :focus-visible,
+html.marklens .ml-toast :focus-visible,
+html.marklens .ml-files-menu :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+/* 搜尋框的外框畫在外層容器上 */
+html.marklens .ml-side-search:focus-within { box-shadow: 0 0 0 1px var(--accent); }
+html.marklens .ml-toc-search:focus-visible { outline: none; }
+
 /* ---------- 按鈕 ---------- */
 html.marklens .ml-btn {
   font: 12px/1 var(--ml-font);
-  padding: 4px 8px;
+  min-height: 24px;
+  padding: 5px 8px;
+  box-sizing: border-box;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--bg);
@@ -257,7 +273,7 @@ html.marklens .ml-toc-search {
   font: inherit;
 }
 html.marklens .ml-toc-search::-webkit-search-cancel-button { display: none; }
-html.marklens .ml-side-search-close { border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0 4px; font: inherit; }
+html.marklens .ml-side-search-close { border: 0; background: none; color: var(--muted); cursor: pointer; min-width: 24px; min-height: 24px; padding: 0 4px; font: inherit; }
 html.marklens .ml-side-search-close:hover { color: var(--fg); }
 html.marklens .ml-toc-stats { padding: 6px 12px; color: var(--muted); font-size: 12px; border-bottom: 1px solid var(--border-soft); flex: none; }
 html.marklens .ml-toc-stats:empty { display: none; }
@@ -282,7 +298,9 @@ html.marklens .ml-files-up {
   background: none;
   color: var(--muted);
   font: 14px/1 var(--ml-font);
-  padding: 3px 7px;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 4px 8px;
   cursor: pointer;
 }
 html.marklens .ml-files-up:hover:not(:disabled) { background: var(--hover); color: var(--fg); }
@@ -290,20 +308,27 @@ html.marklens .ml-files-up:disabled { opacity: .35; cursor: default; }
 html.marklens .ml-files-summary { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 html.marklens .ml-files-list { list-style: none; margin: 0; padding: 0; }
 html.marklens .ml-files-list li { --indent: calc(var(--depth, 0) * 14px + 8px); }
-html.marklens .ml-files-dir,
-html.marklens .ml-files-file a {
+html.marklens .ml-files-row {
   display: flex;
   align-items: center;
   gap: 4px;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
   padding: 3px 12px 3px var(--indent);
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
   color: var(--fg);
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
   border-left: 3px solid transparent;
 }
-html.marklens .ml-files-dir:hover,
-html.marklens .ml-files-file a:hover { background: var(--hover); }
+html.marklens .ml-files-row:hover { background: var(--hover); }
+/* 整列都是點擊範圍，焦點外框畫在內側，才不會被側邊欄裁掉 */
+html.marklens #ml-root .ml-files-row:focus-visible { outline-offset: -2px; border-radius: 0; }
 html.marklens .ml-files-file.active a { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 600; }
 html.marklens .ml-files-twisty { width: 12px; flex: none; color: var(--muted); font-size: 10px; text-align: center; }
 html.marklens .ml-files-icon { flex: none; font-size: 13px; }
@@ -328,7 +353,7 @@ html.marklens .ml-toc-list li a {
 html.marklens .ml-toc-list li a:hover { color: var(--fg); background: var(--hover); }
 html.marklens .ml-toc-list li.active > a { color: var(--accent); border-left-color: var(--accent); background: var(--accent-soft); }
 html.marklens .ml-toc-list li.ml-toc-folded > a::before { content: "▸ "; color: var(--muted); }
-html.marklens .ml-toc-list li.ml-toc-inside-fold > a { opacity: .5; }
+html.marklens .ml-toc-list li.ml-toc-inside-fold > a { color: var(--faint); }
 html.marklens .ml-toc-l1 > a { font-weight: 600; color: var(--fg) !important; }
 html.marklens .ml-toc-l2 > a { padding-left: 24px !important; }
 html.marklens .ml-toc-l3 > a { padding-left: 36px !important; }
@@ -383,7 +408,15 @@ html.marklens.ml-wide-blocks .markdown-body > :is(.ml-table, .ml-code) {
   html.marklens .ml-body { padding: 16px 16px 80px 36px; }
   html.marklens .ml-toc-resizer { display: none; }
   html.marklens .ml-tool-width { display: none; }
-  html.marklens :is(.ml-tool-theme, .ml-tool-export, .ml-tool-edit) .ml-tool-label { display: none; }
+  /* 只在畫面上隱藏文字，螢幕閱讀器仍以文字作為按鈕名稱 */
+  html.marklens :is(.ml-tool-theme, .ml-tool-export, .ml-tool-edit) .ml-tool-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
   html.marklens .ml-toolbar { overflow-x: auto; padding: 0 4px; }
   html.marklens .ml-tool { padding: 6px 7px; }
 }
@@ -415,7 +448,7 @@ html.marklens .markdown-body .ml-fold {
   position: absolute;
   left: -30px;
   top: 0;
-  width: 22px;
+  width: 24px;
   height: 1.25em;
   padding: 0;
   border: 0;
@@ -423,13 +456,15 @@ html.marklens .markdown-body .ml-fold {
   background: none;
   color: var(--muted);
   cursor: pointer;
-  opacity: .45;
+  opacity: .7; /* 淡色但與背景仍有 3:1 以上的對比 */
   font: inherit;
   line-height: 1.25em;
 }
+/* 小標題的第一行不到 24px：點擊範圍往上下延伸到 24px，外觀不變 */
+html.marklens .markdown-body .ml-fold::after { content: ""; position: absolute; inset: min(0px, calc((1.25em - 24px) / 2)) 0; }
 html.marklens .markdown-body .ml-fold::before { content: "▾"; font-size: 12px; vertical-align: middle; }
 html.marklens .markdown-body .ml-folded .ml-fold::before { content: "▸"; }
-html.marklens .markdown-body .ml-fold:hover { opacity: 1; background: var(--hover); color: var(--fg); }
+html.marklens .markdown-body .ml-fold:is(:hover, :focus-visible) { opacity: 1; background: var(--hover); color: var(--fg); }
 html.marklens .markdown-body .ml-folded .ml-fold { opacity: 1; color: var(--accent); }
 html.marklens .markdown-body .ml-folded::after { content: " …"; color: var(--muted); font-weight: 400; }
 html.marklens .markdown-body > .ml-folded { margin-bottom: 4px; }
@@ -442,6 +477,7 @@ html.marklens .markdown-body .ml-anchor {
   font-weight: 400;
 }
 html.marklens .markdown-body :is(h1, h2, h3, h4, h5, h6):hover .ml-anchor { opacity: .6; }
+html.marklens .markdown-body .ml-anchor:focus-visible { opacity: 1; }
 html.marklens .markdown-body .ml-folded .ml-anchor { display: none; }
 
 html.marklens .markdown-body ul,
@@ -587,6 +623,8 @@ html.marklens .ml-table-bar:focus-within,
 html.marklens .ml-table.ml-filtered .ml-table-bar { opacity: 1; pointer-events: auto; }
 html.marklens .ml-table-filter {
   width: 150px;
+  min-height: 24px;
+  box-sizing: border-box;
   padding: 3px 8px;
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -626,6 +664,8 @@ html.marklens .markdown-body table.ml-measure :is(th, td) { white-space: nowrap;
 
 /* 排序：圖示平常隱藏，滑過表頭或已排序才顯示 */
 html.marklens .markdown-body th.ml-sortable { cursor: pointer; user-select: none; padding-right: 22px; }
+html.marklens #ml-root .markdown-body th.ml-sortable:focus-visible { outline-offset: -2px; border-radius: 0; }
+html.marklens .markdown-body th.ml-sortable:focus-visible::after { opacity: .6; }
 html.marklens .markdown-body th.ml-sortable::after {
   content: "⇅";
   position: absolute;
@@ -720,10 +760,11 @@ html.marklens .ml-toast {
   box-shadow: var(--shadow);
   transform: translate(-50%, 20px);
   opacity: 0;
+  visibility: hidden; /* 隱藏時裡面的按鈕不會被 Tab 鍵移到 */
   pointer-events: none;
-  transition: opacity .15s, transform .15s;
+  transition: opacity .15s, transform .15s, visibility 0s .15s;
 }
-html.marklens .ml-toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+html.marklens .ml-toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); pointer-events: auto; transition: opacity .15s, transform .15s; }
 html.marklens .ml-toast-btn {
   padding: 2px 8px;
   border: 1px solid currentColor;
@@ -794,4 +835,14 @@ html.marklens .ml-files-menu-item {
   text-align: left;
   cursor: pointer;
 }
-html.marklens .ml-files-menu-item:hover, html.marklens .ml-files-menu-item:focus { background: var(--hover); outline: none; }
+html.marklens .ml-files-menu-item:is(:hover, :focus) { background: var(--hover); }
+
+/* ---------- 系統設定「減少動態效果」：關閉轉場與滑動，狀態直接切換 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html.marklens *,
+  html.marklens *::before,
+  html.marklens *::after {
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+}

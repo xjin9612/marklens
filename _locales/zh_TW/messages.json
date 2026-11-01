@@ -592,5 +592,11 @@
   },
   "changelog": {
     "message": "更新紀錄"
+  },
+  "toggleSidebar": {
+    "message": "顯示／收合側邊欄"
+  },
+  "filesUpLabel": {
+    "message": "上一層資料夾"
   }
 }

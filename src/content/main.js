@@ -11,6 +11,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   const NARROW = 900
   const THEME_LABELS = { auto: ['◐', 'themeAuto'], light: ['☀', 'themeLight'], dark: ['☾', 'themeDark'] }
 
+  /** 裝飾用的符號：螢幕閱讀器略過，只念旁邊的文字 */
+  const glyph = text => h('span', { class: 'ml-glyph', text, attrs: { 'aria-hidden': 'true' } })
+
   /** 瀏覽器把純文字顯示成 <body><pre>…</pre></body>，只接管這種頁面 */
   function sourcePre() {
     if (!CONTENT_TYPES.includes(document.contentType)) return null
@@ -138,15 +141,16 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     buildToolbar() {
       const btn = (cls, text, title, fn) => h('button', { class: `ml-tool ${cls}`, text, title, on: { click: fn } })
       this.tocBtn = btn('ml-tool-toc', t('toolToc'), t('toolTocTitle'), () => this.toggleToc())
+      this.tocBtn.setAttribute('aria-label', t('toggleSidebar'))
       this.widthBtn = btn('ml-tool-width', '', t('toolWidthTitle'), () => this.cycleWidth())
       this.themeBtn = btn('ml-tool-theme', '', t('toolThemeTitle'), () => this.cycleTheme())
       this.exportBtn = btn('ml-tool-export', '', t('toolExportTitle'), () => this.exportHtml())
-      // 窄螢幕只顯示圖示（文字部分由 CSS 隱藏）
-      this.exportBtn.append('⤓', h('span', { class: 'ml-tool-label', text: t('toolExport') }))
+      // 窄螢幕只顯示圖示（文字只在畫面上隱藏，螢幕閱讀器仍念得到）
+      this.exportBtn.append(glyph('⤓'), h('span', { class: 'ml-tool-label', text: t('toolExport') }))
       this.rawBtn = btn('ml-tool-raw', t('toolRaw'), t('toolRawTitle'), () => this.toggleRaw())
       // 用編輯器開啟：設定中選了編輯器且為本機檔案才顯示
       this.editBtn = btn('ml-tool-edit', '', t('toolEditTitle'), () => this.openInEditor())
-      this.editBtn.append('✎', h('span', { class: 'ml-tool-label', text: t('toolEdit') }))
+      this.editBtn.append(glyph('✎'), h('span', { class: 'ml-tool-label', text: t('toolEdit') }))
       this.editBtn.hidden = !(location.protocol === 'file:' && MarkLens.editorTemplate(this.settings))
       this.topBtn = btn('ml-tool-top', t('toolTop'), t('toolTopTitle'), () => scrollTo({ top: 0 }))
       return h('div', { class: 'ml-toolbar', attrs: { role: 'toolbar' } }, [
@@ -280,7 +284,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       if (this.themeBtn) {
         // 窄螢幕只顯示圖示（文字部分由 CSS 隱藏）
         const [icon, name] = THEME_LABELS[s.theme] || THEME_LABELS.auto
-        this.themeBtn.replaceChildren(icon, h('span', { class: 'ml-tool-label', text: t('toolTheme', t(name)) }))
+        this.themeBtn.replaceChildren(glyph(icon), h('span', { class: 'ml-tool-label', text: t('toolTheme', t(name)) }))
       }
       if (this.article) MarkLens.rethemeMermaid(this.article)
     }

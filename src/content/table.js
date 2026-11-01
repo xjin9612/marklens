@@ -227,8 +227,15 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       ths.forEach((th, i) => {
         th.classList.add('ml-sortable')
         th.title = t('tableSortTitle')
+        // 鍵盤也能排序：Tab 移到表頭，Enter 或空白鍵
+        th.tabIndex = 0
         th.addEventListener('click', e => {
           if (e.target.closest('a, .ml-col-resizer')) return
+          sortBy(i)
+        })
+        th.addEventListener('keydown', e => {
+          if (e.target !== th || (e.key !== 'Enter' && e.key !== ' ')) return
+          e.preventDefault()
           sortBy(i)
         })
 

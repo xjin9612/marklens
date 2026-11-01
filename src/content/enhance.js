@@ -40,7 +40,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           h('button', {
             class: 'ml-fold',
             title: MarkLens.t('foldSection'),
-            attrs: { 'aria-expanded': 'true' },
+            attrs: { 'aria-expanded': 'true', 'aria-label': MarkLens.t('foldSection') },
             on: { click: e => (e.preventDefault(), MarkLens.toggleFold(el)) },
           }),
         )

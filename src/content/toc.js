@@ -35,15 +35,22 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         class: 'ml-tool ml-side-menu',
         text: '☰',
         title: t('toolTocTitle'),
+        attrs: { 'aria-label': t('toggleSidebar') },
         on: { click: () => this.app.toggleToc() },
       })
       this.tabToc = h('button', { class: 'ml-side-tab', text: t('tabToc'), on: { click: () => this.setTab('toc') } })
       this.tabFiles = h('button', { class: 'ml-side-tab', text: t('tabFiles'), on: { click: () => this.setTab('files') } })
-      this.tabs = h('div', { class: 'ml-side-tabs', attrs: { role: 'tablist' } }, [this.tabToc, this.tabFiles])
-      this.searchBtn = h('button', { class: 'ml-tool ml-side-icon', title: t('searchTitle'), on: { click: () => this.openSearch() } }, [icon('search')])
+      // 兩顆切換鈕（aria-pressed），不宣告 tablist：分頁標籤需要方向鍵操作，這裡用一般 Tab 鍵就夠
+      this.tabs = h('div', { class: 'ml-side-tabs' }, [this.tabToc, this.tabFiles])
+      this.searchBtn = h(
+        'button',
+        { class: 'ml-tool ml-side-icon', title: t('searchTitle'), attrs: { 'aria-label': t('searchTitle') }, on: { click: () => this.openSearch() } },
+        [icon('search')],
+      )
       this.search = h('input', {
         class: 'ml-toc-search',
         type: 'search',
+        attrs: { 'aria-label': t('searchTitle') },
         on: {
           input: () => this.applyQuery(),
           keydown: e => {
@@ -54,7 +61,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           },
         },
       })
-      const closeSearch = h('button', { class: 'ml-side-search-close', text: '✕', title: t('searchClose'), on: { click: () => this.closeSearch() } })
+      const closeSearch = h('button', { class: 'ml-side-search-close', text: '✕', title: t('searchClose'), attrs: { 'aria-label': t('searchClose') }, on: { click: () => this.closeSearch() } })
       this.searchBox = h('label', { class: 'ml-side-search', hidden: true }, [icon('search'), this.search, closeSearch])
 
       this.stats = h('div', { class: 'ml-toc-stats' })
@@ -93,8 +100,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.tab = tab
       this.tabToc.classList.toggle('active', tab === 'toc')
       this.tabFiles.classList.toggle('active', tab === 'files')
-      this.tabToc.setAttribute('aria-selected', String(tab === 'toc'))
-      this.tabFiles.setAttribute('aria-selected', String(tab === 'files'))
+      this.tabToc.setAttribute('aria-pressed', String(tab === 'toc'))
+      this.tabFiles.setAttribute('aria-pressed', String(tab === 'files'))
       this.tocNav.hidden = tab !== 'toc'
       if (this.files) this.files.el.hidden = tab !== 'files'
       this.search.placeholder = t(tab === 'files' ? 'filesSearch' : 'tocSearch')

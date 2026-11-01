@@ -128,11 +128,23 @@ MarkLens.sha256 = async function (text) {
  * @param {number} [ms]
  */
 MarkLens.toast = function (text, actions = [], ms = 5000) {
+  const toast = MarkLens.toast
   let el = document.querySelector('.ml-toast')
   if (!el) {
     el = MarkLens.h('div', { class: 'ml-toast', attrs: { role: 'status' } })
+    // 滑鼠停在提示上或焦點在提示的按鈕上時暫停倒數，離開後重新計時，才來得及按「復原」
+    const pause = () => clearTimeout(toast.timer)
+    const resume = () => {
+      clearTimeout(toast.timer)
+      toast.timer = setTimeout(() => el.classList.remove('show'), toast.ms)
+    }
+    el.addEventListener('mouseenter', pause)
+    el.addEventListener('focusin', pause)
+    el.addEventListener('mouseleave', () => el.contains(document.activeElement) || resume())
+    el.addEventListener('focusout', e => el.contains(e.relatedTarget) || el.matches(':hover') || resume())
     document.body.append(el)
   }
+  toast.ms = ms
   el.textContent = ''
   el.append(MarkLens.h('span', { text }))
   for (const a of actions) {
@@ -150,6 +162,6 @@ MarkLens.toast = function (text, actions = [], ms = 5000) {
     )
   }
   el.classList.add('show')
-  clearTimeout(MarkLens.toast.timer)
-  MarkLens.toast.timer = setTimeout(() => el.classList.remove('show'), ms)
+  clearTimeout(toast.timer)
+  toast.timer = setTimeout(() => el.classList.remove('show'), ms)
 }
