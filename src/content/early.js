@@ -10,11 +10,23 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
    * 中間不會出現空白頁。轉場物件只能在 pagereveal 事件裡取得，所以必須在這裡提早監聽。
    */
   let transition = null
-  addEventListener('pagereveal', e => (transition = e.viewTransition || null), { once: true })
+  let revealed = false
+  addEventListener(
+    'pagereveal',
+    e => {
+      transition = e.viewTransition || null
+      // 排版比 pagereveal 還早完成（小檔、快取命中）：轉場一開始就結束
+      if (revealed) MarkLens.revealPage()
+    },
+    { once: true },
+  )
   MarkLens.revealPage = function () {
+    revealed = true
     const vt = transition
     transition = null
-    vt?.skipTransition()
+    if (!vt) return
+    // 等轉場準備好（下一個畫面）才結束：準備好之前結束，頁面上的 ready promise 會以錯誤結束並出現在主控台
+    vt.ready.then(() => vt.skipTransition(), () => {})
   }
 
   /*
