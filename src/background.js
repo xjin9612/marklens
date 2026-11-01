@@ -192,7 +192,7 @@ function ignorePatterns(text) {
 }
 const NATURAL = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
 
-const ASSET_RE = /^(?:src\/content\/content\.css|vendor\/katex\/katex\.min\.css|vendor\/katex\/fonts\/KaTeX_[A-Za-z0-9-]+\.woff2)$/
+const ASSET_RE = /^(?:src\/shared\/tokens\.css|src\/content\/content\.css|vendor\/katex\/katex\.min\.css|vendor\/katex\/fonts\/KaTeX_[A-Za-z0-9-]+\.woff2)$/
 
 /* ---------- 任務勾選寫回 ---------- */
 

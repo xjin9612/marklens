@@ -1,0 +1,102 @@
+/*
+ * MarkLens 設計變數：閱讀頁（html.marklens）與擴充功能頁面（popup、引導頁、授權頁：html.ml-ui）共用。
+ * 主題由 <html data-ml-theme="light|dark"> 決定：閱讀頁由 main.js 設定，擴充功能頁面由 shared/theme.js 設定。
+ * 配色沿用 GitHub Primer（閱讀 Markdown 時的熟悉感）；--brand 取自圖示（icons/icon.svg）的靛藍。
+ */
+:is(html.marklens, html.ml-ui) {
+  --ml-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", "Noto Sans CJK TC", sans-serif;
+  /*
+   * 程式碼字型：更紗黑體（有安裝才生效）中英本來就是 2:1，最優先。
+   * 否則英數與罫線用系統等寬字型，中文用 fonts.js 依實際字寬縮放過的系統中文字型（MarkLens CJK Mono），
+   * 讓中文剛好兩個英數字寬，罫線表格才能對齊。
+   */
+  --ml-mono: "Sarasa Mono TC", "Sarasa Term TC", "MarkLens CJK Mono", "Cascadia Code", Consolas, "SFMono-Regular", Menlo, "DejaVu Sans Mono", "Liberation Mono", "Microsoft JhengHei", "PingFang TC", "Noto Sans CJK TC", monospace;
+
+  /* 品牌色：圖示的靛藍，深淺色主題相同；白字對比 7.9:1 */
+  --brand: #4338ca;
+  --on-brand: #ffffff;
+
+  /* 動態：滑過與顯示用 fast，抽屜與提示的移動用 base；同一條緩出曲線 */
+  --ml-dur-fast: .12s;
+  --ml-dur: .15s;
+  --ml-ease: cubic-bezier(.22, 1, .36, 1);
+
+  /* 圓角：小元件（按鈕、輸入框、程式碼）、選單與提示、卡片 */
+  --ml-radius-sm: 6px;
+  --ml-radius-md: 8px;
+  --ml-radius-lg: 12px;
+}
+
+:is(html.marklens, html.ml-ui)[data-ml-theme="light"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --fg: #1f2328;
+  --muted: #59636e;
+  --faint: #6b737c; /* 次要中的次要（摺疊段落裡的目錄項目）；在側邊欄底色上仍有 4.5:1 */
+  --border: #d1d9e0;
+  --border-soft: #e5e9ee;
+  --subtle: #f6f8fa;
+  --hover: #eef1f4;
+  --link: #0969da;
+  --accent: #0969da;
+  --accent-soft: #ddf4ff;
+  --on-accent: #ffffff;
+  --mark: #fff8c5;
+  --code-bg: #f6f8fa;
+  --inline-code-bg: rgba(129, 139, 152, .14);
+  --shadow: 0 4px 16px rgba(31, 35, 40, .12);
+  --ok: #1a7f37;
+  --warn: #9a6700;
+  --warn-bg: #fff8c5;
+  --danger: #d1242f;
+  --hl-keyword: #cf222e; --hl-string: #0a3069; --hl-number: #0550ae; --hl-comment: #59636e;
+  --hl-title: #8250df; --hl-attr: #0550ae; --hl-builtin: #953800; --hl-meta: #1f6feb;
+  --hl-addition: #116329; --hl-addition-bg: #dafbe1; --hl-deletion: #82071e; --hl-deletion-bg: #ffebe9;
+  --alert-note: #0969da; --alert-tip: var(--ok); --alert-important: #8250df; --alert-warning: var(--warn); --alert-caution: var(--danger);
+}
+
+:is(html.marklens, html.ml-ui)[data-ml-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0d1117;
+  --fg: #e6edf3;
+  --muted: #9198a1;
+  --faint: #7d8590;
+  --border: #3d444d;
+  --border-soft: #2a3038;
+  --subtle: #151b23;
+  --hover: #1f2630;
+  --link: #4493f8;
+  --accent: #4493f8;
+  --accent-soft: #121d2f;
+  --on-accent: #0d1117; /* 白字在深色主題的藍底上不到 4.5:1 */
+  --mark: rgba(187, 128, 9, .35);
+  --code-bg: #151b23;
+  --inline-code-bg: rgba(101, 108, 118, .25);
+  --shadow: 0 4px 16px rgba(0, 0, 0, .5);
+  --ok: #3fb950;
+  --warn: #d29922;
+  --warn-bg: #3b2e0a;
+  --danger: #f85149;
+  --hl-keyword: #ff7b72; --hl-string: #a5d6ff; --hl-number: #79c0ff; --hl-comment: #8b949e;
+  --hl-title: #d2a8ff; --hl-attr: #79c0ff; --hl-builtin: #ffa657; --hl-meta: #79c0ff;
+  --hl-addition: #aff5b4; --hl-addition-bg: #033a16; --hl-deletion: #ffdcd7; --hl-deletion-bg: #67060c;
+  --alert-note: #4493f8; --alert-tip: var(--ok); --alert-important: #ab7df8; --alert-warning: var(--warn); --alert-caution: var(--danger);
+}
+
+/* 擴充功能頁面：主題腳本尚未執行前跟隨系統，避免閃白 */
+@media (prefers-color-scheme: dark) {
+  html.ml-ui:not([data-ml-theme]) { color-scheme: dark; background: #0d1117; }
+}
+
+/* 線條圖示（shared/icons.js）：跟隨文字顏色 */
+:is(html.marklens, html.ml-ui) .ml-icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: -3px;
+}

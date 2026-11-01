@@ -44,14 +44,11 @@
   "themeDark": {
     "message": "深色"
   },
-  "toolToc": {
-    "message": "☰"
-  },
   "toolTocTitle": {
     "message": "顯示／收合目錄（t）"
   },
   "toolWidth": {
-    "message": "⇔ 寬度：$1"
+    "message": "寬度：$1"
   },
   "toolWidthTitle": {
     "message": "切換文字寬度（w）"
@@ -60,40 +57,40 @@
     "message": "滿版"
   },
   "toolTheme": {
-    "message": " 主題：$1"
+    "message": "主題：$1"
   },
   "toolThemeTitle": {
     "message": "切換主題：自動 → 淺色 → 深色，所有分頁同步（d）"
   },
   "toolRaw": {
-    "message": "</> 原始文字"
+    "message": "原始文字"
   },
   "toolRawTitle": {
     "message": "切換原始文字（r）"
   },
   "toolBack": {
-    "message": "← 返回閱讀"
+    "message": "返回閱讀"
   },
   "toolTop": {
-    "message": "↑ 頂部"
+    "message": "頂部"
   },
   "toolTopTitle": {
     "message": "回到頂部"
   },
   "toolFoldAll": {
-    "message": "▸ 全部摺疊"
+    "message": "全部摺疊"
   },
   "toolFoldAllTitle": {
     "message": "全部摺疊（[）"
   },
   "toolUnfoldAll": {
-    "message": "▾ 全部展開"
+    "message": "全部展開"
   },
   "toolUnfoldAllTitle": {
     "message": "全部展開（]）"
   },
   "toolExport": {
-    "message": " 匯出 HTML"
+    "message": "匯出 HTML"
   },
   "toolExportTitle": {
     "message": "把目前畫面下載成單一 HTML 檔（不含程式碼，可離線開啟、方便分享）"
@@ -228,7 +225,7 @@
     "message": "上一層：$1"
   },
   "filesSummary": {
-    "message": "📂 $1 · $2 份"
+    "message": "$1 · $2 份"
   },
   "filesFound": {
     "message": "已展開的資料夾中找到 $1 份"
@@ -363,7 +360,7 @@
     "message": "編輯器"
   },
   "secEditorNote": {
-    "message": "工具列 ✎ 開啟原檔"
+    "message": "工具列的「編輯」開啟原檔"
   },
   "editor": {
     "message": "用編輯器開啟"
@@ -384,7 +381,7 @@
     "message": "編輯器網址需以編輯器自己的協定開頭（例如 vscode://），並包含 {path}"
   },
   "toolEdit": {
-    "message": " 編輯"
+    "message": "編輯"
   },
   "toolEditTitle": {
     "message": "用編輯器開啟本檔，並跳到目前閱讀的章節"

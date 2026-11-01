@@ -44,14 +44,11 @@
   "themeDark": {
     "message": "Dark"
   },
-  "toolToc": {
-    "message": "☰"
-  },
   "toolTocTitle": {
     "message": "Show / hide outline (t)"
   },
   "toolWidth": {
-    "message": "⇔ Width: $1"
+    "message": "Width: $1"
   },
   "toolWidthTitle": {
     "message": "Cycle text width (w)"
@@ -60,40 +57,40 @@
     "message": "Full"
   },
   "toolTheme": {
-    "message": " Theme: $1"
+    "message": "Theme: $1"
   },
   "toolThemeTitle": {
     "message": "Cycle theme: auto → light → dark, all tabs (d)"
   },
   "toolRaw": {
-    "message": "</> Source"
+    "message": "Source"
   },
   "toolRawTitle": {
     "message": "Toggle source (r)"
   },
   "toolBack": {
-    "message": "← Back to reading"
+    "message": "Back to reading"
   },
   "toolTop": {
-    "message": "↑ Top"
+    "message": "Top"
   },
   "toolTopTitle": {
     "message": "Back to top"
   },
   "toolFoldAll": {
-    "message": "▸ Fold all"
+    "message": "Fold all"
   },
   "toolFoldAllTitle": {
     "message": "Fold all ([)"
   },
   "toolUnfoldAll": {
-    "message": "▾ Unfold all"
+    "message": "Unfold all"
   },
   "toolUnfoldAllTitle": {
     "message": "Unfold all (])"
   },
   "toolExport": {
-    "message": " Export HTML"
+    "message": "Export HTML"
   },
   "toolExportTitle": {
     "message": "Download what you see as a single HTML file (no scripts; opens offline, easy to share)"
@@ -228,7 +225,7 @@
     "message": "Up to “$1”"
   },
   "filesSummary": {
-    "message": "📂 $1 · $2 files"
+    "message": "$1 · $2 files"
   },
   "filesFound": {
     "message": "$1 found in opened folders"
@@ -363,7 +360,7 @@
     "message": "Editor"
   },
   "secEditorNote": {
-    "message": "toolbar ✎ opens the file"
+    "message": "the toolbar Edit button opens the file"
   },
   "editor": {
     "message": "Open with"
@@ -384,7 +381,7 @@
     "message": "The editor URL must start with the editor's own scheme (such as vscode://) and contain {path}"
   },
   "toolEdit": {
-    "message": " Edit"
+    "message": "Edit"
   },
   "toolEditTitle": {
     "message": "Open this file in your editor, at the section you're reading"

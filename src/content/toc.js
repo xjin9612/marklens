@@ -3,23 +3,7 @@
 var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
 ;(() => {
-  const { h, t } = MarkLens
-
-  /** 線條圖示（跟隨文字顏色），比 emoji 在各系統上一致 */
-  function icon(name) {
-    const NS = 'http://www.w3.org/2000/svg'
-    const svg = document.createElementNS(NS, 'svg')
-    svg.setAttribute('viewBox', '0 0 16 16')
-    svg.setAttribute('class', `ml-icon ml-icon-${name}`)
-    svg.setAttribute('aria-hidden', 'true')
-    const shapes = { search: [['circle', { cx: 7, cy: 7, r: 4.5 }], ['path', { d: 'M10.5 10.5 14 14' }]] }
-    for (const [tag, attrs] of shapes[name]) {
-      const el = document.createElementNS(NS, tag)
-      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v)
-      svg.append(el)
-    }
-    return svg
-  }
+  const { h, t, icon } = MarkLens
 
   MarkLens.Toc = class {
     constructor(app) {
@@ -30,14 +14,12 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.tab = 'toc'
       this.statsText = ''
 
-      // 標題列：☰ ｜ 目錄 檔案 ｜ 🔍；搜尋時分頁標籤換成搜尋框
-      const menu = h('button', {
-        class: 'ml-tool ml-side-menu',
-        text: '☰',
-        title: t('toolTocTitle'),
-        attrs: { 'aria-label': t('toggleSidebar') },
-        on: { click: () => this.app.toggleToc() },
-      })
+      // 標題列：選單 ｜ 目錄 檔案 ｜ 搜尋；搜尋時分頁標籤換成搜尋框
+      const menu = h(
+        'button',
+        { class: 'ml-tool ml-side-menu', title: t('toolTocTitle'), attrs: { 'aria-label': t('toggleSidebar') }, on: { click: () => this.app.toggleToc() } },
+        [icon('menu')],
+      )
       this.tabToc = h('button', { class: 'ml-side-tab', text: t('tabToc'), on: { click: () => this.setTab('toc') } })
       this.tabFiles = h('button', { class: 'ml-side-tab', text: t('tabFiles'), on: { click: () => this.setTab('files') } })
       // 兩顆切換鈕（aria-pressed），不宣告 tablist：分頁標籤需要方向鍵操作，這裡用一般 Tab 鍵就夠
@@ -61,7 +43,11 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           },
         },
       })
-      const closeSearch = h('button', { class: 'ml-side-search-close', text: '✕', title: t('searchClose'), attrs: { 'aria-label': t('searchClose') }, on: { click: () => this.closeSearch() } })
+      const closeSearch = h(
+        'button',
+        { class: 'ml-side-search-close', title: t('searchClose'), attrs: { 'aria-label': t('searchClose') }, on: { click: () => this.closeSearch() } },
+        [icon('close')],
+      )
       this.searchBox = h('label', { class: 'ml-side-search', hidden: true }, [icon('search'), this.search, closeSearch])
 
       this.stats = h('div', { class: 'ml-toc-stats' })
@@ -169,7 +155,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       }
     }
 
-    /** 摺疊標記：被摺疊的標題加 ▸，被收在摺疊段落裡的標題變淡 */
+    /** 摺疊標記：被摺疊的標題前加小箭頭（CSS），被收在摺疊段落裡的標題變淡 */
     syncFold() {
       for (const it of this.items) {
         it.li.classList.toggle('ml-toc-folded', it.heading.classList.contains('ml-folded'))
