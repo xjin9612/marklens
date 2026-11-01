@@ -450,11 +450,54 @@ try {
   })
   await check('寬度切換只影響目前分頁', async () => {
     await page.click('.ml-tool-width')
+    await page.click('.ml-menu-item:has-text("960 px")')
     assert.equal(await page.textContent('.ml-tool-width'), '寬度：960')
     assert.equal(await page2.textContent('.ml-tool-width'), '寬度：1200')
     assert.equal((await sw.evaluate(() => MarkLens.loadSettings())).textWidth, 1200, '全域預設值不應改變')
     await page.keyboard.press('w')
     assert.equal(await page.textContent('.ml-tool-width'), '寬度：滿版')
+    await page.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent === '寬度：滿版')
+  })
+  await check('寬度選單：列出全部選項、目前值打勾，鍵盤可操作，Esc 與點外面都會關閉', async () => {
+    const btn = page.locator('.ml-tool-width')
+    await btn.click()
+    assert.equal(await btn.getAttribute('aria-expanded'), 'true')
+    const items = await page.$$eval('.ml-menu [role="menuitemradio"]', els => els.map(e => [e.textContent, e.getAttribute('aria-checked')]))
+    assert.deepEqual(items, [['滿版', 'true'], ['1600 px', 'false'], ['1200 px', 'false'], ['960 px', 'false']])
+    assert.equal(await page.evaluate(() => document.activeElement.textContent), '滿版', '焦點在目前的選項')
+    // 選單開著時按 w 不會觸發快捷鍵
+    await page.keyboard.press('w')
+    assert.equal(await page.textContent('.ml-tool-width'), '寬度：滿版')
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('Enter')
+    assert.equal(await page.textContent('.ml-tool-width'), '寬度：1200')
+    assert.equal(await page.locator('.ml-menu').count(), 0)
+    assert.equal(await page.evaluate(() => document.activeElement.classList.contains('ml-tool-width')), true, '焦點回到按鈕')
+    assert.equal(await btn.getAttribute('aria-expanded'), 'false')
+    // 鍵盤開啟、Esc 關閉
+    await page.keyboard.press('Enter')
+    assert.equal(await page.locator('.ml-menu').count(), 1)
+    await page.keyboard.press('Escape')
+    assert.equal(await page.locator('.ml-menu').count(), 0)
+    // 再按一次按鈕、點外面都會關閉
+    await btn.click()
+    await btn.click()
+    assert.equal(await page.locator('.ml-menu').count(), 0)
+    await btn.click()
+    await page.mouse.click(600, 500)
+    assert.equal(await page.locator('.ml-menu').count(), 0)
+    // popup 設定的自訂寬度（不在預設選項中）列在最後並打勾
+    await sw.evaluate(() => MarkLens.saveSettings({ textWidth: 1400 }))
+    const cp = await openDoc()
+    try {
+      await cp.click('.ml-tool-width')
+      const last = await cp.$$eval('.ml-menu [role="menuitemradio"]', els => els.map(e => [e.textContent, e.getAttribute('aria-checked')]).at(-1))
+      assert.deepEqual(last, ['自訂：1400 px', 'true'])
+    } finally {
+      await cp.close()
+      await sw.evaluate(() => MarkLens.saveSettings({ textWidth: 1200 }))
+    }
   })
   await check('主題即時同步所有分頁；版面設定不推送', async () => {
     await sw.evaluate(() => MarkLens.saveSettings({ theme: 'dark', textWidth: 960, tocHidden: true }))
@@ -598,10 +641,10 @@ try {
     await dp.click('.ml-files-up')
     await dp.waitForSelector('.ml-files-dir[data-dir="nav"]')
     await dp.click('.ml-files-dir[data-dir="nav"]', { button: 'right' })
-    await dp.click('.ml-files-menu-item:text("以此資料夾為起點")')
+    await dp.click('.ml-menu-item:has-text("以此資料夾為起點")')
     await dp.waitForFunction(() => document.querySelector('.ml-files-summary').textContent === 'nav · 4 份')
     assert.equal(await dp.getAttribute('.ml-files-dir[data-dir="sub"] > button', 'aria-expanded'), 'true', '目前檔案所在的資料夾維持展開')
-    assert.equal(await dp.locator('.ml-files-menu').count(), 0, '選單已關閉')
+    assert.equal(await dp.locator('.ml-menu').count(), 0, '選單已關閉')
     await np.close()
     await dp.close()
   })
@@ -810,6 +853,11 @@ try {
     await sw.evaluate(() => MarkLens.saveSettings({ theme: 'auto' }))
     await mp.waitForFunction(() => document.querySelector('.ml-tool-theme').textContent.includes('自動'))
     await mp.click('.ml-tool-theme')
+    assert.deepEqual(
+      await mp.$$eval('.ml-menu [role="menuitemradio"]', els => els.map(e => [e.textContent, e.getAttribute('aria-checked')])),
+      [['自動', 'true'], ['淺色', 'false'], ['深色', 'false']],
+    )
+    await mp.click('.ml-menu-item:has-text("淺色")')
     await mp.waitForFunction(() => document.querySelector('.ml-tool-theme').textContent.includes('淺色'))
     assert.equal(await theme(), 'light')
     assert.equal(await mp.evaluate(() => document.documentElement.dataset.mlTheme), 'light')

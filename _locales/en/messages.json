@@ -51,7 +51,7 @@
     "message": "Width: $1"
   },
   "toolWidthTitle": {
-    "message": "Cycle text width (w)"
+    "message": "Text width (w cycles)"
   },
   "widthFull": {
     "message": "Full"
@@ -60,7 +60,7 @@
     "message": "Theme: $1"
   },
   "toolThemeTitle": {
-    "message": "Cycle theme: auto → light → dark, all tabs (d)"
+    "message": "Theme for all tabs (d cycles: auto → light → dark)"
   },
   "toolRaw": {
     "message": "Source"
@@ -601,5 +601,14 @@
   },
   "imageOpen": {
     "message": "Enlarge image"
+  },
+  "widthCustomItem": {
+    "message": "Custom: $1 px"
+  },
+  "widthMenu": {
+    "message": "Text width"
+  },
+  "themeMenu": {
+    "message": "Theme"
   }
 }

@@ -13,6 +13,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     close: ['M4 4l8 8', 'M12 4l-8 8'],
     'chevron-right': ['M6 3.5 10.5 8 6 12.5'],
     'chevron-down': ['M3.5 6 8 10.5 12.5 6'],
+    check: ['M3 8.5 6.5 12 13 4.5'],
     'fold-all': ['M5 2.5 8 5.5l3-3', 'M5 13.5l3-3 3 3'],
     'unfold-all': ['M5 5.5l3-3 3 3', 'M5 10.5l3 3 3-3'],
     width: ['M2 8h12', 'M4.5 5.5 2 8l2.5 2.5', 'M11.5 5.5 14 8l-2.5 2.5'],

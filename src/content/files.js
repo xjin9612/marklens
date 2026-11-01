@@ -185,7 +185,6 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     /** 資料夾的右鍵選單；鍵盤（選單鍵、Shift+F10）觸發時沒有滑鼠座標，改貼在該列下方 */
     showMenu(e, row) {
       e.preventDefault()
-      this.closeMenu()
       const path = row.dataset.dir
       let { clientX: x, clientY: y } = e
       if (!x && !y) {
@@ -193,34 +192,11 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         x = r.left + 24
         y = r.bottom
       }
-      const item = h('button', {
-        class: 'ml-files-menu-item',
-        text: t('filesSetRoot'),
-        attrs: { role: 'menuitem' },
-        on: {
-          click: () => {
-            this.closeMenu()
-            this.setRoot(path)
-          },
-        },
+      MarkLens.openMenu({
+        anchor: row.querySelector('button') || row,
+        at: { x, y },
+        items: [{ label: t('filesSetRoot'), fn: () => this.setRoot(path) }],
       })
-      this.menu = h('div', { class: 'ml-files-menu', attrs: { role: 'menu' }, style: { left: `${x}px`, top: `${y}px` } }, [item])
-      document.body.append(this.menu)
-      item.focus()
-      const close = ev => {
-        if (ev.type === 'keydown' && ev.key !== 'Escape') return
-        if (ev.type !== 'keydown' && this.menu?.contains(ev.target)) return
-        this.closeMenu()
-      }
-      this.menuClose = close
-      for (const type of ['pointerdown', 'keydown', 'scroll', 'blur']) addEventListener(type, close, true)
-    }
-
-    closeMenu() {
-      this.menu?.remove()
-      this.menu = null
-      if (this.menuClose) for (const type of ['pointerdown', 'keydown', 'scroll', 'blur']) removeEventListener(type, this.menuClose, true)
-      this.menuClose = null
     }
 
     async toggle(path) {
