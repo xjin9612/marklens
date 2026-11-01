@@ -5,6 +5,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- Keyboard support: sort a table by focusing its header and pressing Enter or Space; enlarge an image with Enter, close it with Esc (focus returns to the image); open the folder menu in the Files tab with the context-menu key or Shift+F10
+- Enlarged images have a visible close button
+- Popup: the File list, Editor, Task check-off and Auto refresh sections can be collapsed (collapsed by default; remembered on this computer)
+
+### Changed
+- Toolbar, sidebar and file-tree icons are now one set of line icons instead of text symbols and emoji, so they look the same on every system. On narrow windows the toolbar shows icons only and no longer scrolls sideways
+- Popup, welcome page and folder access page follow MarkLens's theme setting (Auto / Light / Dark) like the reader, and share its colors and fonts
+- Mermaid diagrams use the reader's colors: nodes are cards with thin borders, multi-color charts use the alert colors, and the glow around nodes in dark mode is gone
+- Table toolbar sits on the table like a tab and no longer cuts through the heading's underline
+- Shorter placeholders: "Filter", "Search headings", "Search files"
+
+### Fixed
+- Accessibility: consistent keyboard focus outline; every icon button has a spoken name; controls are at least 24×24 px; the fold toggle has 3:1 contrast and outline items inside folded sections stay readable (4.5:1); the Files tab no longer claims to be a tree it can't be navigated as; notifications pause while hovered or focused; animations are off when the system asks for reduced motion
+- Switching files in the same tab could keep the old page on screen for 1.5 s when the new page was ready very quickly
+
 ## [1.3.0] - 2026-10-31
 
 ### Added
