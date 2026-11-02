@@ -221,7 +221,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         { label: t('fontSmaller'), icon: 'minus', fn: () => this.stepFont(-1) },
         { label: t('fontReset', `${def} px`), fn: () => this.setFontSize(def) },
         ...MarkLens.FONT_PRESETS.map(px => ({
-          label: `${px} px（${MarkLens.fontPercent(px)}）`,
+          label: t('fontSizeItem', px, MarkLens.fontPercent(px)),
           checked: px === cur,
           fn: () => this.setFontSize(px),
         })),

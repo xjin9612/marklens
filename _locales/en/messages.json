@@ -629,6 +629,9 @@
   "fontReset": {
     "message": "Reset ($1)"
   },
+  "fontSizeItem": {
+    "message": "$1 px ($2)"
+  },
   "fontCustomItem": {
     "message": "Custom: $1 px"
   }
