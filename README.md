@@ -9,13 +9,11 @@
 
 English | [繁體中文](./README.zh-TW.md)
 
-A lightweight, auditable Markdown reader for Chrome and Edge. Open any `.md` file — local or online — and read it with a sidebar outline, foldable sections, and tables you can actually work with: resize columns, sort, filter, and copy to a spreadsheet.
+A lightweight Markdown reader for Chrome and Edge — **easy to audit, no remote code, no build step**. Open any `.md` file — local or online — and read it with a sidebar outline, foldable sections, and tables you can work with: resize columns, sort, filter, and copy to a spreadsheet.
 
 ![Light theme: sidebar outline, GitHub alert, task list and table](docs/screenshots/light.png)
 
 ![Dark theme: table sorted by a column with its toolbar, and a Mermaid diagram](docs/screenshots/dark.png)
-
-Inspired by [md-reader 2.x](https://github.com/md-reader/md-reader) (MIT); rewritten from scratch with three goals: **easy to audit, no remote code, no build step**.
 
 ## Install
 
@@ -60,7 +58,7 @@ Folder access is held by the extension itself (in its own storage, under its own
 
 ### Per-tab vs. global settings
 
-- **Current tab only**: sidebar visibility, sidebar width, selected sidebar tab, text width, and the Files tab's top folder and open folders. Kept across reloads and when opening another file in the same tab, cleared when the tab closes — handy for comparing documents side by side. Raw view and folds are not kept. On web pages these stay in memory only (not in the site's storage, so the site can't detect MarkLens) and reset on reload.
+- **Current tab only**: sidebar visibility, sidebar width, selected sidebar tab, text width, and the Files tab's top folder and open folders. Kept across reloads and when opening another file in the same tab, cleared when the tab closes — handy for comparing documents side by side. Raw view and folds are not kept. On web pages these stay in memory only (nothing is written to the site's storage) and reset on reload.
 - **Synced live to every tab**: theme, font size, line height.
 - **Everything else in the popup** is the default for new tabs; open tabs pick it up after a reload. Dragging the sidebar width also saves it as the new default.
 
@@ -92,9 +90,9 @@ Browser-level (change them at `chrome://extensions/shortcuts`):
 - **Allow-list HTML sanitizer** (`src/content/sanitize.js`): keeps common tags such as `<details>`, `<kbd>` and tables; drops `<script>`, `<iframe>`, `<svg>`, every event-handler attribute, `style` (except table alignment), and `javascript:` / non-image `data:` URLs.
 - **Math** renders with KaTeX `trust: false` (no `\href`, `\url`, `\includegraphics` or `\html…` commands) and a macro-expansion limit; like Mermaid, its files are reachable from `file://` pages only.
 - **No borrowing the interface**: HTML in a document cannot use MarkLens's own `ml-` class or id names (so it cannot draw a fake overlay or prompt over the page), and `name` is kept only on `<a>` to prevent DOM clobbering.
-- **Exported HTML** contains no JavaScript and carries a Content-Security-Policy that blocks scripts, so a shared export is safe to open.
+- **Exported HTML** contains no JavaScript and carries a Content-Security-Policy that blocks scripts, so a shared export cannot run any code. Remote images in the document still load when it is opened.
 - **Attack suite**: `test/fixtures/security.md` collects 60+ attack samples; the tests render it, click every link and diagram node, and fail if anything runs.
-- **Minimal permissions**: only `storage`. Content scripts match Markdown file extensions only — no "read all sites" permission.
+- **Minimal permissions**: only `storage`. Content scripts run only on URLs ending in a Markdown extension. Chrome still shows this as access to all sites, because its permission prompt ignores the path part of URL patterns. To limit this, set **Site access** on the extension's Details page to *On specific sites* and add only the sites you trust; local files are not affected (they depend on **Allow access to file URLs**). Markdown files on other sites are then shown as plain text.
 - **Local file reads** go through the background worker, which only reads the URL of the page that asked.
 - **Folder listings** for the Files tab are also read by the background worker: only `file://` folders (no network shares, no `.` / `..` segments), returning only Markdown file names and subfolder names — never file contents.
 - **Writes** happen only when you click a task checkbox: the background worker changes that single line after checking that the file still matches what the page shows. Which lines are writable is decided by the Markdown parser with a per-render random nonce, so HTML inside a document cannot fake a writable checkbox.
@@ -119,6 +117,7 @@ src/
     early.js             runs first: keeps the previous page on screen while switching files, loading background color
     util.js              helpers, reading the page source
     icons.js             interface line icons (SVG)
+    menu.js              dropdown menus (toolbar width / theme, Files tab folder menu), keyboard navigation
     fonts.js             CJK/ASCII width alignment for code blocks
     sanitize.js          allow-list HTML sanitizer
     markdown.js          markdown-it setup, ==mark==, alerts, front matter
