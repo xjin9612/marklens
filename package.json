@@ -1,6 +1,6 @@
 {
   "name": "marklens",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "private": true,
   "description": "Lightweight, auditable Markdown reader for Chrome/Edge (dev tooling only; the extension needs no build)",
   "license": "MIT",
