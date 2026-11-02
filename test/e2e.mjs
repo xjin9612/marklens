@@ -519,11 +519,11 @@ try {
     const sizes = p =>
       p.evaluate(() => {
         const px = sel => getComputedStyle(document.querySelector(`.markdown-body ${sel}`)).fontSize
-        return { p: px('p'), h1: px('h1'), pre: px('pre'), td: px('td') }
+        return { p: px('p'), h1: px('h1'), pre: px('.ml-code pre'), fm: px('.ml-frontmatter pre'), td: px('td') }
       })
     const fontSize = async () => (await sw.evaluate(() => MarkLens.loadSettings())).fontSize
     try {
-      assert.deepEqual(await sizes(page), { p: '16px', h1: '32px', pre: '13.6px', td: '16px' })
+      assert.deepEqual(await sizes(page), { p: '16px', h1: '32px', pre: '13.6px', fm: '13.6px', td: '16px' })
       assert.equal(await page.textContent('.ml-tool-font'), '字級：100%')
       const btn = page.locator('.ml-tool-font')
       await btn.click()
@@ -533,7 +533,7 @@ try {
       assert.deepEqual(radios.find(([, c]) => c === 'true'), ['16 px（100%）', 'true'])
       await page.click('.ml-menu-item:has-text("20 px")')
       // 內文、標題、程式碼、表格以同一比例放大（1.25 倍）
-      assert.deepEqual(await sizes(page), { p: '20px', h1: '40px', pre: '17px', td: '20px' })
+      assert.deepEqual(await sizes(page), { p: '20px', h1: '40px', pre: '17px', fm: '17px', td: '20px' })
       assert.equal(await page.textContent('.ml-tool-font'), '字級：125%')
       for (let i = 0; i < 20 && (await fontSize()) !== 20; i++) await page.waitForTimeout(50)
       assert.equal(await fontSize(), 20)
@@ -547,7 +547,7 @@ try {
       await page.keyboard.press('-')
       assert.equal(await page.textContent('.ml-tool-font'), '字級：113%')
       await page.keyboard.press('0')
-      assert.deepEqual(await sizes(page), { p: '16px', h1: '32px', pre: '13.6px', td: '16px' })
+      assert.deepEqual(await sizes(page), { p: '16px', h1: '32px', pre: '13.6px', fm: '13.6px', td: '16px' })
       // 寫入設定是非同步的：等全域設定回到 16
       for (let i = 0; i < 20 && (await fontSize()) !== 16; i++) await page.waitForTimeout(50)
       assert.equal(await fontSize(), 16)
