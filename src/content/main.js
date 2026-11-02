@@ -158,7 +158,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       // 寬度與主題：按下展開選項清單（目前的值打勾）；快捷鍵 w／d 仍依序切換
       this.widthBtn = btn('ml-tool-width', 'width', '', t('toolWidthTitle'), () => this.toggleMenu(this.widthBtn, () => this.widthMenu()))
       this.themeBtn = btn('ml-tool-theme', 'auto', '', t('toolThemeTitle'), () => this.toggleMenu(this.themeBtn, () => this.themeMenu()))
-      for (const b of [this.widthBtn, this.themeBtn]) {
+      this.fontBtn = btn('ml-tool-font', 'text-size', '', t('toolFontSizeTitle'), () => this.toggleMenu(this.fontBtn, () => this.fontMenu()))
+      for (const b of [this.widthBtn, this.themeBtn, this.fontBtn]) {
         b.setAttribute('aria-haspopup', 'menu')
         b.setAttribute('aria-expanded', 'false')
       }
@@ -175,6 +176,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           btn('ml-tool-fold', 'fold-all', t('toolFoldAll'), t('toolFoldAllTitle'), () => MarkLens.foldAll(this.article)),
           btn('ml-tool-unfold', 'unfold-all', t('toolUnfoldAll'), t('toolUnfoldAllTitle'), () => MarkLens.unfoldAll(this.article)),
           this.widthBtn,
+          this.fontBtn,
           this.exportBtn,
         ]),
         this.themeBtn,
@@ -210,6 +212,24 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       MarkLens.openMenu({ anchor: this.themeBtn, items, radio: true, label: t('themeMenu') })
     }
 
+    /** 字體大小：放大、縮小、重設，以及預設尺寸（目前的值打勾） */
+    fontMenu() {
+      const cur = this.settings.fontSize
+      const def = MarkLens.DEFAULTS.fontSize
+      const items = [
+        { label: t('fontLarger'), icon: 'plus', fn: () => this.stepFont(1) },
+        { label: t('fontSmaller'), icon: 'minus', fn: () => this.stepFont(-1) },
+        { label: t('fontReset', `${def} px`), fn: () => this.setFontSize(def) },
+        ...MarkLens.FONT_PRESETS.map(px => ({
+          label: t('fontSizeItem', px, MarkLens.fontPercent(px)),
+          checked: px === cur,
+          fn: () => this.setFontSize(px),
+        })),
+      ]
+      if (!MarkLens.FONT_PRESETS.includes(cur)) items.push({ label: t('fontCustomItem', cur), checked: true, fn: () => {} })
+      MarkLens.openMenu({ anchor: this.fontBtn, items, radio: true, label: t('fontMenu') })
+    }
+
     /**
      * @param {string} name 指令名稱
      * @param {boolean} [announce] 由快捷鍵觸發：寬度與主題切換後以提示顯示切到哪一個（按鍵時看不到選單）
@@ -226,6 +246,15 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           const next = MarkLens.nextOf(MarkLens.THEME_ORDER, this.settings.theme)
           this.setTheme(next)
           if (announce) MarkLens.toast(t('toolTheme', t(THEME_LABELS[next][1])), [], 1500)
+          return
+        }
+        case 'font-larger':
+        case 'font-smaller':
+        case 'font-reset': {
+          const px =
+            name === 'font-reset' ? MarkLens.DEFAULTS.fontSize : MarkLens.stepFontSize(this.settings.fontSize, name === 'font-larger' ? 1 : -1)
+          this.setFontSize(px)
+          if (announce) MarkLens.toast(t('toolFontSize', MarkLens.fontPercent(px)), [], 1500)
           return
         }
         case 'toggle-raw':
@@ -247,7 +276,19 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         e.preventDefault()
         return this.toc.openSearch()
       }
-      const map = { t: 'toggle-toc', r: 'toggle-raw', w: 'cycle-width', d: 'cycle-theme', '[': 'fold-all', ']': 'unfold-all' }
+      const map = {
+        t: 'toggle-toc',
+        r: 'toggle-raw',
+        w: 'cycle-width',
+        d: 'cycle-theme',
+        '[': 'fold-all',
+        ']': 'unfold-all',
+        // 字體大小：= 與 + 同一個鍵（不必按 Shift），數字鍵盤的 + − 也可以
+        '+': 'font-larger',
+        '=': 'font-larger',
+        '-': 'font-smaller',
+        0: 'font-reset',
+      }
       const name = map[e.key]
       if (!name) return
       e.preventDefault()
@@ -322,6 +363,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       const s = this.settings
       const rs = document.documentElement.style
       rs.setProperty('--ml-font-size', `${s.fontSize}px`)
+      // 縮放倍率（以預設字體大小為 100%）：給無法用 em 表示大小的內容（Mermaid 圖表）等比縮放
+      rs.setProperty('--ml-scale', String(s.fontSize / MarkLens.DEFAULTS.fontSize))
       rs.setProperty('--ml-line-height', String(s.lineHeight))
       const dark = s.theme === 'dark' || (s.theme === 'auto' && this.darkQuery.matches)
       document.documentElement.dataset.mlTheme = dark ? 'dark' : 'light'
@@ -337,6 +380,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         const [icon, name] = THEME_LABELS[s.theme] || THEME_LABELS.auto
         setTool(this.themeBtn, icon, t('toolTheme', t(name)))
       }
+      if (this.fontBtn) setTool(this.fontBtn, 'text-size', t('toolFontSize', MarkLens.fontPercent(s.fontSize)))
       if (this.article) MarkLens.rethemeMermaid(this.article)
     }
 
@@ -365,6 +409,24 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     setTheme(theme) {
       if (!MarkLens.alive()) return this.onOrphaned()
       MarkLens.saveSettings({ theme }).catch(() => {})
+    }
+
+    /** 字體大小同主題，是全域設定：所有分頁一起縮放 */
+    setFontSize(px) {
+      if (!MarkLens.alive()) return this.onOrphaned()
+      const fontSize = Math.min(MarkLens.FONT_MAX, Math.max(MarkLens.FONT_MIN, Math.round(px)))
+      if (fontSize === this.settings.fontSize) return
+      // 以目前閱讀位置為錨點：縮放後頁面高度改變，捲回同一個比例的位置
+      const ratio = scrollY / Math.max(1, document.documentElement.scrollHeight)
+      this.settings.fontSize = fontSize
+      this.applyLive()
+      scrollTo(0, ratio * document.documentElement.scrollHeight)
+      this.onScroll()
+      MarkLens.saveSettings({ fontSize }).catch(() => {})
+    }
+
+    stepFont(dir) {
+      this.setFontSize(MarkLens.stepFontSize(this.settings.fontSize, dir))
     }
 
     /** 以設定的編輯器開啟目前檔案；正在閱讀某個章節時跳到該標題所在行 */

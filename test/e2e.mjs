@@ -515,6 +515,54 @@ try {
   })
   await sw.evaluate(() => MarkLens.saveSettings({ theme: 'auto', textWidth: 1200, tocHidden: false }))
 
+  await check('字體大小：工具列選單與 +／-／0 鍵等比縮放整篇文件，所有分頁同步', async () => {
+    const sizes = p =>
+      p.evaluate(() => {
+        const px = sel => getComputedStyle(document.querySelector(`.markdown-body ${sel}`)).fontSize
+        return { p: px('p'), h1: px('h1'), pre: px('.ml-code pre'), fm: px('.ml-frontmatter pre'), td: px('td') }
+      })
+    const fontSize = async () => (await sw.evaluate(() => MarkLens.loadSettings())).fontSize
+    try {
+      assert.deepEqual(await sizes(page), { p: '16px', h1: '32px', pre: '13.6px', fm: '13.6px', td: '16px' })
+      assert.equal(await page.textContent('.ml-tool-font'), '字級：100%')
+      const btn = page.locator('.ml-tool-font')
+      await btn.click()
+      assert.equal(await btn.getAttribute('aria-expanded'), 'true')
+      assert.deepEqual(await page.$$eval('.ml-menu [role="menuitem"]', els => els.map(e => e.textContent)), ['放大', '縮小', '重設（16 px）'])
+      const radios = await page.$$eval('.ml-menu [role="menuitemradio"]', els => els.map(e => [e.textContent, e.getAttribute('aria-checked')]))
+      assert.deepEqual(radios.find(([, c]) => c === 'true'), ['16 px（100%）', 'true'])
+      await page.click('.ml-menu-item:has-text("20 px")')
+      // 內文、標題、程式碼、表格以同一比例放大（1.25 倍）
+      assert.deepEqual(await sizes(page), { p: '20px', h1: '40px', pre: '17px', fm: '17px', td: '20px' })
+      assert.equal(await page.textContent('.ml-tool-font'), '字級：125%')
+      for (let i = 0; i < 20 && (await fontSize()) !== 20; i++) await page.waitForTimeout(50)
+      assert.equal(await fontSize(), 20)
+      await page2.waitForFunction(() => document.querySelector('.ml-tool-font').textContent === '字級：125%')
+      assert.equal((await sizes(page2)).pre, '17px', '其他分頁同步縮放')
+      // 快捷鍵：+ 與 = 放大一級，- 縮小一級，0 重設
+      await page.keyboard.press('=')
+      assert.equal(await page.textContent('.ml-tool-font'), '字級：150%')
+      await page.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent === '字級：150%')
+      await page.keyboard.press('-')
+      await page.keyboard.press('-')
+      assert.equal(await page.textContent('.ml-tool-font'), '字級：113%')
+      await page.keyboard.press('0')
+      assert.deepEqual(await sizes(page), { p: '16px', h1: '32px', pre: '13.6px', fm: '13.6px', td: '16px' })
+      // 寫入設定是非同步的：等全域設定回到 16
+      for (let i = 0; i < 20 && (await fontSize()) !== 16; i++) await page.waitForTimeout(50)
+      assert.equal(await fontSize(), 16)
+      // popup 設定的自訂大小（不在預設選項中）列在最後並打勾
+      await sw.evaluate(() => MarkLens.saveSettings({ fontSize: 17 }))
+      await page.waitForFunction(() => document.querySelector('.ml-tool-font').textContent === '字級：106%')
+      await btn.click()
+      const last = await page.$$eval('.ml-menu [role="menuitemradio"]', els => els.map(e => [e.textContent, e.getAttribute('aria-checked')]).at(-1))
+      assert.deepEqual(last, ['自訂：17 px', 'true'])
+      await page.keyboard.press('Escape')
+    } finally {
+      await sw.evaluate(() => MarkLens.saveSettings({ fontSize: 16 }))
+    }
+  })
+
   await check('Alt+Shift 快捷鍵：一般指令只作用於目前分頁，切換主題作用於所有分頁', async () => {
     // 呼叫背景程式真正的快捷鍵處理函式；沒有 tabs 權限拿不到網址，以「目前作用中的分頁」代表 page
     await page.bringToFront()
@@ -839,6 +887,19 @@ try {
     assert.equal(await first.locator('svg').isVisible(), true)
   })
   await mp.screenshot({ path: join(shotDir, 'ml-mermaid.png'), fullPage: true })
+  await check('Mermaid：圖表跟著字體大小等比縮放', async () => {
+    const width = () => mp.evaluate(() => document.querySelector('.ml-mermaid-view svg').getBoundingClientRect().width)
+    const before = await width()
+    await sw.evaluate(() => MarkLens.saveSettings({ fontSize: 20 }))
+    try {
+      await mp.waitForFunction(() => document.documentElement.style.getPropertyValue('--ml-scale') === '1.25')
+      const ratio = (await width()) / before
+      assert.ok(Math.abs(ratio - 1.25) < 0.02, `圖表寬度比例 ${ratio}`)
+    } finally {
+      await sw.evaluate(() => MarkLens.saveSettings({ fontSize: 16 }))
+      await mp.waitForFunction(() => document.documentElement.style.getPropertyValue('--ml-scale') === '1')
+    }
+  })
   await check('Mermaid：切換主題後重繪', async () => {
     const before = (await sw.evaluate(() => MarkLens.loadSettings())).theme
     await sw.evaluate(() => MarkLens.saveSettings({ theme: 'dark' }))

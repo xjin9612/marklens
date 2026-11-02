@@ -38,6 +38,22 @@ MarkLens.LIVE_KEYS = ['theme', 'fontSize', 'lineHeight']
 MarkLens.WIDTH_PRESETS = [0, 1600, 1200, 960]
 MarkLens.THEME_ORDER = ['auto', 'light', 'dark']
 
+// 字體大小（px）：整篇文章（內文、標題、程式碼、表格、公式、圖表）依此等比縮放，DEFAULTS.fontSize 為 100%
+MarkLens.FONT_MIN = 10
+MarkLens.FONT_MAX = 32
+MarkLens.FONT_PRESETS = [12, 14, 16, 18, 20, 24, 28]
+
+/** 放大／縮小一級：跳到下一個預設尺寸；自訂尺寸先跳到最接近的預設值 */
+MarkLens.stepFontSize = function (current, dir) {
+  const list = MarkLens.FONT_PRESETS
+  const next = dir > 0 ? list.find(v => v > current) : [...list].reverse().find(v => v < current)
+  return next ?? Math.min(MarkLens.FONT_MAX, Math.max(MarkLens.FONT_MIN, current))
+}
+
+MarkLens.fontPercent = function (px) {
+  return `${Math.round((px / MarkLens.DEFAULTS.fontSize) * 100)}%`
+}
+
 MarkLens.loadSettings = async function () {
   const data = await chrome.storage.local.get(MarkLens.SETTINGS_KEY)
   const stored = { ...(data[MarkLens.SETTINGS_KEY] || {}) }

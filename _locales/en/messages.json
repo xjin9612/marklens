@@ -610,5 +610,29 @@
   },
   "themeMenu": {
     "message": "Theme"
+  },
+  "toolFontSize": {
+    "message": "Size: $1"
+  },
+  "toolFontSizeTitle": {
+    "message": "Font size — scales the whole document (+ / − / 0)"
+  },
+  "fontMenu": {
+    "message": "Font size"
+  },
+  "fontLarger": {
+    "message": "Larger"
+  },
+  "fontSmaller": {
+    "message": "Smaller"
+  },
+  "fontReset": {
+    "message": "Reset ($1)"
+  },
+  "fontSizeItem": {
+    "message": "$1 px ($2)"
+  },
+  "fontCustomItem": {
+    "message": "Custom: $1 px"
   }
 }

@@ -37,6 +37,7 @@ html.marklens {
   --ml-text-max: 1200px;
   --ml-text-min: min(100%, 1200px);
   --ml-font-size: 16px;
+  --ml-scale: 1; /* 字體大小相對預設值的倍率 */
   --ml-line-height: 1.7;
   --ml-toc-width: 260px;
 }
@@ -492,7 +493,7 @@ html.marklens .markdown-body .ml-frontmatter {
   border: 1px solid var(--border-soft);
   border-radius: 6px;
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: calc(var(--ml-font-size) * .8125); /* 13px @16px；跟著字體大小等比縮放 */
   color: var(--muted);
 }
 html.marklens .markdown-body .ml-frontmatter pre { margin: 8px 0 4px; }
@@ -514,7 +515,8 @@ html.marklens .markdown-body pre {
   padding: 16px;
   overflow: auto;
   /* 行距略收緊，罫線字元（│ ┃）上下較能連成直線 */
-  font: 13.6px/1.35 var(--ml-mono);
+  /* 13.6px @16px；以設定的字體大小為基準（不用 em：放在 front matter、腳註等縮小的區塊裡也一樣大） */
+  font: calc(var(--ml-font-size) * .85)/1.35 var(--ml-mono);
   background: var(--code-bg);
   border-radius: 6px;
   white-space: pre;
@@ -795,12 +797,14 @@ html.marklens .markdown-body .ml-mermaid .ml-mermaid-view {
   border-radius: 6px;
 }
 html.marklens .markdown-body .ml-mermaid .ml-mermaid-view svg { max-width: 100%; height: auto; }
+/* 圖表是固定大小的 SVG，用 zoom 跟著字體大小等比縮放；區塊寬度仍貼齊文字欄，過寬時捲動 */
+html.marklens .markdown-body .ml-mermaid .ml-mermaid-view:not(.ml-mermaid-error) { zoom: var(--ml-scale); }
 /* mermaid 內建的節點陰影在深色主題像一圈光暈：圖表與頁面一樣只用框線分層 */
 html.marklens .markdown-body .ml-mermaid-view svg * { filter: none !important; }
 html.marklens .markdown-body .ml-mermaid > pre { display: none; }
 html.marklens .markdown-body .ml-mermaid.ml-mermaid-source > pre { display: block; }
 html.marklens .markdown-body .ml-mermaid.ml-mermaid-source .ml-mermaid-view:not(.ml-mermaid-error) { display: none; }
-html.marklens .markdown-body .ml-mermaid-pending { color: var(--muted); font-size: 13px; }
+html.marklens .markdown-body .ml-mermaid-pending { color: var(--muted); font-size: calc(var(--ml-font-size) * .8125); }
 /* 顯示圖表時「換行」按鈕沒有作用 */
 html.marklens .markdown-body .ml-mermaid:not(.ml-mermaid-source) .ml-code-wrap-btn { display: none; }
 html.marklens .markdown-body .ml-mermaid .ml-mermaid-view.ml-mermaid-error {

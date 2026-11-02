@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- **Font size** button in the toolbar: Larger, Smaller, Reset, or pick a size (12–28 px, shown with its percentage). The `+` (or `=`), `-` and `0` keys do the same. Like the theme, the size applies to every open tab
+
+### Changed
+- Font size now scales the whole document proportionally: code blocks, front matter and Mermaid diagrams grow and shrink with the text instead of staying at a fixed size. The popup accepts 10–32 px (was 12–24)
+
 ## [1.4.0] - 2026-11-01
 
 ### Added
