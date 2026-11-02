@@ -610,5 +610,29 @@
   },
   "themeMenu": {
     "message": "主題"
+  },
+  "toolFontSize": {
+    "message": "字級：$1"
+  },
+  "toolFontSizeTitle": {
+    "message": "字體大小：整篇文件等比縮放（+／−／0 鍵）"
+  },
+  "fontMenu": {
+    "message": "字體大小"
+  },
+  "fontLarger": {
+    "message": "放大"
+  },
+  "fontSmaller": {
+    "message": "縮小"
+  },
+  "fontReset": {
+    "message": "重設（$1）"
+  },
+  "fontSizeItem": {
+    "message": "$1 px（$2）"
+  },
+  "fontCustomItem": {
+    "message": "自訂：$1 px"
   }
 }

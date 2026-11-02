@@ -26,6 +26,10 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     // 自動：半實心的圓（跟隨系統深淺色）
     auto: [['circle', { cx: 8, cy: 8, r: 5.5 }], ['path', { d: 'M8 2.5a5.5 5.5 0 0 1 0 11z', fill: 'currentColor', stroke: 'none' }]],
     code: ['M5.5 4.5 2 8l3.5 3.5', 'M10.5 4.5 14 8l-3.5 3.5'],
+    // 字體大小：大 A 與小 A
+    'text-size': ['M1.5 13 5.5 3l4 10', 'M3 9.5h5', 'M10 13l2.5-6 2.5 6', 'M10.9 11h3.2'],
+    plus: ['M8 3v10', 'M3 8h10'],
+    minus: ['M3 8h10'],
     edit: ['M10.5 2.5l3 3-8 8H2.5v-3z', 'M9 4l3 3'],
     'arrow-up': ['M8 13.5v-11', 'M4 6.5l4-4 4 4'],
     'arrow-left': ['M13.5 8h-11', 'M6.5 4l-4 4 4 4'],

@@ -25,19 +25,20 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
    * @param {object} opts
    * @param {HTMLElement} opts.anchor 觸發的按鈕；選單貼在它下方，關閉後焦點回到它
    * @param {Array<{label: string, icon?: string, checked?: boolean, fn: Function}>} opts.items
-   * @param {boolean} [opts.radio] 單選（項目旁顯示勾號、公開 aria-checked）
+   * @param {boolean} [opts.radio] 單選（項目旁顯示勾號、公開 aria-checked）；沒有 checked 的項目是一般動作（例如放大、縮小）
    * @param {{x: number, y: number}} [opts.at] 指定位置（右鍵選單用滑鼠座標）
    * @param {string} [opts.label] 選單名稱（螢幕閱讀器）
    */
   MarkLens.openMenu = function ({ anchor, items, radio = false, at, label }) {
     MarkLens.closeMenu()
-    const buttons = items.map(it =>
-      h(
+    const buttons = items.map(it => {
+      const isRadio = radio && it.checked !== undefined
+      return h(
         'button',
         {
           class: `ml-menu-item${it.checked ? ' checked' : ''}`,
           type: 'button',
-          attrs: radio ? { role: 'menuitemradio', 'aria-checked': String(!!it.checked) } : { role: 'menuitem' },
+          attrs: isRadio ? { role: 'menuitemradio', 'aria-checked': String(!!it.checked) } : { role: 'menuitem' },
           on: {
             click: () => {
               MarkLens.closeMenu({ restoreFocus: true })
@@ -50,8 +51,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           it.icon ? MarkLens.icon(it.icon) : null,
           h('span', { text: it.label }),
         ],
-      ),
-    )
+      )
+    })
     const el = h('div', { class: 'ml-menu', attrs: { role: 'menu', ...(label ? { 'aria-label': label } : {}) } }, buttons)
     document.body.append(el)
 
