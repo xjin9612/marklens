@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-11-02
+
 ### Added
 - **Font size** button in the toolbar: Larger, Smaller, Reset, or pick a size (12–28 px, shown with its percentage). The `+` (or `=`), `-` and `0` keys do the same. Like the theme, the size applies to every open tab
 
@@ -105,7 +107,8 @@ First public release.
 ### Security
 - Allow-list HTML sanitizer, minimal permissions (`storage` only), no remote code
 
-[Unreleased]: https://github.com/xjin9612/marklens/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/xjin9612/marklens/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/xjin9612/marklens/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/xjin9612/marklens/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/xjin9612/marklens/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/xjin9612/marklens/compare/v1.1.0...v1.2.0
