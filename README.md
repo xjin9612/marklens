@@ -35,7 +35,7 @@ To upgrade, replace the folder with the new release and click the reload icon on
 | Toolbar | Sticky top bar: sidebar (☰), fold all, unfold all, text width (menu), export HTML, theme (menu: auto / light / dark), raw source / back to reading, back to top |
 | Editor | Optional **Edit** button opens the local file in VS Code at the section you're reading, or in any editor that has a URL scheme (custom template with `{path}` and `{line}`). Notepad and Notepad++ can't be opened from a browser |
 | Export | Save the current view as one self-contained HTML file (styles, diagrams and math fonts embedded, sections expanded, no JavaScript) to share with people who don't have MarkLens |
-| Layout | Text column width: full / 1600 / 1200 / 960 / custom. Tables and code blocks can grow past the text column up to the page edge. Adjustable font size and line height; reading progress bar |
+| Layout | Text column width: full / 1600 / 1200 / 960 / custom. Tables and code blocks can grow past the text column up to the page edge. **Font size scales the whole document** (text, headings, code, tables, math and Mermaid diagrams) from the toolbar or the `+` / `-` / `0` keys; adjustable line height; reading progress bar |
 | Sidebar | ☰ or `t` to show / hide. **Outline** tab: active-section highlight, heading search (`/`), resizable width, two-line titles, folded-section markers, word count and reading time. How many heading levels the outline shows is set in the popup |
 | Folding | Fold any section from the ▾ next to its heading. "Fold all" starts from the first heading level that has two or more headings. Folded content stays searchable with Ctrl+F and unfolds on match (in very large documents — roughly 400 KB+ — folded sections are hidden normally for speed and must be unfolded before searching) |
 | Tables | **Drag to resize columns** (double-click the handle to auto-fit), **click headers to sort** (numbers with thousands separators, byte units, dates, CJK text; empty cells last; third click restores the original order), row filter (5+ rows), copy as TSV (paste straight into Excel), wrap toggle, fullscreen with sticky header. The table toolbar only appears on hover |
@@ -76,6 +76,7 @@ On a reading page (ignored while typing in an input):
 | `/` | Search headings (Outline tab) or file names (Files tab) |
 | `d` | Cycle theme: auto → light → dark (all tabs) |
 | `[` / `]` | Fold all / unfold all |
+| `+` (or `=`) / `-` / `0` | Larger / smaller / reset font size (all tabs) |
 
 Browser-level (change them at `chrome://extensions/shortcuts`):
 
