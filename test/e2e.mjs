@@ -361,6 +361,33 @@ try {
     assert.ok((await page.locator('.ml-toc-folded').count()) >= 3)
     assert.ok((await page.locator('.ml-toc-inside-fold').count()) >= 1)
   })
+  await check('目錄高亮：頁尾的短章節捲不到頂端，跳轉的目標與捲到底時仍標示正確', async () => {
+    const demoUrl = pathToFileURL(join(root, 'docs/demo.md')).href
+    const tp = await openDoc(`${demoUrl}#glossary`)
+    const active = () => tp.locator('.ml-toc-list li.active').textContent()
+    const activeIs = text => tp.waitForFunction(t => document.querySelector('.ml-toc-list li.active')?.textContent === t, text)
+    try {
+      // 網址 #glossary 開啟：捲到底，Glossary 到不了頂端
+      await activeIs('Glossary')
+      // 從目錄點 Contacts：同樣在頁尾，要標示 Contacts 而不是最後一個標題
+      await tp.click('.ml-toc-list a:text-is("Contacts")')
+      await activeIs('Contacts')
+      // 網址改成 #rollback：一般的章節照樣標示
+      await tp.evaluate(() => (location.hash = '#rollback'))
+      await activeIs('Rollback')
+      // 自己捲到底（沒有跳轉目標）：標示畫面內最後一個標題
+      await tp.mouse.move(800, 500)
+      await tp.mouse.wheel(0, 5000)
+      await activeIs('Glossary')
+      // 往上捲回開頭：恢復一般規則
+      await tp.mouse.wheel(0, -50000)
+      await activeIs('Release Plan — v2.4')
+    } catch (e) {
+      throw new Error(`${e.message.split('\n')[0]}；目前標示：${await active().catch(() => '無')}`)
+    } finally {
+      await tp.close()
+    }
+  })
   await check('再按全部摺疊不會卡住；全部展開恢復', async () => {
     await page.click('text=全部摺疊')
     assert.ok((await hiddenCount()) > 0, '再按一次仍是摺疊狀態')
