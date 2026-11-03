@@ -10,6 +10,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.app = app
       this.items = [] // { heading, li, level, text }
       this.activeIndex = -1
+      this.target = null // 從目錄或網址 #… 跳到的標題，見 update()
       this.hovering = false
       this.tab = 'toc'
       this.statsText = ''
@@ -77,6 +78,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.el.addEventListener('mouseenter', () => (this.hovering = true))
       this.el.addEventListener('mouseleave', () => (this.hovering = false))
       this.list.addEventListener('click', e => this.onClick(e))
+      this.bindTargetRelease()
       this.bindResize()
     }
 
@@ -181,26 +183,62 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       if (it.heading.classList.contains('ml-folded')) MarkLens.toggleFold(it.heading, false)
       it.heading.scrollIntoView({ block: 'start' })
       history.replaceState(null, '', `#${encodeURIComponent(it.heading.id)}`)
+      this.setTarget(it.heading)
       if (this.app.isNarrow()) this.app.setTocOpen(false)
     }
 
     /**
-     * 捲動時高亮目前章節：取最後一個頂端已越過工具列下緣的標題
-     * 標題依文件順序排列、位置遞增，用二分搜尋只量少數幾個標題的位置，大檔捲動時才不會卡頓
+     * 記住剛跳到的標題（不是目錄中的標題時清除），之後使用者自己捲動、點擊或按鍵就放掉
+     * 頁尾的短章節捲不到頂端，只靠位置判斷會一直標示前面的章節
      */
-    update() {
+    setTarget(el) {
+      this.target = this.items.some(it => it.heading === el) ? el : null
+      this.update()
+    }
+
+    /** 使用者自己操作捲動時放掉跳轉目標 */
+    bindTargetRelease() {
+      const release = () => {
+        this.target = null
+      }
+      for (const type of ['wheel', 'touchstart', 'keydown', 'mousedown']) addEventListener(type, release, { passive: true, capture: true })
+    }
+
+    /** visible 中最後一個頂端在 y 以上的標題（二分搜尋：標題依文件順序排列、位置遞增，只量少數幾個標題） */
+    lastAbove(y) {
       const list = this.visible
       let lo = 0
       let hi = list.length - 1
       let found = -1
       while (lo <= hi) {
         const mid = (lo + hi) >> 1
-        if (list[mid].heading.getBoundingClientRect().top <= 90) {
+        if (list[mid].heading.getBoundingClientRect().top <= y) {
           found = mid
           lo = mid + 1
         } else {
           hi = mid - 1
         }
+      }
+      return found
+    }
+
+    /**
+     * 捲動時高亮目前章節，依序：
+     * 1. 剛跳到的標題仍在畫面內：標示它
+     * 2. 已捲到底：標示畫面內最後一個標題（頁尾的短章節永遠到不了頂端）
+     * 3. 其餘：最後一個頂端已越過工具列下緣的標題
+     */
+    update() {
+      const list = this.visible
+      let found = -1
+      const target = this.target ? list.findIndex(it => it.heading === this.target) : -1
+      if (target >= 0) {
+        const r = this.target.getBoundingClientRect()
+        if (r.bottom > 0 && r.top < innerHeight) found = target
+      }
+      if (found < 0) {
+        const atBottom = scrollY + innerHeight >= document.documentElement.scrollHeight - 2
+        found = this.lastAbove(atBottom ? innerHeight : 90)
       }
       const idx = found < 0 ? -1 : this.items.indexOf(list[found])
       if (idx === this.activeIndex) return

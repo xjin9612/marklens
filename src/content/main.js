@@ -538,6 +538,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       if (!el) return
       MarkLens.revealElement(this.article, el)
       el.scrollIntoView({ block: 'start' })
+      this.toc.setTarget(el)
     }
 
     posKey() {
