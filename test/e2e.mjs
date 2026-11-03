@@ -388,6 +388,21 @@ try {
       await tp.close()
     }
   })
+  await check('回到頂部按鈕：捲動後才出現，出現前保留位置，其他按鈕不位移', async () => {
+    const tp = await openDoc(pathToFileURL(join(root, 'docs/demo.md')).href)
+    try {
+      const xs = () => tp.$$eval('.ml-toolbar .ml-tool', els => els.filter(el => !el.classList.contains('ml-tool-top')).map(el => Math.round(el.getBoundingClientRect().left)))
+      const before = await xs()
+      assert.equal(await tp.locator('.ml-tool-top').isVisible(), false, '頂端時看不見')
+      await tp.evaluate(() => scrollTo(0, 1200))
+      await tp.waitForFunction(() => getComputedStyle(document.querySelector('.ml-tool-top')).visibility === 'visible')
+      assert.deepEqual(await xs(), before, '其他按鈕的位置不變')
+      await tp.click('.ml-tool-top')
+      await tp.waitForFunction(() => scrollY === 0)
+    } finally {
+      await tp.close()
+    }
+  })
   await check('再按全部摺疊不會卡住；全部展開恢復', async () => {
     await page.click('text=全部摺疊')
     assert.ok((await hiddenCount()) > 0, '再按一次仍是摺疊狀態')
