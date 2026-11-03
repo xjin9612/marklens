@@ -1,4 +1,7 @@
 {
+  "extName": {
+    "message": "MarkLens – Markdown 閱讀器"
+  },
   "extDescription": {
     "message": "輕量、可稽核的 Markdown 閱讀器：目錄、摺疊、可拖拉排序的表格、Mermaid 圖表，並可直接勾選本機檔案的任務。"
   },
