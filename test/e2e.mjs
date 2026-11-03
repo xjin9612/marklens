@@ -403,6 +403,28 @@ try {
       await tp.close()
     }
   })
+  await check('寬視窗下對齊文字欄：數學公式區塊、Mermaid 錯誤訊息不會超出或偏離文字欄', async () => {
+    const edges = async (file, sel) => {
+      const p = await openDoc(pathToFileURL(join(root, file)).href)
+      try {
+        await p.setViewportSize({ width: 1900, height: 900 })
+        await p.waitForSelector(sel, { timeout: 15000 })
+        return await p.evaluate(sel => {
+          const box = el => [Math.round(el.getBoundingClientRect().left), Math.round(el.getBoundingClientRect().right)]
+          const target = document.querySelector(sel)
+          return { text: box(document.querySelector('.markdown-body > h1')), block: box(target.closest('.markdown-body > *')) }
+        }, sel)
+      } finally {
+        await p.close()
+      }
+    }
+    // 外距簡寫（margin: 0 0 16px）會蓋掉文字欄置中用的左右 auto
+    const math = await edges('test/fixtures/math.md', '.markdown-body > .math-display')
+    assert.deepEqual(math.block, math.text, '數學公式區塊應與文字欄同寬同位置')
+    // 很長的錯誤訊息不應把區塊撐出文字欄
+    const err = await edges('test/fixtures/mermaid.md', '.ml-mermaid-error')
+    assert.ok(err.block[0] >= err.text[0] && err.block[1] <= err.text[1], `Mermaid 錯誤區塊 ${err.block} 應在文字欄 ${err.text} 內`)
+  })
   await check('再按全部摺疊不會卡住；全部展開恢復', async () => {
     await page.click('text=全部摺疊')
     assert.ok((await hiddenCount()) > 0, '再按一次仍是摺疊狀態')
