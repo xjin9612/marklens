@@ -224,7 +224,7 @@ Some things can't be automated: the folder picker, permission prompts after a Ch
 3. Check locally: `node scripts/release.mjs check vX.Y.Z`
 4. Commit, then `git tag vX.Y.Z` and `git push origin main --tags`.
 
-The **Release** workflow verifies that the tag, `manifest.json`, `package.json` and `CHANGELOG.md` agree, runs the tests, packages `marklens-vX.Y.Z.zip` (extension files only) and publishes a GitHub release using that CHANGELOG section as the notes. Every push to `main` and every pull request runs the tests through the **Tests** workflow.
+The **Release** workflow verifies that the tag, `manifest.json`, `package.json` and `CHANGELOG.md` agree and that the name and description fit the store's length limits, runs the tests, packages the extension files and publishes a GitHub release using that CHANGELOG section as the notes. The release has two zips: `marklens-vX.Y.Z.zip` holds a `marklens-vX.Y.Z/` folder to load unpacked, and `marklens-vX.Y.Z-store.zip` has `manifest.json` at its root, which is what the Chrome Web Store and Edge Add-ons accept. Every push to `main` and every pull request runs the tests through the **Tests** workflow.
 
 ## Roadmap
 
