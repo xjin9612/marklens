@@ -2,237 +2,154 @@
   <img src="icons/icon.svg" width="96" height="96" alt="MarkLens">
 </p>
 
-# MarkLens
+<h1 align="center">MarkLens</h1>
 
-[![Tests](https://github.com/xjin9612/marklens/actions/workflows/ci.yml/badge.svg)](https://github.com/xjin9612/marklens/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/xjin9612/marklens)](https://github.com/xjin9612/marklens/releases/latest)
+<p align="center"><strong>A Markdown reader for Chrome and Edge, with tables you can actually use.</strong></p>
 
-English | [繁體中文](./README.zh-TW.md)
+<p align="center">
+  <a href="https://github.com/xjin9612/marklens/releases/latest"><img src="https://img.shields.io/github/v/release/xjin9612/marklens" alt="Latest release"></a>
+  <a href="https://github.com/xjin9612/marklens/actions/workflows/ci.yml"><img src="https://github.com/xjin9612/marklens/actions/workflows/ci.yml/badge.svg" alt="Tests"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
+  <a href="PRIVACY.md"><img src="https://img.shields.io/badge/data%20collected-none-brightgreen" alt="No data collected"></a>
+</p>
 
-A lightweight Markdown reader for Chrome and Edge — **easy to audit, no remote code, no build step**. Open any `.md` file — local or online — and read it with a sidebar outline, foldable sections, and tables you can work with: resize columns, sort, filter, and copy to a spreadsheet.
+<p align="center">English | <a href="README.zh-TW.md">繁體中文</a></p>
 
-![Light theme: sidebar outline, GitHub alert, task list and table](docs/screenshots/light.png)
-
-![Dark theme: table sorted by a column with its toolbar, and a Mermaid diagram](docs/screenshots/dark.png)
+Open any `.md` file, on your computer or on the web, and read it with an outline, foldable sections, Mermaid diagrams and math. Sort and filter its tables, check off tasks right in the file, and print or export what you see. Open source, no account, no data collected.
 
 ## Install
 
-1. Download `marklens-vX.Y.Z.zip` from the [latest release](https://github.com/xjin9612/marklens/releases/latest) and unzip it (or clone this repository).
-2. Open `chrome://extensions` (Edge: `edge://extensions`) and turn on **Developer mode**.
-3. Click **Load unpacked** and select the unzipped `marklens-vX.Y.Z` folder (the one containing `manifest.json`).
-4. For local files: open the extension's **Details** and enable **Allow access to file URLs**. A welcome page opens after installing and walks you through this.
+1. Download `marklens-vX.Y.Z.zip` from the [latest release](https://github.com/xjin9612/marklens/releases/latest) and unzip it.
+2. Open `chrome://extensions` (Edge: `edge://extensions`), turn on **Developer mode**, click **Load unpacked** and select the unzipped `marklens-vX.Y.Z` folder.
+3. A welcome page opens. For files on your computer, follow it to turn on **Allow access to file URLs**.
 
-To upgrade, replace the folder with the new release and click the reload icon on the extensions page. See [CHANGELOG.md](./CHANGELOG.md) for what changed.
+Then drag any `.md` file into the browser, or open a `.md` link on the web. To upgrade, replace the folder with the new release and click the reload icon on the extensions page. See the [changelog](CHANGELOG.md) for what's new.
 
-## Features
+## Highlights
 
-| Area | What you get |
-|---|---|
-| Pages | Renders `.md` `.markdown` `.mkd` `.mdx` over `http(s)://` and `file://`; only takes over when the browser shows the file as plain text |
-| Files | Local files: a **Files** tab lists the Markdown files and subfolders next to the document (folders first, natural sort); subfolders load when opened; ↑ goes up a folder and right-click → *Make this the top folder* goes back down. Skipped names are configurable |
-| Toolbar | Sticky top bar: sidebar (☰), fold all, unfold all, text width (menu), export HTML, print / PDF, theme (menu: auto / light / dark), raw source / back to reading, back to top |
-| Editor | Optional **Edit** button opens the local file in VS Code at the section you're reading, or in any editor that has a URL scheme (custom template with `{path}` and `{line}`). Notepad and Notepad++ can't be opened from a browser |
-| Export | Save the current view as one self-contained HTML file (styles, diagrams and math fonts embedded, sections expanded, no JavaScript) to share with people who don't have MarkLens. **Print / PDF** prints the whole document (choose *Save as PDF* in the print dialog for a PDF): folded sections and filtered table rows are included, a dark theme switches to light colors for paper, and pages show only a page number (no date or local file path) |
-| Layout | Text column width: full / 1600 / 1200 / 960 / custom. Tables and code blocks can grow past the text column up to the page edge. **Font size scales the whole document** (text, headings, code, tables, math and Mermaid diagrams) from the toolbar or the `+` / `-` / `0` keys; adjustable line height; reading progress bar |
-| Sidebar | ☰ or `t` to show / hide. **Outline** tab: active-section highlight, heading search (`/`), resizable width, two-line titles, folded-section markers, word count and reading time. How many heading levels the outline shows is set in the popup |
-| Folding | Fold any section from the ▾ next to its heading. "Fold all" starts from the first heading level that has two or more headings. Folded content stays searchable with Ctrl+F and unfolds on match (in very large documents — roughly 400 KB+ — folded sections are hidden normally for speed and must be unfolded before searching) |
-| Tables | **Drag to resize columns** (double-click the handle to auto-fit), **click headers to sort** (numbers with thousands separators, byte units, dates, CJK text; empty cells last; third click restores the original order), row filter (5+ rows), copy as TSV (paste straight into Excel), wrap toggle, fullscreen with sticky header. The table toolbar only appears on hover |
-| Syntax | CommonMark + GFM, task lists, footnotes, `==highlight==`, emoji shortcodes (`:tada:`), GitHub alerts (`> [!NOTE]` etc.), collapsible front matter |
-| Code | highlight.js syntax highlighting (common languages), language label, copy button, per-block wrap toggle |
-| Diagrams | [Mermaid](https://mermaid.js.org/) flowcharts, sequence diagrams and more in local files. The library (~5 MB) loads only when a document contains a mermaid block; diagrams follow the theme, keep their place during live reload, and can be toggled back to source. Syntax errors are shown next to the source. Not drawn on `http(s)://` pages (see Security); a note above the source says so |
-| Math | `$…$`, `$$…$$`, `` $`…`$ `` and ` ```math ` blocks rendered with [KaTeX](https://katex.org/) in local files; loaded only when a document contains math. Prices like `$5 and $10` stay as text. Like Pandoc and GitHub, `$HOME/$USER` would be read as math — put it in backticks or write `\$`. On `http(s)://` pages the TeX source is shown, with a note above the first formula |
-| Images | Lazy loading, click to zoom (Esc to close) |
-| Theme | Auto (follows the system) / light / dark, from the toolbar, the `d` key or the popup; applies to every open tab |
-| Check off tasks | Click a task-list checkbox in a local file to save `[ ]` / `[x]` straight back to the file — no editor needed. Works in nested lists, ordered lists and blockquotes; checkboxes inside code blocks are never touched. Undo from the toast; refuses to write if the file changed elsewhere; keeps CRLF and BOM. Requires authorizing a folder once (see below) |
-| Live reload | Local files are checked every second and re-rendered only when changed — scroll position, folds, and table sort / widths / filters are preserved |
-| Language | English and Traditional Chinese interface. Follows the browser language by default, or pick one in the popup → **Language** |
-| Misc | External links open in a new tab (can be turned off), remembers reading position per file, relative `.md` links open in the reader |
+### Tables you can work with
 
-### Checking off tasks in local files
+Drag column edges to resize, click a header to sort (numbers, sizes such as `4.2KB`, dates and Chinese text all sort correctly), filter rows as you type, view a table fullscreen, and copy it straight into Excel or Google Sheets.
 
-1. Click any checkbox in a local `.md` file. The first time, MarkLens asks you to authorize the folder: pick a top-level folder such as `D:\Projects` and every `.md` under it becomes writable.
-2. After that, a click saves the change immediately; use **Undo** on the toast to revert.
-3. After Chrome restarts, you may be asked to confirm access again. Choose **Allow on every visit** in Chrome's prompt to skip this.
+![A table sorted by requests per day, with its toolbar: filter, reset, wrap, copy and fullscreen](docs/screenshots/en/1-tables.png)
 
-Folder access is held by the extension itself (in its own storage, under its own origin). Ordinary web pages — including local HTML files — cannot reach it. Manage folders from the popup → **Manage folders**.
+### Check off tasks in your files
 
-### Per-tab vs. global settings
+In a local `.md` file, click a task checkbox and `[ ]` / `[x]` is saved straight back to the file. No editor needed. Undo from the notification; MarkLens refuses to write if the file changed elsewhere, and only the line you clicked is touched.
 
-- **Current tab only**: sidebar visibility, sidebar width, selected sidebar tab, text width, and the Files tab's top folder and open folders. Kept across reloads and when opening another file in the same tab, cleared when the tab closes — handy for comparing documents side by side. Raw view and folds are not kept. On web pages these stay in memory only (nothing is written to the site's storage) and reset on reload.
-- **Synced live to every tab**: theme, font size, line height.
-- **Everything else in the popup** is the default for new tabs; open tabs pick it up after a reload. Dragging the sidebar width also saves it as the new default.
+![The document outline in the sidebar, a note, and a checklist with two tasks checked](docs/screenshots/en/2-outline-tasks.png)
 
-### Keyboard shortcuts
+### Browse a folder
 
-On a reading page (ignored while typing in an input):
+The **Files** tab lists the Markdown files and subfolders next to the document, so you can read through a whole project or notes folder. Free, no account.
+
+![The Files tab listing the folders and Markdown files of a project](docs/screenshots/en/3-files.png)
+
+### Diagrams, math and a dark theme
+
+[Mermaid](https://mermaid.js.org/) diagrams and [KaTeX](https://katex.org/) math in local files, in a light or dark theme that can follow your system. Text diagrams in code blocks line up even with Chinese, Japanese and Korean text.
+
+![Dark theme with a Mermaid flowchart, a formula and a box-drawing table](docs/screenshots/en/4-dark-mermaid.png)
+
+### Print, PDF and HTML export
+
+**Print / PDF** prints the whole document with every section expanded, in light colors, with only a page number in the margins. **Export HTML** saves what you see as one self-contained file to share with people who don't have MarkLens.
+
+## All features
+
+**Reading**
+- Sidebar outline that highlights the section you're reading, with heading search (`/`), word count and reading time
+- Fold any section, or fold and unfold everything at once; Ctrl+F still finds text in folded sections
+- Live reload for local files that keeps your scroll position, folds and table state
+- Remembers where you stopped reading each file
+- Relative `.md` links open in the reader; external links open in a new tab (can be turned off)
+- Raw source view, one key away
+
+**Tables**
+- Drag to resize columns (double-click the handle to fit), click headers to sort (a third click restores the original order)
+- Filter rows (tables with 5+ rows), wrap toggle, fullscreen with a sticky header
+- Copy as tab-separated text that pastes into a spreadsheet
+
+**Markdown**
+- CommonMark and GitHub Flavored Markdown: tables, task lists, footnotes, autolinks
+- GitHub alerts (`> [!NOTE]`), `==highlight==`, emoji shortcodes (`:tada:`), collapsible front matter
+- Syntax highlighting with a language label, copy button and wrap toggle
+- Mermaid diagrams and KaTeX math (`$…$`, `$$…$$`, `` $`…`$ ``, ` ```math `) in local files; diagrams follow the theme and can be switched back to source
+- Images load as you scroll; click to zoom
+
+**Local files**
+- **Files** tab with folders first and natural sort (`2-…` before `10-…`); go up a folder with ↑, or right-click a folder → *Make this the top folder*
+- Check off tasks and save them to the file, in nested lists, ordered lists and blockquotes; keeps CRLF line endings and BOM
+- Optional **Edit** button: open the file in VS Code at the section you're reading, or in any editor with a URL scheme
+
+**Appearance**
+- Light, dark, or follow the system
+- Text width (full, 1600, 1200, 960 or custom); tables and code can grow past the text column
+- Font size scales the whole document, including code, tables, math and diagrams; adjustable line height
+- Interface in English and Traditional Chinese
+
+**Sharing**
+- Print or save as PDF, with sections expanded and only page numbers in the margins
+- Export as a single HTML file with styles, diagrams and math fonts embedded and no scripts
+
+## Keyboard shortcuts
+
+On a reading page (ignored while typing in a text box):
 
 | Key | Action |
 |---|---|
-| `t` | Show / hide sidebar |
-| `r` | Raw source / back to reading |
-| `w` | Cycle text width |
+| `t` | Show / hide the sidebar |
 | `/` | Search headings (Outline tab) or file names (Files tab) |
-| `d` | Cycle theme: auto → light → dark (all tabs) |
 | `[` / `]` | Fold all / unfold all |
+| `w` | Cycle text width |
+| `d` | Cycle theme: auto → light → dark (all tabs) |
 | `+` (or `=`) / `-` / `0` | Larger / smaller / reset font size (all tabs) |
+| `r` | Raw source / back to reading |
 
-Browser-level (change them at `chrome://extensions/shortcuts`):
+Browser-wide, changeable at `chrome://extensions/shortcuts`:
 
 | Key | Action |
 |---|---|
-| `Alt+Shift+B` | Show / hide sidebar (current tab) |
+| `Alt+Shift+B` | Show / hide the sidebar (current tab) |
 | `Alt+Shift+C` | Cycle text width (current tab) |
 | `Alt+Shift+R` | Raw source / back to reading (current tab) |
 | `Alt+Shift+D` | Cycle theme (all tabs) |
 
-## Security
+## Settings
 
-MarkLens collects no data and sends none of it anywhere; its only network requests reload the document you opened. See the [privacy policy](PRIVACY.md).
+Open the MarkLens icon in the toolbar for all settings.
 
-- **Allow-list HTML sanitizer** (`src/content/sanitize.js`): keeps common tags such as `<details>`, `<kbd>` and tables; drops `<script>`, `<iframe>`, `<svg>`, every event-handler attribute, `style` (except table alignment), and `javascript:` / non-image `data:` URLs.
-- **Math** renders with KaTeX `trust: false` (no `\href`, `\url`, `\includegraphics` or `\html…` commands) and a macro-expansion limit; like Mermaid, its files are reachable from `file://` pages only.
-- **No borrowing the interface**: HTML in a document cannot use MarkLens's own `ml-` class or id names (so it cannot draw a fake overlay or prompt over the page), and `name` is kept only on `<a>` to prevent DOM clobbering.
-- **Exported HTML** contains no JavaScript and carries a Content-Security-Policy that blocks scripts, so a shared export cannot run any code. Remote images in the document still load when it is opened.
-- **Attack suite**: `test/fixtures/security.md` collects 60+ attack samples; the tests render it, click every link and diagram node, and fail if anything runs.
-- **Minimal permissions**: only `storage`. Content scripts run only on URLs ending in a Markdown extension. Chrome still shows this as access to all sites, because its permission prompt ignores the path part of URL patterns. To limit this, set **Site access** on the extension's Details page to *On specific sites* and add only the sites you trust; local files are not affected (they depend on **Allow access to file URLs**). Markdown files on other sites are then shown as plain text.
-- **Local file reads** go through the background worker, which only reads the URL of the page that asked.
-- **Folder listings** for the Files tab are also read by the background worker: only `file://` folders (no network shares, no `.` / `..` segments), returning only Markdown file names and subfolder names — never file contents.
-- **Writes** happen only when you click a task checkbox: the background worker changes that single line after checking that the file still matches what the page shows. Which lines are writable is decided by the Markdown parser with a per-render random nonce, so HTML inside a document cannot fake a writable checkbox.
-- **Mermaid** renders with `securityLevel: 'strict'` (labels sanitized by DOMPurify, click handlers disabled). Its files must be web-accessible so they can be loaded on demand; access is limited to `file://` pages so ordinary websites cannot probe for them to detect that MarkLens is installed. That is also why diagrams are only drawn in local files.
-- **No remote code**: third-party libraries are pinned in `vendor/`; nothing is fetched or auto-updated at runtime.
+- **Theme, font size and line height** apply to every open tab right away.
+- **Sidebar, its width, and text width** apply to the current tab only, so you can compare documents side by side. They're kept when you reload or open another file in the same tab.
+- **Everything else** is the default for new tabs; open tabs pick it up after a reload.
 
-## Project layout
+## Privacy and security
 
-```
-manifest.json
-_locales/                interface text: en (default) and zh_TW
-src/
-  background.js          shortcuts, local file reads, folder listings, task write-back
-  shared/settings.js     settings defaults and storage (shared by all contexts)
-  shared/i18n.js         interface text lookup (strings live in _locales/)
-  shared/roots.js        authorized folders (extension origin only)
-  shared/tokens.css      design tokens (colors, fonts, motion) shared by the reader and extension pages
-  shared/theme.js        applies the theme setting to the popup, welcome and folder pages
-  grant/                 folder authorization page
-  welcome/               first-run welcome page
-  content/
-    early.js             runs first: keeps the previous page on screen while switching files, loading background color
-    util.js              helpers, reading the page source
-    icons.js             interface line icons (SVG)
-    menu.js              dropdown menus (toolbar width / theme, Files tab folder menu), keyboard navigation
-    fonts.js             CJK/ASCII width alignment for code blocks
-    sanitize.js          allow-list HTML sanitizer
-    markdown.js          markdown-it setup, ==mark==, alerts, front matter
-    enhance.js           heading anchors & folding, inline grouping, task lists, code blocks, images, stats
-    mermaid.js           Mermaid diagrams, loaded on demand
-    math.js              KaTeX math, loaded on demand
-    export.js            export the current view as a self-contained HTML file
-    table.js             column resize, sorting, filter, copy, fullscreen, state save/restore
-    toc.js               sidebar: Outline / Files tabs, search
-    files.js             Files tab: folder listing, lazy subfolders
-    main.js              entry point: layout, toolbar, shortcuts, per-tab state, live reload, task write-back
-    content.css          all styles (scoped under html.marklens)
-  popup/                 settings popup
-vendor/                  third-party libraries (versions in VERSIONS.md, licenses in licenses/)
-scripts/vendor.mjs       script for upgrading vendor/
-scripts/release.mjs      release helper: version check, release notes, packaging
-scripts/screenshots.mjs  regenerates docs/screenshots/ from docs/demo.md (npm run screenshots)
-scripts/store-screenshots.mjs  regenerates the 1280×800 store screenshots in docs/store/ (npm run screenshots:store; run it on Windows so the fonts match what most users see)
-scripts/manual-bigfile.mjs  generates the large file for the manual tests (npm run manual:bigfile)
-docs/                    README and store screenshots, and the demo documents they are taken from
-.github/workflows/       CI tests and automated releases
-CHANGELOG.md             release notes (the source for GitHub releases)
-test/                    end-to-end tests (e2e.mjs), visual regression tests (visual.mjs) and fixtures
-test/visual/<platform>/  visual baselines, one folder per OS
-test/manual/             manual test checklist (Traditional Chinese)
-package.json             dev tooling only (tests, vendor updates); the extension itself needs no build
-```
+MarkLens collects no data and sends none of it anywhere; its only network request is reloading the document you opened. It asks for a single permission, `storage`, for your settings, and runs no remote code: every library is packaged inside the extension. HTML inside documents is filtered, and a test suite of 60+ attack samples checks that none of them can run code. Details: [privacy policy](PRIVACY.md), [security design](docs/DEVELOPMENT.md#安全設計) (in Traditional Chinese).
 
-### Box-drawing tables in code blocks
+## FAQ
 
-Text diagrams such as `┌─┬─┐` only line up when CJK characters are exactly twice as wide as ASCII. System monospace fonts (Consolas, Menlo…) have no CJK glyphs, so the browser falls back to a CJK font of a different width. MarkLens measures the actual widths and scales the system CJK font for code blocks (`@font-face` `size-adjust`, CJK ranges only) so mixed tables align without installing anything; CJK characters in code look slightly larger as a result. For the best-looking result, install [Sarasa Gothic](https://github.com/be5invis/Sarasa-Gothic); MarkLens uses **Sarasa Mono TC** automatically when present.
+**Chrome says MarkLens can "read and change your data on all websites". Why?**<br>
+MarkLens only runs on addresses that end in `.md`, `.markdown`, `.mkd` or `.mdx`, but Chrome's permission prompt ignores the part of the address after the site name. To limit it further, open the extension's **Details** page and set **Site access** to *On specific sites*. Local files are not affected.
 
-The full release is several hundred MB, but only a few files are needed:
+**A local `.md` file shows as plain text.**<br>
+Turn on **Allow access to file URLs** on the extension's **Details** page, then reload the file. The welcome page (MarkLens icon → **Help**) walks you through it.
 
-1. On the [releases page](https://github.com/be5invis/Sarasa-Gothic/releases), download **Single Family TTF Package → Mono → zip** (the hinted *Download* link; *Unhinted* is meant for high-DPI screens and macOS).
-2. From the archive, install only the TC (Traditional Chinese) files:
+**Diagrams and math aren't drawn on web pages.**<br>
+They're drawn only for files opened from your computer: MarkLens keeps its diagram and math libraries away from websites so that sites can't detect it's installed. A note above the source explains this; save the file and open it locally to see the diagram.
 
-   | File | Purpose |
-   |---|---|
-   | `SarasaMonoTC-Regular.ttf` | Regular text (required) |
-   | `SarasaMonoTC-Bold.ttf` | Bold (required) |
-   | `SarasaMonoTC-Italic.ttf` | Code comments are italic; without it the browser slants the regular glyphs |
-   | `SarasaMonoTC-BoldItalic.ttf` | Optional, rarely used |
+**Checking a box asks for folder access.**<br>
+The first time, pick a top-level folder such as `D:\Projects`; every `.md` under it becomes writable. After Chrome restarts it may ask again; choose **Allow on every visit** to skip that. Manage folders from the MarkLens icon → **Manage folders**. Files that aren't UTF-8 (such as Big5) display normally, but their checkboxes are read-only.
 
-3. Select the files → right-click → **Install for all users**, then fully restart Chrome — Chrome keeps running in the background after its windows close, so open `chrome://restart` instead of just closing the window.
+**Text diagrams in code blocks don't line up perfectly.**<br>
+MarkLens scales the system font so Chinese, Japanese and Korean characters are exactly two columns wide, which makes them look slightly larger. For the best result, install [Sarasa Gothic](https://github.com/be5invis/Sarasa-Gothic): from its releases, download **Single Family TTF Package → Mono**, install `SarasaMonoTC-Regular`, `-Bold` and `-Italic`, then restart Chrome via `chrome://restart`. MarkLens uses it automatically.
 
-## Upgrading third-party libraries
+**Search with Ctrl+F doesn't find text in folded sections of a very large file.**<br>
+In documents larger than about 400 KB, folded sections are hidden in a faster way that Ctrl+F can't see. Unfold them first (`]`).
 
-Edit the version table in `scripts/vendor.mjs`, then run:
+## Contributing
 
-```bash
-npm run vendor
-```
-
-## Tests
-
-```bash
-npm install                          # installs playwright only (dev)
-npx playwright install chromium      # first time only
-npm test
-```
-
-The suite loads the extension into Chromium and opens local and http fixtures (`test/fixtures/sample.md`), covering:
-
-- Rendering: GFM, task lists (tight and loose), footnotes, alerts, front matter, code highlighting, emoji shortcodes, GitHub-style autolinks
-- Loading: switching files keeps the previous page until the new one is rendered (no blank page, no "Loading…" in the Files tab), loading background follows the last theme, raw text shown normally when MarkLens is turned off; non-Markdown URLs left alone
-- Security: scripts, event handlers, `javascript:` links, style attributes; plus the attack suite in `test/fixtures/security.md` (dangerous tags and URLs, encoding tricks, DOM clobbering, fake interface, file names, Mermaid)
-- Layout: text column width, wide tables beyond the text column, small tables at every width, narrow-screen drawer sidebar
-- Tables: sorting (numbers / bytes / dates), column resize, filter, fullscreen and Esc, state kept across live reload
-- Folding: fold / unfold all, Ctrl+F reveal, outline markers, outline links and `#hash` URLs into folded sections
-- Sidebar: menu button position, `/` search, Files tab (natural sort, skipped folders, lazy subfolders, top folder kept across files, parent folder button, folder listing restrictions)
-- Tabs: sidebar and width stay per tab, appearance syncs live, new tabs use updated defaults, `Alt+Shift` shortcuts, reading position remembered
-- Links: external links open in a new tab (and the setting to turn it off); editor button and its URL template restrictions
-- Accessibility: every button has a spoken name, keyboard focus outline, controls at least 24×24 px, sorting tables and enlarging images from the keyboard
-- Task write-back: correct line (with front matter), blockquote and ordered lists, undo, conflict detection, CRLF and BOM preserved, unauthorized folder, feature off, non-UTF-8 files (including the real Big5 document from the manual tests: it renders without replacement characters and its checkboxes explain why they are read-only). Folder access is simulated with the browser's private file system (OPFS); the folder picker itself has to be tested by hand
-- Mermaid (`test/fixtures/mermaid.md`): not loaded without diagrams, drawing, syntax errors, label injection and click handlers, source toggle, theme switch, no flicker on live reload, not drawn over http, setting off
-- Math (`test/fixtures/math.md`): inline, display, ` ```math `, tables, prices and escapes left alone, errors, live reload, not drawn over http, setting off
-- Export: single file without scripts, sections expanded, styles and checkbox states kept, math fonts embedded
-- Interface language: matching keys in both locales, language override, English UI smoke test
-- Welcome page on install, popup settings, notice in open tabs after the extension is reloaded
-
-Screenshots go to the directory in the `SHOT_DIR` environment variable (system temp by default).
-
-### Visual regression tests
-
-```bash
-npm run test:visual                  # compare with the baselines
-npm run test:visual -- --update      # accept the current look as the new baseline
-```
-
-Takes screenshots of a fixed set of views (reader light / dark / narrow, Files tab, Mermaid in dark mode, popup, welcome page) and compares them pixel by pixel with `test/visual/<platform>/`. Fonts differ between operating systems, so each OS keeps its own baselines; the first run on a new OS creates them. A view fails when more than 0.1% of its pixels differ (`VISUAL_TOLERANCE` to change); the diff images (changed pixels in red) go to `ml-visual/` under `SHOT_DIR`. After an intended UI change, check the diffs, then run with `--update` and commit the new baselines. Not part of CI.
-
-### Manual tests
-
-Some things can't be automated: the folder picker, permission prompts after a Chrome restart, opening VS Code, and how fonts and diagrams actually look. `test/manual/` (in Traditional Chinese) is a checklist to run in your own Chrome before a release:
-
-1. `npm run manual:bigfile` once, to generate the ~1 MB performance file (not committed).
-2. Reload MarkLens on `chrome://extensions`, then open `test/manual/00-說明.md` and work through the files; the sidebar's **Files** tab moves between them.
-3. Checking boxes writes to these files, so restore them afterwards: `git restore test/manual`.
-
-## Releasing
-
-1. Add a `## [X.Y.Z] - YYYY-MM-DD` section at the top of `CHANGELOG.md` (move items from *Unreleased*).
-2. Set the same version in `manifest.json` (`version` and `version_name`) and `package.json`.
-3. Check locally: `node scripts/release.mjs check vX.Y.Z`
-4. Commit, then `git tag vX.Y.Z` and `git push origin main --tags`.
-
-The **Release** workflow verifies that the tag, `manifest.json`, `package.json` and `CHANGELOG.md` agree and that the name and description fit the store's length limits, runs the tests, packages the extension files and publishes a GitHub release using that CHANGELOG section as the notes. The release has two zips: `marklens-vX.Y.Z.zip` holds a `marklens-vX.Y.Z/` folder to load unpacked, and `marklens-vX.Y.Z-store.zip` has `manifest.json` at its root, which is what the Chrome Web Store and Edge Add-ons accept. Every push to `main` and every pull request runs the tests through the **Tests** workflow.
-
-## Roadmap
-
-- Chrome Web Store / Edge Add-ons listing
-- More interface languages
+Bug reports and ideas are welcome in [issues](https://github.com/xjin9612/marklens/issues). Development docs (in Traditional Chinese): [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## License
 
