@@ -70,6 +70,37 @@ function promoHtml({ tagline, note }, shotBase64) {
   <div class="shot"></div>`
 }
 
+/**
+ * 大型宣傳圖（marquee）1400×560 的 HTML：同一套配色，右側疊放兩張完整截圖（後方深色、前方淺色），縮成 0.55 倍
+ */
+function marqueeHtml({ tagline, note }, frontBase64, backBase64) {
+  const shot = b64 => `background: url(data:image/png;base64,${b64}) no-repeat 0 0 / 704px 440px;`
+  return `<!doctype html><meta charset="utf-8"><style>
+    * { box-sizing: border-box; margin: 0; }
+    body { width: 1400px; height: 560px; overflow: hidden; position: relative;
+      font-family: "Segoe UI", "Microsoft JhengHei UI", "Microsoft JhengHei", sans-serif;
+      background: radial-gradient(110% 150% at 0% 0%, #4f46e5 0%, #3730a3 45%, #1e3a8a 100%); color: #fff; }
+    .text { position: absolute; left: 96px; top: 110px; width: 520px; }
+    .icon svg { width: 104px; height: 104px; display: block; }
+    h1 { font-size: 68px; font-weight: 700; letter-spacing: -0.015em; margin-top: 22px; }
+    p { font-size: 30px; line-height: 1.4; margin-top: 10px; color: #e0e7ff; }
+    .note { position: absolute; left: 96px; bottom: 56px; font-size: 22px; color: #67e8f9; letter-spacing: 0.02em; }
+    .shot { position: absolute; width: 704px; height: 440px; border-radius: 14px;
+      transform: rotate(-3deg); transform-origin: left top;
+      box-shadow: 0 30px 70px rgba(8, 12, 40, .6), 0 0 0 1px rgba(255, 255, 255, .25); }
+    .back { left: 700px; top: 34px; ${shot(backBase64)} }
+    .front { left: 610px; top: 160px; ${shot(frontBase64)} }
+  </style>
+  <div class="text">
+    <div class="icon">${ICON_SVG}</div>
+    <h1>MarkLens</h1>
+    <p>${tagline}</p>
+  </div>
+  <div class="note">${note}</div>
+  <div class="shot back"></div>
+  <div class="shot front"></div>`
+}
+
 /** 捲到指定標題，讓它停在工具列下方 */
 async function scrollToHeading(page, text) {
   await page.locator('#ml-root .markdown-body :is(h1, h2, h3)', { hasText: text }).first().evaluate(h => {
@@ -173,6 +204,16 @@ for (const { lang, dir, demo, table: tableDoc, readme, text, promoText } of LANG
     await promo.screenshot({ path: join(outDir, 'promo-440x280.png') })
     await promo.close()
     console.log(`✔ ${dir}/promo-440x280.png`)
+
+    // 大型宣傳圖 1400×560：只在商店選為精選橫幅時使用；Edge Add-ons 也接受這個尺寸
+    const shotB64 = name => readFileSync(join(outDir, `${name}.png`)).toString('base64')
+    const marquee = await ctx.newPage()
+    await marquee.setViewportSize({ width: 1400, height: 560 })
+    await marquee.setContent(marqueeHtml(promoText, shotB64('2-outline-tasks'), shotB64('4-dark-mermaid')))
+    await marquee.evaluate(() => document.fonts.ready)
+    await marquee.screenshot({ path: join(outDir, 'marquee-1400x560.png') })
+    await marquee.close()
+    console.log(`✔ ${dir}/marquee-1400x560.png`)
   } finally {
     await ctx.close()
   }
