@@ -1,6 +1,7 @@
 // 產生 Chrome Web Store / Edge Add-ons 的商店截圖與 440×280 小型宣傳圖（docs/store/<語系>/）
 // 用法：npm run screenshots:store（需要 playwright，與測試相同）
 // 商店接受 1280×800 或 640×400；以 1280×800、1 倍縮放截圖，畫面就是使用者實際看到的大小
+// 每張截圖上方加一條說明色帶（文字見 LANGS 的 captions），宣傳圖則使用沒有色帶的原始畫面
 // 字型取決於執行的作業系統，建議在 Windows 上產生（Segoe UI、微軟正黑體），與多數使用者看到的一致
 import { createRequire } from 'node:module'
 import { mkdtempSync, mkdirSync, readFileSync } from 'node:fs'
@@ -27,6 +28,14 @@ const LANGS = [
     readme: 'README.md',
     text: { services: 'Services', requests: 'Requests / day', flow: 'Deployment flow' },
     promoText: { tagline: 'A Markdown reader with<br>tables you can actually use', note: 'Open source · Collects no data' },
+    // 4-dark-mermaid：Mermaid 與數學目前只在本機檔案繪製；網頁上能否繪製的實驗（上架計畫第 10 項）有結果後再決定要不要註明
+    captions: {
+      '1-tables': 'Sort, filter and resize tables, then paste them into a spreadsheet',
+      '2-outline-tasks': 'Check off tasks in local .md files — saved straight back to the file',
+      '3-files': 'Browse every Markdown file in a folder, free',
+      '4-dark-mermaid': 'Mermaid diagrams, math and a dark theme',
+      '5-table-fullscreen': 'Fullscreen tables that filter as you type',
+    },
   },
   {
     lang: 'zh-TW',
@@ -36,6 +45,13 @@ const LANGS = [
     readme: 'README.zh-TW.md',
     text: { services: '服務', requests: '每日請求數', flow: '部署流程' },
     promoText: { tagline: '表格真的能用的<br>Markdown 閱讀器', note: '開源・不收集任何資料' },
+    captions: {
+      '1-tables': '表格可排序、篩選、拖拉欄寬，一鍵貼到 Excel',
+      '2-outline-tasks': '勾選本機 .md 檔的任務，直接存回檔案',
+      '3-files': '瀏覽整個資料夾的 Markdown 檔案，完全免費',
+      '4-dark-mermaid': 'Mermaid 圖表、數學公式與深色主題',
+      '5-table-fullscreen': '表格全螢幕，邊打字邊篩選',
+    },
   },
 ]
 
@@ -101,6 +117,24 @@ function marqueeHtml({ tagline, note }, frontBase64, backBase64) {
   <div class="shot front"></div>`
 }
 
+const CAPTION_HEIGHT = 100
+
+/** 商店截圖：上方是品牌色的說明色帶，下方接原始截圖（不縮放，底部被截掉 CAPTION_HEIGHT） */
+function captionHtml(text, shotBase64) {
+  return `<!doctype html><meta charset="utf-8"><style>
+    * { box-sizing: border-box; margin: 0; }
+    body { width: ${WIDTH}px; height: ${HEIGHT}px; overflow: hidden;
+      font-family: "Segoe UI", "Microsoft JhengHei UI", "Microsoft JhengHei", sans-serif; }
+    .band { height: ${CAPTION_HEIGHT}px; display: flex; align-items: center; gap: 20px; padding: 0 44px;
+      background: linear-gradient(100deg, #4f46e5 0%, #3730a3 50%, #1e3a8a 100%); color: #fff; }
+    .band svg { width: 48px; height: 48px; flex: none; }
+    .band span { font-size: 32px; font-weight: 600; letter-spacing: -0.005em; }
+    .shot { height: ${HEIGHT - CAPTION_HEIGHT}px; background: url(data:image/png;base64,${shotBase64}) no-repeat 0 0 / ${WIDTH}px ${HEIGHT}px; }
+  </style>
+  <div class="band">${ICON_SVG}<span>${text}</span></div>
+  <div class="shot"></div>`
+}
+
 /** 捲到指定標題，讓它停在工具列下方 */
 async function scrollToHeading(page, text) {
   await page.locator('#ml-root .markdown-body :is(h1, h2, h3)', { hasText: text }).first().evaluate(h => {
@@ -108,7 +142,7 @@ async function scrollToHeading(page, text) {
   })
 }
 
-for (const { lang, dir, demo, table: tableDoc, readme, text, promoText } of LANGS) {
+for (const { lang, dir, demo, table: tableDoc, readme, text, promoText, captions } of LANGS) {
   const outDir = join(root, 'docs/store', dir)
   mkdirSync(outDir, { recursive: true })
   const ctx = await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), 'ml-store-')), {
@@ -188,25 +222,34 @@ for (const { lang, dir, demo, table: tableDoc, readme, text, promoText } of LANG
   }
 
   try {
+    // 原始截圖只留在記憶體：宣傳圖要用沒有說明色帶的畫面
+    const raw = {}
+    const caption = await ctx.newPage()
+    await caption.setViewportSize({ width: WIDTH, height: HEIGHT })
     for (const [name, shoot] of Object.entries(shots)) {
       const page = await shoot()
       await page.waitForTimeout(300)
-      await page.screenshot({ path: join(outDir, `${name}.png`) })
+      raw[name] = await page.screenshot()
       await page.close()
+      // 上方加說明色帶，截圖不縮放、往下移，截掉底部同樣的高度
+      await caption.setContent(captionHtml(captions[name], raw[name].toString('base64')))
+      await caption.evaluate(() => document.fonts.ready)
+      await caption.screenshot({ path: join(outDir, `${name}.png`) })
       console.log(`✔ ${dir}/${name}.png`)
     }
+    await caption.close()
 
     // 小型宣傳圖 440×280：圖示、名稱、標語，右側放第 1 張截圖的表格區域
     const promo = await ctx.newPage()
     await promo.setViewportSize({ width: 440, height: 280 })
-    await promo.setContent(promoHtml(promoText, readFileSync(join(outDir, '1-tables.png')).toString('base64')))
+    await promo.setContent(promoHtml(promoText, raw['1-tables'].toString('base64')))
     await promo.evaluate(() => document.fonts.ready)
     await promo.screenshot({ path: join(outDir, 'promo-440x280.png') })
     await promo.close()
     console.log(`✔ ${dir}/promo-440x280.png`)
 
     // 大型宣傳圖 1400×560：只在商店選為精選橫幅時使用；Edge Add-ons 也接受這個尺寸
-    const shotB64 = name => readFileSync(join(outDir, `${name}.png`)).toString('base64')
+    const shotB64 = name => raw[name].toString('base64')
     const marquee = await ctx.newPage()
     await marquee.setViewportSize({ width: 1400, height: 560 })
     await marquee.setContent(marqueeHtml(promoText, shotB64('2-outline-tasks'), shotB64('4-dark-mermaid')))
