@@ -165,12 +165,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     const codes = article.querySelectorAll('.ml-code code.language-mermaid')
     if (!codes.length) return Promise.resolve()
     if (!enabled || !supported()) {
-      if (enabled) {
-        for (const code of codes) {
-          const lang = code.closest('.ml-code').querySelector('.ml-code-lang')
-          if (lang) lang.title = t('mermaidLocalOnly')
-        }
-      }
+      // 網頁上不繪製：每個圖表上方說明原因；使用者自己關掉時不提示
+      if (enabled) for (const code of codes) code.closest('.ml-code').before(MarkLens.localOnlyNote(t('mermaidLocalOnly')))
       return Promise.resolve()
     }
     const pending = []

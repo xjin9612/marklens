@@ -174,7 +174,13 @@
     "message": "Mermaid syntax error"
   },
   "mermaidLocalOnly": {
-    "message": "Mermaid diagrams are drawn for local files only"
+    "message": "Mermaid diagrams are drawn only for files opened from your computer. Save this file and open it in the browser to see the diagram."
+  },
+  "mathLocalOnly": {
+    "message": "Math is drawn only for files opened from your computer, so the TeX source is shown on this page."
+  },
+  "localOnlyWhy": {
+    "message": "MarkLens keeps its diagram and math libraries away from websites so that sites can't detect it is installed."
   },
   "mermaidPending": {
     "message": "Drawing Mermaid diagram…"

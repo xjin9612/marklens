@@ -61,6 +61,17 @@ MarkLens.debounce = function (fn, ms) {
 }
 
 /**
+ * 「只在本機檔案繪製」的提示：網頁上的 Mermaid 與數學公式顯示原文時，放在原文上方
+ * 滑過顯示原因（程式庫只對 file:// 開放，網站才無法藉此偵測到 MarkLens）
+ */
+MarkLens.localOnlyNote = function (text) {
+  return MarkLens.h('p', { class: 'ml-local-only', title: MarkLens.t('localOnlyWhy'), attrs: { role: 'note' } }, [
+    MarkLens.icon('info'),
+    MarkLens.h('span', { text }),
+  ])
+}
+
+/**
  * 讓延遲載入的圖片立刻載入，等全部載完（或失敗）再繼續；列印前用，否則還沒捲到的圖片印出來是空白
  * 最多等 ms 毫秒，避免一張很慢的遠端圖片卡住列印
  */

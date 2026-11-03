@@ -64,7 +64,15 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   MarkLens.renderMath = async function (article, enabled) {
     const els = Array.from(article.querySelectorAll(SELECTOR))
     if (!els.length) return
-    if (!enabled || !supported()) return showSource(els)
+    if (!enabled || !supported()) {
+      // 網頁上不繪製：只在第一個公式所在的段落上方提示一次（公式可能散布全文，逐一提示太吵）；使用者自己關掉時不提示
+      if (enabled) {
+        let block = els[0]
+        while (block.parentElement && block.parentElement !== article) block = block.parentElement
+        block.before(MarkLens.localOnlyNote(MarkLens.t('mathLocalOnly')))
+      }
+      return showSource(els)
+    }
     if (!katex) {
       try {
         await load()
