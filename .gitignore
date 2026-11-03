@@ -4,3 +4,4 @@ dist/
 .idea/
 # 手動測試的大檔由 npm run manual:bigfile 產生
 test/manual/09-*.md
+.node-version
