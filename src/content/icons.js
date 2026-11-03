@@ -18,6 +18,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     'unfold-all': ['M5 5.5l3-3 3 3', 'M5 10.5l3 3 3-3'],
     width: ['M2 8h12', 'M4.5 5.5 2 8l2.5 2.5', 'M11.5 5.5 14 8l-2.5 2.5'],
     download: ['M8 2.5v8', 'M4.5 7 8 10.5 11.5 7', 'M3 13.5h10'],
+    info: [['circle', { cx: 8, cy: 8, r: 6 }], 'M8 7.25V11', 'M8 5h.01'],
     // 印表機：上方進紙、機身、下方出紙
     print: ['M4.5 6V2.5h7V6', 'M4.5 11.5H3a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v3.5a1 1 0 0 1-1 1h-1.5', 'M4.5 9.5h7v4h-7z'],
     sun: [

@@ -174,7 +174,13 @@
     "message": "Mermaid 語法錯誤"
   },
   "mermaidLocalOnly": {
-    "message": "Mermaid 圖表只在本機檔案繪製"
+    "message": "Mermaid 圖表只在開啟本機檔案時繪製。把這個檔案存到電腦後用瀏覽器開啟，就能看到圖表。"
+  },
+  "mathLocalOnly": {
+    "message": "數學公式只在開啟本機檔案時繪製，這一頁顯示的是 TeX 原文。"
+  },
+  "localOnlyWhy": {
+    "message": "MarkLens 的圖表與公式程式庫不開放給網站存取，網站才無法藉此得知你裝了 MarkLens。"
   },
   "mermaidPending": {
     "message": "Mermaid 圖表繪製中…"

@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 - **Print / PDF** button in the toolbar: prints the whole document, or saves it as a PDF from the print dialog. Folded sections and filtered table rows are printed, a fullscreen table goes back into the page, images that haven't loaded yet are loaded first, a dark theme switches to light colors for paper (Mermaid diagrams are redrawn in light colors before the dialog opens), and pages carry only a page number instead of Chrome's date, title and full local file path. Ctrl+P also prints folded sections and uses light colors, but diagrams keep their dark colors there — use the button for the best result
+- On web pages, a note above each Mermaid diagram and above the first formula explains that diagrams and math are drawn only for local files (hover for why), instead of leaving the source unexplained
 
 ### Changed
 - The extension is named **MarkLens – Markdown Reader** (Traditional Chinese: **MarkLens – Markdown 閱讀器**) so it can be found by searching for "Markdown"; the short name stays MarkLens
