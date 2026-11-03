@@ -146,6 +146,9 @@ html.marklens .ml-tool.active { color: var(--accent); }
 /* 選單開著時，觸發的按鈕維持按下的樣子 */
 html.marklens .ml-tool[aria-expanded="true"] { background: var(--hover); color: var(--fg); }
 html.marklens .ml-spacer { flex: 1; }
+/* 回到頂部：捲動前看不見、點不到、鍵盤也移不到，但保留位置，出現時其他按鈕不會位移 */
+html.marklens .ml-tool-top { transition: opacity var(--ml-dur) var(--ml-ease); }
+html.marklens .ml-tool-top.ml-tool-away { opacity: 0; visibility: hidden; transition: opacity var(--ml-dur) var(--ml-ease), visibility 0s var(--ml-dur); }
 html.marklens .ml-orphan { margin-left: 8px; color: var(--alert-warning); white-space: nowrap; }
 /* 只有圖示的按鈕：正方形 */
 html.marklens :is(.ml-tool-toc, .ml-side-menu, .ml-side-icon) { width: 28px; padding: 0; justify-content: center; }

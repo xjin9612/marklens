@@ -173,6 +173,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.editBtn = btn('ml-tool-edit', 'edit', t('toolEdit'), t('toolEditTitle'), () => this.openInEditor())
       this.editBtn.hidden = !(location.protocol === 'file:' && MarkLens.editorTemplate(this.settings))
       this.topBtn = btn('ml-tool-top', 'arrow-up', t('toolTop'), t('toolTopTitle'), () => scrollTo({ top: 0 }))
+      this.topBtn.classList.toggle('ml-tool-away', scrollY < 600) // 開檔時就在頂端：一開始就隱藏，不必等第一次捲動
       return h('div', { class: 'ml-toolbar', attrs: { role: 'toolbar' } }, [
         this.tocBtn,
         h('span', { class: 'ml-spacer' }),
@@ -522,7 +523,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     onScroll() {
       const max = document.documentElement.scrollHeight - innerHeight
       this.progress.style.transform = `scaleX(${max > 0 ? Math.min(1, scrollY / max) : 0})`
-      this.topBtn.hidden = scrollY < 600
+      // 不用 hidden：按鈕消失會讓整排靠右的按鈕位移；改為保留位置、只切換可見（見 content.css）
+      this.topBtn.classList.toggle('ml-tool-away', scrollY < 600)
       this.toc.update()
       if (this.settings.rememberScroll && this.saveScroll) this.saveScroll()
     }
