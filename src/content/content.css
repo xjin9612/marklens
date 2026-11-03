@@ -735,6 +735,19 @@ html.marklens .ml-viewer-close .ml-icon { width: 18px; height: 18px; }
 html.marklens .ml-viewer :focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
 /* ---------- 列印 ---------- */
+/*
+ * 列印的頁邊：只印頁碼。頁面定義了頁邊方塊，Chrome 就不再印預設的頁首頁尾（日期、標題、完整的本機路徑），
+ * 分享出去的 PDF 不會帶著使用者電腦的資料夾路徑。頂部與底部要分別定義才會各自生效
+ */
+@page {
+  @top-center { content: ""; }
+  @bottom-center {
+    content: counter(page) " / " counter(pages);
+    font: 9pt -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif;
+    color: #59636e;
+  }
+}
+
 @media print {
   html.marklens :is(.ml-toc, .ml-toolbar, .ml-progress, .ml-table-bar, .ml-code-bar, .ml-anchor, .ml-fold, .ml-col-resizer) { display: none !important; }
   /* 與匯出 HTML 相同：摺疊的段落與篩選掉的表格列都印出來 */
