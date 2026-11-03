@@ -137,8 +137,9 @@ vendor/                  third-party libraries (versions in VERSIONS.md, license
 scripts/vendor.mjs       script for upgrading vendor/
 scripts/release.mjs      release helper: version check, release notes, packaging
 scripts/screenshots.mjs  regenerates docs/screenshots/ from docs/demo.md (npm run screenshots)
+scripts/store-screenshots.mjs  regenerates the 1280×800 store screenshots in docs/store/ (npm run screenshots:store; run it on Windows so the fonts match what most users see)
 scripts/manual-bigfile.mjs  generates the large file for the manual tests (npm run manual:bigfile)
-docs/                    README screenshots and the demo document they are taken from
+docs/                    README and store screenshots, and the demo documents they are taken from
 .github/workflows/       CI tests and automated releases
 CHANGELOG.md             release notes (the source for GitHub releases)
 test/                    end-to-end tests (e2e.mjs), visual regression tests (visual.mjs) and fixtures

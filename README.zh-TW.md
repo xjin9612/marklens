@@ -137,8 +137,9 @@ vendor/                  第三方程式庫（版本見 VERSIONS.md，授權見 
 scripts/vendor.mjs       升級 vendor 用的腳本
 scripts/release.mjs      發版輔助：版本檢查、取出 Release 說明、打包
 scripts/screenshots.mjs  由 docs/demo.md 重新產生 docs/screenshots/（npm run screenshots）
+scripts/store-screenshots.mjs  重新產生 docs/store/ 的 1280×800 商店截圖（npm run screenshots:store；請在 Windows 上執行，字型才與多數使用者看到的一致）
 scripts/manual-bigfile.mjs  產生手動測試用的大檔（npm run manual:bigfile）
-docs/                    README 截圖與截圖用的示範文件
+docs/                    README 與商店截圖，以及截圖用的示範文件
 .github/workflows/       自動測試與自動發布
 CHANGELOG.md             版本紀錄（GitHub Release 說明的來源）
 test/                    端對端測試（e2e.mjs）、視覺回歸測試（visual.mjs）與測試文件
