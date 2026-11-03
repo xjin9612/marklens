@@ -55,16 +55,19 @@ html.marklens pre.ml-source { display: none; }
 html.marklens.ml-noscroll, html.marklens.ml-noscroll body { overflow: hidden; }
 html.marklens.ml-dragging, html.marklens.ml-dragging * { cursor: col-resize !important; user-select: none !important; }
 html.marklens [hidden]:not([hidden="until-found"]) { display: none !important; }
-/* 大檔的摺疊（fast 模式）：直接不顯示，見 enhance.js setFoldMode */
-html.marklens .markdown-body[data-ml-fold-mode="fast"] > [data-ml-fold] { display: none !important; }
-/* 摺疊的內容：hidden=until-found 只隱藏內容不移除方塊，把外距與高度歸零 */
-html.marklens .markdown-body > [hidden="until-found"] {
-  margin-block: 0 !important;
-  padding-block: 0 !important;
-  border: 0 !important;
-  height: 0 !important;
-  min-height: 0 !important;
-  overflow: hidden !important;
+/* 摺疊只作用在螢幕上；列印時全部展開（見下方 @media print） */
+@media screen {
+  /* 大檔的摺疊（fast 模式）：直接不顯示，見 enhance.js setFoldMode */
+  html.marklens .markdown-body[data-ml-fold-mode="fast"] > [data-ml-fold] { display: none !important; }
+  /* 摺疊的內容：hidden=until-found 只隱藏內容不移除方塊，把外距與高度歸零 */
+  html.marklens .markdown-body > [hidden="until-found"] {
+    margin-block: 0 !important;
+    padding-block: 0 !important;
+    border: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
 }
 
 /* ---------- 鍵盤焦點：所有可操作元素統一外框（只在鍵盤操作時出現） ---------- */
@@ -734,6 +737,17 @@ html.marklens .ml-viewer :focus-visible { outline: 2px solid #fff; outline-offse
 /* ---------- 列印 ---------- */
 @media print {
   html.marklens :is(.ml-toc, .ml-toolbar, .ml-progress, .ml-table-bar, .ml-code-bar, .ml-anchor, .ml-fold, .ml-col-resizer) { display: none !important; }
+  /* 與匯出 HTML 相同：摺疊的段落與篩選掉的表格列都印出來 */
+  /* hidden=until-found 由瀏覽器以 content-visibility 隱藏內容 */
+  html.marklens .markdown-body > [hidden="until-found"] { content-visibility: visible !important; }
+  html.marklens .markdown-body .ml-folded::after { content: none; }
+  html.marklens .markdown-body tr[hidden] { display: table-row !important; }
+  /* 表頭的 position: relative 是給拖拉欄寬的把手用的；列印時 Chrome 畫不出定位儲存格的合併框線 */
+  html.marklens .markdown-body th { position: static; }
+  /* 全螢幕表格回到文件中的位置，不然只印得出這張表 */
+  html.marklens .markdown-body > .ml-table.ml-table-full { position: static; display: block; padding: 0; }
+  html.marklens .ml-table-full .ml-table-scroll { overflow: visible; }
+  html.marklens.ml-noscroll, html.marklens.ml-noscroll body { overflow: visible; }
   html.marklens .ml-main { margin: 0 !important; }
   html.marklens .ml-body { padding: 0; }
   html.marklens .markdown-body > * { max-width: none !important; }

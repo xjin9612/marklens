@@ -56,7 +56,7 @@ MARKDOWN SUPPORT
 • Syntax highlighting with a copy button for code blocks
 • Mermaid diagrams and KaTeX math in local files
 • Box-drawing tables in code blocks stay aligned with Chinese, Japanese and Korean text
-• Export the current view as one self-contained HTML file to share
+• Export the current view as one self-contained HTML file to share, or print it / save it as a PDF with every section expanded
 
 PRIVATE AND AUDITABLE
 • Collects no data. No account, no analytics, no ads, no server
@@ -102,7 +102,7 @@ Markdown 支援
 • 程式碼語法高亮，附複製按鈕
 • 本機檔案支援 Mermaid 圖表與 KaTeX 數學公式
 • 程式碼區塊中的罫線表格，中日韓文字也能對齊
-• 把目前畫面匯出成單一 HTML 檔，方便分享
+• 把目前畫面匯出成單一 HTML 檔方便分享，或列印／存成 PDF，摺疊的段落會全部展開
 
 注重隱私、可以稽核
 • 不收集任何資料。沒有帳號、沒有分析追蹤、沒有廣告、沒有伺服器

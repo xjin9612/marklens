@@ -30,9 +30,9 @@ To upgrade, replace the folder with the new release and click the reload icon on
 |---|---|
 | Pages | Renders `.md` `.markdown` `.mkd` `.mdx` over `http(s)://` and `file://`; only takes over when the browser shows the file as plain text |
 | Files | Local files: a **Files** tab lists the Markdown files and subfolders next to the document (folders first, natural sort); subfolders load when opened; ↑ goes up a folder and right-click → *Make this the top folder* goes back down. Skipped names are configurable |
-| Toolbar | Sticky top bar: sidebar (☰), fold all, unfold all, text width (menu), export HTML, theme (menu: auto / light / dark), raw source / back to reading, back to top |
+| Toolbar | Sticky top bar: sidebar (☰), fold all, unfold all, text width (menu), export HTML, print / PDF, theme (menu: auto / light / dark), raw source / back to reading, back to top |
 | Editor | Optional **Edit** button opens the local file in VS Code at the section you're reading, or in any editor that has a URL scheme (custom template with `{path}` and `{line}`). Notepad and Notepad++ can't be opened from a browser |
-| Export | Save the current view as one self-contained HTML file (styles, diagrams and math fonts embedded, sections expanded, no JavaScript) to share with people who don't have MarkLens |
+| Export | Save the current view as one self-contained HTML file (styles, diagrams and math fonts embedded, sections expanded, no JavaScript) to share with people who don't have MarkLens. **Print / PDF** prints the whole document (choose *Save as PDF* in the print dialog for a PDF): folded sections and filtered table rows are included, and a dark theme switches to light colors for paper |
 | Layout | Text column width: full / 1600 / 1200 / 960 / custom. Tables and code blocks can grow past the text column up to the page edge. **Font size scales the whole document** (text, headings, code, tables, math and Mermaid diagrams) from the toolbar or the `+` / `-` / `0` keys; adjustable line height; reading progress bar |
 | Sidebar | ☰ or `t` to show / hide. **Outline** tab: active-section highlight, heading search (`/`), resizable width, two-line titles, folded-section markers, word count and reading time. How many heading levels the outline shows is set in the popup |
 | Folding | Fold any section from the ▾ next to its heading. "Fold all" starts from the first heading level that has two or more headings. Folded content stays searchable with Ctrl+F and unfolds on match (in very large documents — roughly 400 KB+ — folded sections are hidden normally for speed and must be unfolded before searching) |
@@ -46,7 +46,7 @@ To upgrade, replace the folder with the new release and click the reload icon on
 | Check off tasks | Click a task-list checkbox in a local file to save `[ ]` / `[x]` straight back to the file — no editor needed. Works in nested lists, ordered lists and blockquotes; checkboxes inside code blocks are never touched. Undo from the toast; refuses to write if the file changed elsewhere; keeps CRLF and BOM. Requires authorizing a folder once (see below) |
 | Live reload | Local files are checked every second and re-rendered only when changed — scroll position, folds, and table sort / widths / filters are preserved |
 | Language | English and Traditional Chinese interface. Follows the browser language by default, or pick one in the popup → **Language** |
-| Misc | External links open in a new tab (can be turned off), remembers reading position per file, print stylesheet, relative `.md` links open in the reader |
+| Misc | External links open in a new tab (can be turned off), remembers reading position per file, relative `.md` links open in the reader |
 
 ### Checking off tasks in local files
 
