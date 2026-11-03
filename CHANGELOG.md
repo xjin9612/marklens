@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Changed
+- The extension is named **MarkLens – Markdown Reader** (Traditional Chinese: **MarkLens – Markdown 閱讀器**) so it can be found by searching for "Markdown"; the short name stays MarkLens
 - Shorter English extension description, to fit the Chrome Web Store's 132-character limit
 - Each GitHub release also includes `marklens-vX.Y.Z-store.zip`, with `manifest.json` at the root of the zip as the Chrome Web Store and Edge Add-ons require
 

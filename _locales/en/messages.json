@@ -1,4 +1,7 @@
 {
+  "extName": {
+    "message": "MarkLens – Markdown Reader"
+  },
   "extDescription": {
     "message": "Lightweight, auditable Markdown reader: outline, folding, resizable sortable tables, Mermaid, and task check-off in local files."
   },

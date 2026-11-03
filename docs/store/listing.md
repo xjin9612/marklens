@@ -10,7 +10,8 @@
 
 - 檔案：GitHub Release 的 `marklens-vX.Y.Z-store.zip`（`manifest.json` 位於 zip 根目錄）
 - 名稱與簡短說明取自 `manifest.json` 與 `_locales/`，後台不能另外修改：
-  - 名稱：`MarkLens`
+  - 名稱（en）：`MarkLens – Markdown Reader`
+  - 名稱（zh_TW）：`MarkLens – Markdown 閱讀器`
   - 簡短說明（en，128 字元）：Lightweight, auditable Markdown reader: outline, folding, resizable sortable tables, Mermaid, and task check-off in local files.
   - 簡短說明（zh_TW）：輕量、可稽核的 Markdown 閱讀器：目錄、摺疊、可拖拉排序的表格、Mermaid 圖表，並可直接勾選本機檔案的任務。
 
@@ -171,7 +172,7 @@ All JavaScript, including third-party libraries (markdown-it, highlight.js, Merm
 
 **收集的資料類型：全部不勾。**
 
-理由（我的判斷，填寫前請再確認）：商店所說的「收集」是指資料離開使用者的裝置。MarkLens 存放的資料只有兩種，都只留在本機，不傳送給任何人，且在隱私權政策中逐項列出：
+理由：商店所說的「收集」是指資料離開使用者的裝置。MarkLens 存放的資料只有兩種，都只留在本機，不傳送給任何人，且在隱私權政策中逐項列出：
 - 閱讀位置：最近 300 個檔案的網址與捲動位置，用於回到上次閱讀處
 - 已授權資料夾的存取權
 
@@ -205,11 +206,3 @@ https://github.com/xjin9612/marklens/blob/main/PRIVACY.md
 - 詳細說明：Edge 有最少字數規定（待確認），上面的說明遠超過一般下限
 - 搜尋關鍵字（待確認是否仍有此欄位）：markdown, md, reader, viewer, table, mermaid, preview
 - 類別：Developer tools（待確認名稱）
-
----
-
-## 6. 可再考慮：名稱是否加上關鍵字
-
-商店搜尋主要比對名稱與說明。目前名稱只有「MarkLens」，搜尋「markdown viewer」的使用者不一定找得到。競品多半把關鍵字放在名稱裡（例如 *Markdown Viewer*、*MarkView – Markdown Viewer*）。
-
-可以改成 `MarkLens – Markdown Reader`（26 字元，上限 75）。代價是 `manifest.json` 的 `name` 會一起改，`chrome://extensions` 與工具列提示也會顯示這個名稱。`short_name` 維持 `MarkLens`。
