@@ -87,6 +87,8 @@
 
 ## 安全設計
 
+MarkLens 不收集任何資料，也不會把資料傳到任何地方；它唯一的網路請求是重新載入你開啟的文件。詳見[隱私權政策](PRIVACY.zh-TW.md)。
+
 - **HTML 白名單過濾**（`src/content/sanitize.js`）：允許 `<details>`、`<kbd>`、表格等常用標籤；移除 `<script>`、`<iframe>`、`<svg>`、所有事件屬性、`style`（表格對齊除外），以及 `javascript:`、`data:`（圖片除外）等連結。
 - **數學公式**：KaTeX 以 `trust: false` 繪製（停用 `\href`、`\url`、`\includegraphics` 與 `\html…` 指令），並限制巨集展開次數；與 Mermaid 相同，程式庫只對 `file://` 頁面開放。
 - **不能借用介面**：文件中的 HTML 不能使用 MarkLens 自己的 `ml-` class／id（無法在頁面上蓋出假遮罩或假提示），`name` 屬性只保留給 `<a>`，防止 DOM clobbering。
