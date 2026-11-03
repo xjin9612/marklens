@@ -196,11 +196,16 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     return Promise.all(pending).then(() => {})
   }
 
-  /** 主題切換後，重繪主題不符的圖表 */
+  /**
+   * 主題切換後，重繪主題不符的圖表
+   * @returns {Promise<void>} 重繪完成
+   */
   MarkLens.rethemeMermaid = function (article) {
     const theme = themeNow()
+    const pending = []
     for (const wrap of article.querySelectorAll('.ml-mermaid[data-ml-mermaid-theme]')) {
-      if (wrap.dataset.mlMermaidTheme !== theme) enqueue(wrap)
+      if (wrap.dataset.mlMermaidTheme !== theme) pending.push(enqueue(wrap))
     }
+    return Promise.all(pending).then(() => {})
   }
 })()

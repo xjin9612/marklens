@@ -60,6 +60,25 @@ MarkLens.debounce = function (fn, ms) {
   }
 }
 
+/**
+ * 讓延遲載入的圖片立刻載入，等全部載完（或失敗）再繼續；列印前用，否則還沒捲到的圖片印出來是空白
+ * 最多等 ms 毫秒，避免一張很慢的遠端圖片卡住列印
+ */
+MarkLens.loadImages = function (root, ms = 5000) {
+  const waits = []
+  for (const img of root.querySelectorAll('img')) {
+    if (img.loading === 'lazy') img.loading = 'eager'
+    if (img.complete) continue
+    waits.push(
+      new Promise(done => {
+        img.addEventListener('load', done, { once: true })
+        img.addEventListener('error', done, { once: true })
+      }),
+    )
+  }
+  return Promise.race([Promise.all(waits), new Promise(r => setTimeout(r, ms))])
+}
+
 /** 複製文字；非安全環境（一般 http）退回 execCommand */
 MarkLens.copyText = async function (text) {
   try {

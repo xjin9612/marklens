@@ -98,6 +98,12 @@
   "toolExportTitle": {
     "message": "把目前畫面下載成單一 HTML 檔（不含程式碼，可離線開啟、方便分享）"
   },
+  "toolPrint": {
+    "message": "列印／PDF"
+  },
+  "toolPrintTitle": {
+    "message": "列印，或在列印對話框選「另存為 PDF」。摺疊的段落會展開，並改用淺色以便印在紙上"
+  },
   "exportDone": {
     "message": "已匯出 $1"
   },

@@ -127,6 +127,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       addEventListener('hashchange', () => this.scrollToHash())
       addEventListener('keydown', e => this.onKey(e))
       this.darkQuery.addEventListener('change', () => this.applyLive())
+      // Ctrl+P 也改用淺色列印；圖表來不及重繪，列印按鈕才會等圖表重繪完
+      addEventListener('beforeprint', () => this.setPrinting(true))
+      addEventListener('afterprint', () => this.setPrinting(false))
 
       // 只有外觀設定即時同步；其餘設定是新分頁的預設值
       chrome.storage.onChanged.addListener((changes, area) => {
@@ -164,6 +167,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         b.setAttribute('aria-expanded', 'false')
       }
       this.exportBtn = btn('ml-tool-export', 'download', t('toolExport'), t('toolExportTitle'), () => this.exportHtml())
+      this.printBtn = btn('ml-tool-print', 'print', t('toolPrint'), t('toolPrintTitle'), () => this.print())
       this.rawBtn = btn('ml-tool-raw', 'code', t('toolRaw'), t('toolRawTitle'), () => this.toggleRaw())
       // 用編輯器開啟：設定中選了編輯器且為本機檔案才顯示
       this.editBtn = btn('ml-tool-edit', 'edit', t('toolEdit'), t('toolEditTitle'), () => this.openInEditor())
@@ -178,6 +182,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           this.widthBtn,
           this.fontBtn,
           this.exportBtn,
+          this.printBtn,
         ]),
         this.themeBtn,
         this.editBtn,
@@ -358,7 +363,10 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
 
     /* ---------- 設定 ---------- */
-    /** 即時同步的外觀設定 */
+    /**
+     * 即時同步的外觀設定
+     * @returns {Promise<void>} Mermaid 圖表依新主題重繪完成
+     */
     applyLive() {
       const s = this.settings
       const rs = document.documentElement.style
@@ -367,7 +375,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       rs.setProperty('--ml-scale', String(s.fontSize / MarkLens.DEFAULTS.fontSize))
       rs.setProperty('--ml-line-height', String(s.lineHeight))
       const dark = s.theme === 'dark' || (s.theme === 'auto' && this.darkQuery.matches)
-      document.documentElement.dataset.mlTheme = dark ? 'dark' : 'light'
+      // 列印時一律淺色：紙張不印背景，深色主題的淺色文字印出來看不清楚
+      document.documentElement.dataset.mlTheme = dark && !this.printing ? 'dark' : 'light'
       // 給下一次開檔的等待畫面用（early.js）；只寫本機檔案的儲存空間，網站讀不到
       if (location.protocol === 'file:') {
         try {
@@ -381,7 +390,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         setTool(this.themeBtn, icon, t('toolTheme', t(name)))
       }
       if (this.fontBtn) setTool(this.fontBtn, 'text-size', t('toolFontSize', MarkLens.fontPercent(s.fontSize)))
-      if (this.article) MarkLens.rethemeMermaid(this.article)
+      return this.article ? MarkLens.rethemeMermaid(this.article) : Promise.resolve()
     }
 
     /** 分頁狀態與只在載入時套用的設定 */
@@ -451,6 +460,30 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         MarkLens.toast(t('exportFailed', err.message))
       } finally {
         this.exportBtn.disabled = false
+      }
+    }
+
+    /** 進入／離開列印狀態（改用淺色）；回傳圖表重繪完成的 Promise */
+    setPrinting(on) {
+      if (this.printing === on) return Promise.resolve()
+      this.printing = on
+      return this.applyLive()
+    }
+
+    /**
+     * 列印／存成 PDF：先改用淺色並等 Mermaid 重繪、延遲載入的圖片載完，再開啟列印對話框
+     * 摺疊的段落與篩選掉的表格列由列印樣式（content.css 的 @media print）顯示
+     */
+    async print() {
+      if (this.printBtn.disabled) return
+      this.printBtn.disabled = true
+      try {
+        await this.setPrinting(true)
+        await MarkLens.loadImages(this.article)
+        window.print() // 對話框關閉後才返回；afterprint 會還原主題
+      } finally {
+        this.setPrinting(false)
+        this.printBtn.disabled = false
       }
     }
 

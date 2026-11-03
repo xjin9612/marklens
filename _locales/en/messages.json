@@ -98,6 +98,12 @@
   "toolExportTitle": {
     "message": "Download what you see as a single HTML file (no scripts; opens offline, easy to share)"
   },
+  "toolPrint": {
+    "message": "Print / PDF"
+  },
+  "toolPrintTitle": {
+    "message": "Print, or choose Save as PDF in the print dialog. Folded sections are expanded and colors switch to light for paper"
+  },
   "exportDone": {
     "message": "Exported $1"
   },

@@ -908,6 +908,30 @@ try {
     await sw.evaluate(t => MarkLens.saveSettings({ theme: t }), before)
     await mp.waitForFunction(() => document.querySelector('.ml-mermaid').dataset.mlMermaidTheme !== 'dark')
   })
+  await check('列印：深色主題改用淺色（Ctrl+P 與列印按鈕），圖表以淺色重繪，結束後還原', async () => {
+    const before = (await sw.evaluate(() => MarkLens.loadSettings())).theme
+    const themeIs = t => mp.waitForFunction(t => document.documentElement.dataset.mlTheme === t, t)
+    // Mermaid 的淺色主題叫 default
+    const mermaidIs = t => mp.waitForFunction(t => [...document.querySelectorAll('.ml-mermaid[data-ml-mermaid-theme]')].every(el => el.dataset.mlMermaidTheme === t), t)
+    try {
+      await sw.evaluate(() => MarkLens.saveSettings({ theme: 'dark' }))
+      await mermaidIs('dark')
+      // Ctrl+P：瀏覽器在開啟對話框前送出 beforeprint，關閉後送出 afterprint
+      await mp.evaluate(() => dispatchEvent(new Event('beforeprint')))
+      await themeIs('light')
+      await mermaidIs('default')
+      await mp.evaluate(() => dispatchEvent(new Event('afterprint')))
+      await themeIs('dark')
+      await mermaidIs('dark')
+      // 列印按鈕：對話框關閉後還原深色，按鈕可再按
+      await mp.click('.ml-tool-print')
+      await themeIs('dark')
+      await mp.waitForFunction(() => !document.querySelector('.ml-tool-print').disabled)
+      assert.equal(await mp.evaluate(() => localStorage.getItem('marklens:theme')), 'dark', '等待畫面記住的仍是深色')
+    } finally {
+      await sw.evaluate(t => MarkLens.saveSettings({ theme: t }), before)
+    }
+  })
   await check('工具列主題按鈕與 d 鍵：自動 → 淺色 → 深色，圖表跟著重繪', async () => {
     const theme = () => sw.evaluate(async () => (await MarkLens.loadSettings()).theme)
     const before = await theme()
@@ -1037,6 +1061,24 @@ try {
     else assert.ok(codeFont.skipped, `沒有寫入對齊字型時應記錄原因：${JSON.stringify(codeFont)}`)
     assert.deepEqual(xerr, [])
     await xp.close()
+  })
+  await check('列印樣式：摺疊的段落照樣印出，工具列、側邊欄與摺疊按鈕不印', async () => {
+    await page.bringToFront()
+    await page.click('.ml-toolbar button:has-text("全部摺疊")')
+    try {
+      await page.emulateMedia({ media: 'print' })
+      const folded = await page.$$eval('.markdown-body > [data-ml-fold]', els =>
+        els.map(el => ({ cv: getComputedStyle(el).contentVisibility, h: el.getBoundingClientRect().height })),
+      )
+      assert.ok(folded.length > 0, '應有摺疊的內容')
+      assert.ok(folded.every(f => f.cv !== 'hidden'), '摺疊的內容不應以 content-visibility 隱藏')
+      assert.ok(folded.some(f => f.h > 0), '摺疊的內容應有高度')
+      assert.ok(await page.locator('.markdown-body h2', { hasText: '安全性' }).isVisible())
+      for (const sel of ['.ml-toolbar', '.ml-toc', '.ml-fold']) assert.equal(await page.locator(sel).first().isVisible(), false, `${sel} 不應印出`)
+    } finally {
+      await page.emulateMedia({ media: null })
+      await page.click('.ml-toolbar button:has-text("全部展開")')
+    }
   })
   await check('匯出 HTML：數學公式的字型內嵌，離線開啟也能顯示', async () => {
     await mt.bringToFront()
