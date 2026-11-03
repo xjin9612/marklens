@@ -224,7 +224,7 @@ npm run test:visual -- --update      # 以目前畫面作為新的基準圖
 3. 本機檢查：`node scripts/release.mjs check vX.Y.Z`
 4. commit 後執行 `git tag vX.Y.Z`、`git push origin main --tags`。
 
-**Release** workflow 會確認標籤、`manifest.json`、`package.json`、`CHANGELOG.md` 版本一致，跑測試，打包只含擴充功能檔案的 `marklens-vX.Y.Z.zip`，並以該版 CHANGELOG 段落為說明發布 GitHub Release。每次 push 到 `main` 與每個 pull request 都會由 **Tests** workflow 自動跑測試。
+**Release** workflow 會確認標籤、`manifest.json`、`package.json`、`CHANGELOG.md` 版本一致，以及名稱與說明符合商店的長度上限，跑測試，打包只含擴充功能的檔案，並以該版 CHANGELOG 段落為說明發布 GitHub Release。Release 附兩個 zip：`marklens-vX.Y.Z.zip` 內含一層 `marklens-vX.Y.Z/` 資料夾，供「載入未封裝項目」使用；`marklens-vX.Y.Z-store.zip` 的 `manifest.json` 位於根目錄，是 Chrome Web Store 與 Edge Add-ons 接受的格式。每次 push 到 `main` 與每個 pull request 都會由 **Tests** workflow 自動跑測試。
 
 ## 開發計畫
 

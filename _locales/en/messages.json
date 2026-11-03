@@ -1,6 +1,6 @@
 {
   "extDescription": {
-    "message": "Lightweight, auditable Markdown reader: outline, folding, resizable and sortable tables, Mermaid diagrams, and checking off tasks in local files."
+    "message": "Lightweight, auditable Markdown reader: outline, folding, resizable sortable tables, Mermaid, and task check-off in local files."
   },
   "cmdToggleToc": {
     "message": "Show / hide sidebar (current tab)"
