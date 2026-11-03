@@ -1,9 +1,9 @@
-// 產生 Chrome Web Store / Edge Add-ons 的商店截圖（docs/store/<語系>/）
+// 產生 Chrome Web Store / Edge Add-ons 的商店截圖與 440×280 小型宣傳圖（docs/store/<語系>/）
 // 用法：npm run screenshots:store（需要 playwright，與測試相同）
 // 商店接受 1280×800 或 640×400；以 1280×800、1 倍縮放截圖，畫面就是使用者實際看到的大小
 // 字型取決於執行的作業系統，建議在 Windows 上產生（Segoe UI、微軟正黑體），與多數使用者看到的一致
 import { createRequire } from 'node:module'
-import { mkdtempSync, mkdirSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -26,6 +26,7 @@ const LANGS = [
     table: 'docs/store/table.md',
     readme: 'README.md',
     text: { services: 'Services', requests: 'Requests / day', flow: 'Deployment flow' },
+    promoText: { tagline: 'A Markdown reader with<br>tables you can actually use', note: 'Open source · Collects no data' },
   },
   {
     lang: 'zh-TW',
@@ -34,8 +35,40 @@ const LANGS = [
     table: 'docs/store/table.zh-TW.md',
     readme: 'README.zh-TW.md',
     text: { services: '服務', requests: '每日請求數', flow: '部署流程' },
+    promoText: { tagline: '表格真的能用的<br>Markdown 閱讀器', note: '開源・不收集任何資料' },
   },
 ]
+
+const ICON_SVG = readFileSync(join(root, 'icons/icon.svg'), 'utf8').replace('<svg ', '<svg width="52" height="52" ')
+
+/**
+ * 小型宣傳圖的 HTML：配色取自圖示（靛藍漸層、青色），截圖只露出表格一角
+ */
+function promoHtml({ tagline, note }, shotBase64) {
+  return `<!doctype html><meta charset="utf-8"><style>
+    * { box-sizing: border-box; margin: 0; }
+    body { width: 440px; height: 280px; overflow: hidden; position: relative;
+      font-family: "Segoe UI", "Microsoft JhengHei UI", "Microsoft JhengHei", sans-serif;
+      background: radial-gradient(120% 140% at 0% 0%, #4f46e5 0%, #3730a3 45%, #1e3a8a 100%); color: #fff; }
+    .text { position: absolute; left: 28px; top: 30px; width: 200px; }
+    .icon { width: 52px; height: 52px; display: block; }
+    h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.01em; margin-top: 12px; }
+    p { font-size: 15px; line-height: 1.45; margin-top: 6px; color: #e0e7ff; }
+    .note { position: absolute; left: 28px; bottom: 22px; font-size: 12px; color: #67e8f9; letter-spacing: 0.02em; }
+    /* 截圖以一半大小顯示：x 300→150、y 50→25 */
+    .shot { position: absolute; left: 244px; top: 52px; width: 260px; height: 200px;
+      border-radius: 10px; transform: rotate(-4deg); transform-origin: left top;
+      box-shadow: 0 18px 40px rgba(8, 12, 40, .55), 0 0 0 1px rgba(255, 255, 255, .25);
+      background: #fff url(data:image/png;base64,${shotBase64}) no-repeat -150px -25px / 640px 400px; }
+  </style>
+  <div class="text">
+    <div class="icon">${ICON_SVG}</div>
+    <h1>MarkLens</h1>
+    <p>${tagline}</p>
+  </div>
+  <div class="note">${note}</div>
+  <div class="shot"></div>`
+}
 
 /** 捲到指定標題，讓它停在工具列下方 */
 async function scrollToHeading(page, text) {
@@ -44,7 +77,7 @@ async function scrollToHeading(page, text) {
   })
 }
 
-for (const { lang, dir, demo, table: tableDoc, readme, text } of LANGS) {
+for (const { lang, dir, demo, table: tableDoc, readme, text, promoText } of LANGS) {
   const outDir = join(root, 'docs/store', dir)
   mkdirSync(outDir, { recursive: true })
   const ctx = await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), 'ml-store-')), {
@@ -131,6 +164,15 @@ for (const { lang, dir, demo, table: tableDoc, readme, text } of LANGS) {
       await page.close()
       console.log(`✔ ${dir}/${name}.png`)
     }
+
+    // 小型宣傳圖 440×280：圖示、名稱、標語，右側放第 1 張截圖的表格區域
+    const promo = await ctx.newPage()
+    await promo.setViewportSize({ width: 440, height: 280 })
+    await promo.setContent(promoHtml(promoText, readFileSync(join(outDir, '1-tables.png')).toString('base64')))
+    await promo.evaluate(() => document.fonts.ready)
+    await promo.screenshot({ path: join(outDir, 'promo-440x280.png') })
+    await promo.close()
+    console.log(`✔ ${dir}/promo-440x280.png`)
   } finally {
     await ctx.close()
   }
