@@ -10,6 +10,7 @@
     "audit:layout": "node scripts/layout-audit.mjs",
     "vendor": "node scripts/vendor.mjs",
     "screenshots": "node scripts/screenshots.mjs",
+    "gifs": "node scripts/demo-gifs.mjs",
     "manual:bigfile": "node scripts/manual-bigfile.mjs"
   },
   "devDependencies": {
