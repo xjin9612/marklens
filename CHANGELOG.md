@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-11-05
+
 ### Added
 - Math and Mermaid diagrams are drawn on web pages too (for example a README opened on GitHub), not only in local files. Sites still can't detect MarkLens: the libraries are served from an address that changes every browser session
 - **Colors**: sepia and high-contrast palettes besides the GitHub look, for both light and dark themes (popup → **Colors**)
@@ -126,7 +128,8 @@ First public release.
 ### Security
 - Allow-list HTML sanitizer, minimal permissions (`storage` only), no remote code
 
-[Unreleased]: https://github.com/xjin9612/marklens/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/xjin9612/marklens/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/xjin9612/marklens/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/xjin9612/marklens/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/xjin9612/marklens/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/xjin9612/marklens/compare/v1.2.0...v1.3.0
