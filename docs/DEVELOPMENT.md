@@ -231,7 +231,7 @@ chrome.exe --remote-debugging-port=9222 --user-data-dir="$env:TEMP\marklens-cdp"
 
 1. 在 `CHANGELOG.md` 最上方新增 `## [X.Y.Z] - YYYY-MM-DD` 段落，把 *Unreleased* 的項目移進來。CHANGELOG 以英文撰寫，寫給使用者看。
 2. 把 `manifest.json` 的 `version`、`version_name` 與 `package.json` 改成相同版本。
-3. 本機檢查：`node scripts/release.mjs check vX.Y.Z`
+3. 本機檢查：`node scripts/release.mjs check vX.Y.Z`。CI 也會以 `package.json` 的版本執行這項檢查。
 4. commit 後執行 `git tag vX.Y.Z`、`git push origin main --tags`。
 
 **Release** workflow 依序執行：
