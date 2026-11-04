@@ -96,7 +96,7 @@ Local files get [Mermaid](https://mermaid.js.org/) diagrams and [KaTeX](https://
 - Light, dark, or follow the system
 - Text width (full, 1600, 1200, 960 or custom); tables and code can grow past the text column
 - Font size scales the whole document, including code, tables, math and diagrams; adjustable line height
-- Interface in English and Traditional Chinese
+- Interface in English, Traditional Chinese and Simplified Chinese
 
 **Sharing**
 - Print or save as PDF, with sections expanded and only page numbers in the margins

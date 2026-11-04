@@ -1,0 +1,653 @@
+{
+  "extName": {
+    "message": "MarkLens – Markdown 阅读器"
+  },
+  "extDescription": {
+    "message": "轻量、可审计的 Markdown 阅读器：目录、折叠、可拖动排序的表格、Mermaid 图表，并可直接勾选本机文件的任务。"
+  },
+  "cmdToggleToc": {
+    "message": "显示／收起侧边栏（当前标签页）"
+  },
+  "cmdCycleTheme": {
+    "message": "切换主题（自动 → 浅色 → 深色，所有标签页）"
+  },
+  "cmdCycleWidth": {
+    "message": "切换文本宽度（当前标签页）"
+  },
+  "cmdToggleRaw": {
+    "message": "切换原始文本／渲染结果（当前标签页）"
+  },
+  "headingAnchor": {
+    "message": "链接到此标题"
+  },
+  "foldSection": {
+    "message": "折叠／展开此段"
+  },
+  "copy": {
+    "message": "复制"
+  },
+  "copied": {
+    "message": "已复制"
+  },
+  "failed": {
+    "message": "失败"
+  },
+  "wrap": {
+    "message": "换行"
+  },
+  "codeWrapTitle": {
+    "message": "切换此区块自动换行"
+  },
+  "themeAuto": {
+    "message": "自动"
+  },
+  "themeLight": {
+    "message": "浅色"
+  },
+  "themeDark": {
+    "message": "深色"
+  },
+  "toolTocTitle": {
+    "message": "显示／收起目录（t）"
+  },
+  "toolWidth": {
+    "message": "宽度：$1"
+  },
+  "toolWidthTitle": {
+    "message": "文本宽度（w 键依序切换）"
+  },
+  "widthFull": {
+    "message": "全宽"
+  },
+  "toolTheme": {
+    "message": "主题：$1"
+  },
+  "toolThemeTitle": {
+    "message": "主题，所有标签页同步（d 键依序切换：自动 → 浅色 → 深色）"
+  },
+  "toolRaw": {
+    "message": "原始文本"
+  },
+  "toolRawTitle": {
+    "message": "切换原始文本（r）"
+  },
+  "toolBack": {
+    "message": "返回阅读"
+  },
+  "toolTop": {
+    "message": "顶部"
+  },
+  "toolTopTitle": {
+    "message": "回到顶部"
+  },
+  "toolFoldAll": {
+    "message": "全部折叠"
+  },
+  "toolFoldAllTitle": {
+    "message": "全部折叠（[）"
+  },
+  "toolUnfoldAll": {
+    "message": "全部展开"
+  },
+  "toolUnfoldAllTitle": {
+    "message": "全部展开（]）"
+  },
+  "toolExport": {
+    "message": "导出 HTML"
+  },
+  "toolExportTitle": {
+    "message": "把当前画面下载成单一 HTML 文件（不含代码，可脱机打开、方便分享）"
+  },
+  "toolPrint": {
+    "message": "打印／PDF"
+  },
+  "toolPrintTitle": {
+    "message": "打印，或在打印对话框选“另存为 PDF”。折叠的段落会展开，并改用浅色以便印在纸上"
+  },
+  "exportDone": {
+    "message": "已导出 $1"
+  },
+  "exportFailed": {
+    "message": "导出失败：$1"
+  },
+  "taskTitle": {
+    "message": "点击勾选／取消，并存回原文件"
+  },
+  "taskChecked": {
+    "message": "已勾选并存盘"
+  },
+  "taskUnchecked": {
+    "message": "已取消勾选并存盘"
+  },
+  "undo": {
+    "message": "撤销"
+  },
+  "taskNoRoot": {
+    "message": "此文件所在的文件夹尚未授权写回"
+  },
+  "authorizeFolder": {
+    "message": "授权文件夹"
+  },
+  "taskPermission": {
+    "message": "需要重新确认“$1”的访问权限"
+  },
+  "goConfirm": {
+    "message": "前往确认"
+  },
+  "taskConflict": {
+    "message": "文件已在其他地方修改，已重新加载，请再点一次"
+  },
+  "taskReadonlyRemote": {
+    "message": "只有本机文件的任务可以勾选写回"
+  },
+  "taskReadonlyOff": {
+    "message": "勾选写回已关闭，可在 popup 打开"
+  },
+  "taskAmbiguous": {
+    "message": "多个授权文件夹都有这个文件，无法确定要写入哪一个；请移除多余的授权文件夹"
+  },
+  "taskNotUtf8": {
+    "message": "此文件不是 UTF-8 编码，无法写回"
+  },
+  "taskError": {
+    "message": "写回失败：$1"
+  },
+  "unknownError": {
+    "message": "未知错误"
+  },
+  "orphanBefore": {
+    "message": "扩展程序已更新，"
+  },
+  "orphanReload": {
+    "message": "刷新"
+  },
+  "orphanAfter": {
+    "message": "后应用"
+  },
+  "mermaidChart": {
+    "message": "图表"
+  },
+  "mermaidSource": {
+    "message": "源代码"
+  },
+  "mermaidError": {
+    "message": "Mermaid 语法错误"
+  },
+  "mermaidLocalOnly": {
+    "message": "Mermaid 图表只在打开本机文件时绘制。把这个文件存到电脑后用浏览器打开，就能看到图表。"
+  },
+  "mathLocalOnly": {
+    "message": "数学公式只在打开本机文件时绘制，这一页显示的是 TeX 原文。"
+  },
+  "localOnlyWhy": {
+    "message": "MarkLens 的图表与公式程序库不开放给网站访问，网站才无法借此得知你装了 MarkLens。"
+  },
+  "mermaidPending": {
+    "message": "Mermaid 图表绘制中…"
+  },
+  "mermaidToggleTitle": {
+    "message": "切换图表／源代码"
+  },
+  "tableFilter": {
+    "message": "筛选"
+  },
+  "tableCopyTitle": {
+    "message": "复制为 TSV（可直接贴到 Excel），应用当前排序与筛选"
+  },
+  "tableFullscreen": {
+    "message": "全屏"
+  },
+  "tableFullscreenTitle": {
+    "message": "全屏查看（Esc 离开）"
+  },
+  "tableExitFullscreen": {
+    "message": "离开全屏"
+  },
+  "tableReset": {
+    "message": "重置"
+  },
+  "tableResetTitle": {
+    "message": "重置列宽、排序与筛选"
+  },
+  "tableWrapTitle": {
+    "message": "切换单元格换行"
+  },
+  "tableSortTitle": {
+    "message": "点击排序（升序 → 降序 → 原顺序）"
+  },
+  "tableResizeTitle": {
+    "message": "拖动调整列宽，双击自动适应"
+  },
+  "tabToc": {
+    "message": "目录"
+  },
+  "tabFiles": {
+    "message": "文件"
+  },
+  "searchTitle": {
+    "message": "搜索（/）"
+  },
+  "searchClose": {
+    "message": "关闭搜索（Esc）"
+  },
+  "filesSearch": {
+    "message": "搜索文件名"
+  },
+  "filesSetRoot": {
+    "message": "以此文件夹为起点"
+  },
+  "filesUp": {
+    "message": "上一层：$1"
+  },
+  "filesSummary": {
+    "message": "$1 · $2 个"
+  },
+  "filesFound": {
+    "message": "已展开的文件夹中找到 $1 个"
+  },
+  "filesLoading": {
+    "message": "读取中…"
+  },
+  "filesError": {
+    "message": "无法读取此文件夹"
+  },
+  "filesEmpty": {
+    "message": "（没有 Markdown）"
+  },
+  "secFiles": {
+    "message": "文件列表"
+  },
+  "secFilesNote": {
+    "message": "侧边栏“文件”标签"
+  },
+  "fileIgnore": {
+    "message": "跳过的名称"
+  },
+  "fileIgnoreTitle": {
+    "message": "以逗号分隔；* 代表任意字符，.* 代表以 . 开头的名称"
+  },
+  "tocSearch": {
+    "message": "搜索标题"
+  },
+  "tocResizeTitle": {
+    "message": "拖动调整宽度"
+  },
+  "tocLabel": {
+    "message": "侧边栏"
+  },
+  "tocStats": {
+    "message": "约 $1 字 · $2 分钟"
+  },
+  "popupTitle": {
+    "message": "MarkLens 设置"
+  },
+  "popupEnable": {
+    "message": "启用"
+  },
+  "popupEnableTitle": {
+    "message": "禁用后页面恢复为纯文本"
+  },
+  "popupFileWarning": {
+    "message": "尚未允许访问本机文件。请到扩展程序“详情”打开<b>“允许访问文件网址”</b>。"
+  },
+  "openSettings": {
+    "message": "打开设置页"
+  },
+  "secAppearance": {
+    "message": "外观"
+  },
+  "secAppearanceNote": {
+    "message": "实时应用到所有标签页"
+  },
+  "theme": {
+    "message": "主题"
+  },
+  "themeSystem": {
+    "message": "跟随系统"
+  },
+  "uiLang": {
+    "message": "界面语言"
+  },
+  "langAuto": {
+    "message": "跟随浏览器"
+  },
+  "fontSize": {
+    "message": "字体大小"
+  },
+  "lineHeight": {
+    "message": "行高"
+  },
+  "secLayout": {
+    "message": "布局默认值"
+  },
+  "secLayoutNote": {
+    "message": "新开或刷新标签页后应用"
+  },
+  "textWidth": {
+    "message": "文本宽度"
+  },
+  "custom": {
+    "message": "自定义…"
+  },
+  "customWidth": {
+    "message": "自定义宽度 (px)"
+  },
+  "tableWidth": {
+    "message": "表格／代码宽度"
+  },
+  "tableWidthFull": {
+    "message": "可超出文本列"
+  },
+  "tableWidthText": {
+    "message": "跟随文本宽度"
+  },
+  "tocDepth": {
+    "message": "目录层级"
+  },
+  "all": {
+    "message": "全部"
+  },
+  "optTocHidden": {
+    "message": "默认隐藏目录"
+  },
+  "optTableWrap": {
+    "message": "表格单元格换行"
+  },
+  "optCodeWrap": {
+    "message": "代码自动换行"
+  },
+  "optRememberScroll": {
+    "message": "记住阅读位置"
+  },
+  "optLinkNewTab": {
+    "message": "外部链接在新标签页打开"
+  },
+  "optMermaid": {
+    "message": "绘制 Mermaid 图表"
+  },
+  "optMath": {
+    "message": "显示数学公式（$$…$$）"
+  },
+  "localOnlyTitle": {
+    "message": "只在本机文件绘制"
+  },
+  "secEditor": {
+    "message": "编辑器"
+  },
+  "secEditorNote": {
+    "message": "工具栏的“编辑”打开原文件"
+  },
+  "editor": {
+    "message": "用编辑器打开"
+  },
+  "editorNone": {
+    "message": "不使用"
+  },
+  "editorCustom": {
+    "message": "自定义网址…"
+  },
+  "editorUrl": {
+    "message": "网址模板（{path} 路径、{line} 行号）"
+  },
+  "editorHint": {
+    "message": "浏览器只能打开有注册网址协议的编辑器；记事本、Notepad++ 没有，因此无法支持。"
+  },
+  "editorInvalid": {
+    "message": "编辑器网址需以编辑器自己的协议开头（例如 vscode://），并包含 {path}"
+  },
+  "toolEdit": {
+    "message": "编辑"
+  },
+  "toolEditTitle": {
+    "message": "用编辑器打开此文件，并跳到当前阅读的章节"
+  },
+  "secTaskWrite": {
+    "message": "勾选写回"
+  },
+  "secTaskWriteNote": {
+    "message": "本机文件的任务清单直接勾选并存盘"
+  },
+  "optTaskWrite": {
+    "message": "启用勾选写回"
+  },
+  "manageFolders": {
+    "message": "管理授权文件夹"
+  },
+  "secRefresh": {
+    "message": "自动更新"
+  },
+  "mode": {
+    "message": "模式"
+  },
+  "refreshOff": {
+    "message": "关闭"
+  },
+  "refreshLocal": {
+    "message": "仅本机文件"
+  },
+  "refreshAll": {
+    "message": "全部"
+  },
+  "refreshInterval": {
+    "message": "检查间隔 (ms)"
+  },
+  "toggleRaw": {
+    "message": "切换原始文本"
+  },
+  "shortcutSettings": {
+    "message": "快捷键设置"
+  },
+  "help": {
+    "message": "使用说明"
+  },
+  "statusOutOfRange": {
+    "message": "数值超出范围"
+  },
+  "statusSaved": {
+    "message": "已保存"
+  },
+  "statusSavedReload": {
+    "message": "已保存，刷新标签页后应用"
+  },
+  "statusNotMarkdown": {
+    "message": "此标签页不是 Markdown 页面"
+  },
+  "grantPageTitle": {
+    "message": "MarkLens：文件写回授权"
+  },
+  "grantH1": {
+    "message": "文件写回授权"
+  },
+  "grantIntro": {
+    "message": "在阅读页直接勾选任务清单时，MarkLens 需要这些文件夹的读写权限，才能把勾选结果存回原文件。授权只保存在扩展程序内部，一般网页（包括本机 HTML 文件）无法取得。"
+  },
+  "grantBackNote": {
+    "message": "完成授权后，回到刚才的页面再勾选一次。"
+  },
+  "grantBack": {
+    "message": "返回原标签页"
+  },
+  "grantFolders": {
+    "message": "已授权的文件夹"
+  },
+  "grantAdd": {
+    "message": "＋ 添加文件夹"
+  },
+  "grantEmpty": {
+    "message": "尚未授权任何文件夹。"
+  },
+  "grantTips": {
+    "message": "说明"
+  },
+  "grantTip1": {
+    "message": "建议授权较上层的文件夹（例如 <code>D:\\Projects</code>），底下所有 .md 都能写回。"
+  },
+  "grantTip2": {
+    "message": "Chrome 重新启动后可能需要再确认一次权限；在权限询问中选择<b>“每次访问时允许”</b>即可免除。"
+  },
+  "grantTip3": {
+    "message": "只会修改被点击的那一行勾选框，写入前会比对文件内容，文件已被其他地方修改时不会写入。"
+  },
+  "grantStateGranted": {
+    "message": "可写回"
+  },
+  "grantStatePrompt": {
+    "message": "需要确认"
+  },
+  "grantStateDenied": {
+    "message": "已拒绝"
+  },
+  "grantConfirm": {
+    "message": "确认权限"
+  },
+  "grantAllowed": {
+    "message": "已允许：$1"
+  },
+  "grantNotAllowed": {
+    "message": "未允许：$1"
+  },
+  "grantRemove": {
+    "message": "移除"
+  },
+  "grantRemoved": {
+    "message": "已移除：$1"
+  },
+  "grantError": {
+    "message": "发生错误：$1"
+  },
+  "grantAdded": {
+    "message": "已授权：$1"
+  },
+  "welcomeTitle": {
+    "message": "欢迎使用 MarkLens"
+  },
+  "welcomeLead": {
+    "message": "在浏览器里直接阅读 Markdown：目录、折叠、可排序的表格、Mermaid 图表，还能直接勾选任务存回文件。"
+  },
+  "step1Title": {
+    "message": "允许访问本机文件"
+  },
+  "step1Text": {
+    "message": "要阅读电脑里的 <code>.md</code>，Chrome 需要你手动打开一个开关（扩展程序无法自行打开）。"
+  },
+  "step1Li1": {
+    "message": "按下方按钮打开 MarkLens 的设置页"
+  },
+  "step1Li2": {
+    "message": "找到 <b>“允许访问文件网址”</b> 并打开"
+  },
+  "step1Li3": {
+    "message": "回到这一页，状态会自动更新"
+  },
+  "checking": {
+    "message": "检查中…"
+  },
+  "welcomeFileOk": {
+    "message": "✔ 已打开，可以阅读本机文件"
+  },
+  "welcomeFileOff": {
+    "message": "尚未打开"
+  },
+  "openExtSettings": {
+    "message": "打开扩展程序设置"
+  },
+  "step2Title": {
+    "message": "打开一份 Markdown"
+  },
+  "step2Text": {
+    "message": "把任一 <code>.md</code> 文件拖进 Chrome 窗口，或在地址栏输入它的路径（例如 <code>D:\\Projects\\README.md</code>）。网络上的 <code>.md</code> 纯文本页面也会自动接管。"
+  },
+  "step2Tip": {
+    "message": "建议把 MarkLens 固定在工具栏：按右上角拼图图标 → MarkLens 旁的图钉。点图标可以调整主题、字体与默认布局。"
+  },
+  "step3Title": {
+    "message": "常用操作"
+  },
+  "colKey": {
+    "message": "按键"
+  },
+  "colAction": {
+    "message": "功能"
+  },
+  "keyToc": {
+    "message": "显示／收起侧边栏"
+  },
+  "keyRaw": {
+    "message": "原始文本／返回阅读"
+  },
+  "keyWidth": {
+    "message": "切换文本宽度"
+  },
+  "keyTheme": {
+    "message": "切换主题：自动 → 浅色 → 深色"
+  },
+  "keyFold": {
+    "message": "全部折叠／全部展开"
+  },
+  "featTables": {
+    "message": "<b>表格</b>：拖动列宽、点表头排序、筛选、复制成电子表格格式"
+  },
+  "featTasks": {
+    "message": "<b>勾选任务</b>：本机文件的 <code>- [ ]</code> 可直接点击存回原文件（第一次会请你授权文件夹）"
+  },
+  "featDiagrams": {
+    "message": "<b>图表与公式</b>：本机文件的 <code>```mermaid</code> 区块与 <code>$$…$$</code> 公式自动绘制"
+  },
+  "featReload": {
+    "message": "<b>自动更新</b>：用编辑器存盘后，画面约一秒内更新，保留滚动位置与折叠"
+  },
+  "step4Title": {
+    "message": "选用：代码区块中英对齐"
+  },
+  "step4Text": {
+    "message": "代码中的中文与框线字符表格默认已自动调整宽度；想要最佳效果可安装免费的 <a href=\"https://github.com/be5invis/Sarasa-Gothic/releases\" target=\"_blank\" rel=\"noopener noreferrer\">更纱黑体 Sarasa Mono TC</a>，安装后完全重新启动 Chrome（地址栏输入 <code>chrome://restart</code>）。"
+  },
+  "changelog": {
+    "message": "更新纪录"
+  },
+  "toggleSidebar": {
+    "message": "显示／收起侧边栏"
+  },
+  "filesUpLabel": {
+    "message": "上一层文件夹"
+  },
+  "imageClose": {
+    "message": "关闭图片（Esc）"
+  },
+  "imageOpen": {
+    "message": "放大图片"
+  },
+  "widthCustomItem": {
+    "message": "自定义：$1 px"
+  },
+  "widthMenu": {
+    "message": "文本宽度"
+  },
+  "themeMenu": {
+    "message": "主题"
+  },
+  "toolFontSize": {
+    "message": "字号：$1"
+  },
+  "toolFontSizeTitle": {
+    "message": "字体大小：整篇文档等比缩放（+／−／0 键）"
+  },
+  "fontMenu": {
+    "message": "字体大小"
+  },
+  "fontLarger": {
+    "message": "放大"
+  },
+  "fontSmaller": {
+    "message": "缩小"
+  },
+  "fontReset": {
+    "message": "重置（$1）"
+  },
+  "fontSizeItem": {
+    "message": "$1 px（$2）"
+  },
+  "fontCustomItem": {
+    "message": "自定义：$1 px"
+  }
+}
