@@ -600,7 +600,7 @@
     "message": "選用：程式碼區塊中英對齊"
   },
   "step4Text": {
-    "message": "程式碼中的中文與罫線表格預設已自動調整寬度；想要最佳效果可安裝免費的 <a href=\"https://github.com/be5invis/Sarasa-Gothic/releases\" target=\"_blank\" rel=\"noopener noreferrer\">更紗黑體 Sarasa Mono TC</a>，安裝後完全重新啟動 Chrome（網址列輸入 <code>chrome://restart</code>）。"
+    "message": "程式碼中的中文與框線字元表格預設已自動調整寬度；想要最佳效果可安裝免費的 <a href=\"https://github.com/be5invis/Sarasa-Gothic/releases\" target=\"_blank\" rel=\"noopener noreferrer\">更紗黑體 Sarasa Mono TC</a>，安裝後完全重新啟動 Chrome（網址列輸入 <code>chrome://restart</code>）。"
   },
   "changelog": {
     "message": "更新紀錄"

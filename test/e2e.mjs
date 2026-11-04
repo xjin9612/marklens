@@ -127,7 +127,7 @@ try {
     assert.ok((await page.locator('.ml-code .hljs-keyword').count()) > 0)
     assert.equal(await page.textContent('.ml-code-lang'), 'js')
   })
-  await check('程式碼區塊中英對齊（罫線表格每列等寬）', async () => {
+  await check('程式碼區塊中英對齊（框線字元表格每列等寬）', async () => {
     await page.waitForFunction(() => document.documentElement.dataset.mlCodeFont)
     const info = JSON.parse(await page.evaluate(() => document.documentElement.dataset.mlCodeFont))
     const widths = await page.$eval('.ml-code code.language-text', code => {
