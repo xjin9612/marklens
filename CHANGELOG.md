@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Added
+- **Colors**: sepia and high-contrast palettes besides the GitHub look, for both light and dark themes (popup → **Colors**)
+- **Custom CSS** (popup → **Custom CSS**): your own styles on reading pages, applied live and kept in exported HTML
+- **Settings sync**: settings follow you to your other computers through your browser account; turn it off in the popup. Folder access, reading positions, the editor URL and the sidebar width stay on each computer
 - **Fullscreen** button on Mermaid diagrams: scroll to zoom around the pointer, drag to move, double-click or **Reset** to go back; **+** / **−** buttons for the keyboard; Esc to exit
 - Simplified Chinese interface. It follows the browser language, or pick **简体中文** in the popup → **Language**
 - **Print / PDF** button in the toolbar: prints the whole document, or saves it as a PDF from the print dialog. Folded sections and filtered table rows are printed, a fullscreen table goes back into the page, images that haven't loaded yet are loaded first, a dark theme switches to light colors for paper (Mermaid diagrams are redrawn in light colors before the dialog opens), and pages carry only a page number instead of Chrome's date, title and full local file path. Ctrl+P also prints folded sections and uses light colors, but diagrams keep their dark colors there — use the button for the best result

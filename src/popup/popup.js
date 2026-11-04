@@ -38,7 +38,7 @@
     return el.value
   }
 
-  fill(await MarkLens.loadSettings())
+  fill({ ...(await MarkLens.loadSettings()), syncEnabled: await MarkLens.isSyncEnabled() })
 
   form.addEventListener('change', async e => {
     const el = e.target
@@ -62,6 +62,13 @@
       await MarkLens.saveSettings({ uiLang: el.value })
       await MarkLens.initI18n(el.value)
       MarkLens.localize()
+    } else if (el.name === 'syncEnabled') {
+      // 開啟時若雲端已有設定會套用到這台電腦，重新填入表單
+      await MarkLens.setSyncEnabled(el.checked)
+      fill({ ...(await MarkLens.loadSettings()), syncEnabled: el.checked })
+    } else if (el.name === 'customCss') {
+      await MarkLens.saveSettings({ customCss: el.value })
+      if (MarkLens.cssBytes(el.value) > MarkLens.CUSTOM_CSS_MAX_BYTES) return say(t('customCssTooLarge'))
     } else if (el.name === 'customWidth') {
       const w = Math.min(4000, Math.max(480, Number(el.value) || 0))
       await MarkLens.saveSettings({ textWidth: w })
@@ -69,7 +76,7 @@
       if (el.type === 'number' && !el.checkValidity()) return say(t('statusOutOfRange'))
       await MarkLens.saveSettings({ [el.name]: readValue(el) })
     }
-    say(t(MarkLens.LIVE_KEYS.includes(el.name) || el.name === 'enabled' ? 'statusSaved' : 'statusSavedReload'))
+    say(t(MarkLens.LIVE_KEYS.includes(el.name) || ['enabled', 'syncEnabled'].includes(el.name) ? 'statusSaved' : 'statusSavedReload'))
   })
 
   // 可收合區塊的展開狀態：只是這台電腦上的介面偏好，存在 localStorage

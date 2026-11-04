@@ -12,8 +12,11 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   let queue = Promise.resolve() // mermaid 不支援同時繪製多張，一律排隊
   const cache = new Map() // `${theme}\n${code}` → svg 字串；自動更新重繪時直接沿用，不閃爍
 
+  /** 主題加配色：配色改變時圖表也要重繪（顏色取自設計變數） */
   function themeNow() {
-    return document.documentElement.dataset.mlTheme === 'dark' ? 'dark' : 'default'
+    const root = document.documentElement
+    const base = root.dataset.mlTheme === 'dark' ? 'dark' : 'default'
+    return root.dataset.mlPalette ? `${base}-${root.dataset.mlPalette}` : base
   }
 
   /**
@@ -24,7 +27,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   function themeVariables(theme) {
     const css = getComputedStyle(document.documentElement)
     const v = name => css.getPropertyValue(name).trim()
-    const dark = theme === 'dark'
+    const dark = theme.startsWith('dark')
     const palette = ['--alert-note', '--ok', '--warn', '--alert-important', '--danger', '--hl-builtin', '--hl-meta', '--muted'].map(v)
     const onPalette = dark ? v('--bg') : '#ffffff'
     const vars = {

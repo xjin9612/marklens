@@ -1015,6 +1015,22 @@ try {
       })
     }
   })
+  await check('配色：米色與高對比套用到閱讀頁，Mermaid 依配色重繪，GitHub 不設屬性', async () => {
+    const bg = () => mp.evaluate(() => getComputedStyle(document.body).backgroundColor)
+    try {
+      await sw.evaluate(() => MarkLens.saveSettings({ theme: 'light', palette: 'sepia' }))
+      await mp.waitForFunction(() => document.documentElement.dataset.mlPalette === 'sepia')
+      assert.equal(await bg(), 'rgb(246, 239, 227)')
+      await mp.waitForFunction(() => [...document.querySelectorAll('.ml-mermaid[data-ml-mermaid-theme]')].every(el => el.dataset.mlMermaidTheme === 'default-sepia'))
+      await sw.evaluate(() => MarkLens.saveSettings({ theme: 'dark', palette: 'contrast' }))
+      await mp.waitForFunction(() => document.documentElement.dataset.mlPalette === 'contrast' && document.documentElement.dataset.mlTheme === 'dark')
+      assert.equal(await bg(), 'rgb(0, 0, 0)')
+      await sw.evaluate(() => MarkLens.saveSettings({ palette: 'github' }))
+      await mp.waitForFunction(() => !('mlPalette' in document.documentElement.dataset))
+    } finally {
+      await sw.evaluate(() => MarkLens.saveSettings({ theme: 'auto', palette: 'github' }))
+    }
+  })
   await check('Mermaid：切換主題後重繪', async () => {
     const before = (await sw.evaluate(() => MarkLens.loadSettings())).theme
     await sw.evaluate(() => MarkLens.saveSettings({ theme: 'dark' }))
@@ -1208,6 +1224,72 @@ try {
     } finally {
       await page.emulateMedia({ media: null })
       await page.click('.ml-toolbar button:has-text("全部展開")')
+    }
+  })
+  await check('自訂 CSS：即時套用到閱讀頁，匯出檔也帶上，且不能提前結束 <style>', async () => {
+    await page.bringToFront()
+    const color = () => page.$eval('.markdown-body h1', el => getComputedStyle(el).color)
+    try {
+      await sw.evaluate(() => MarkLens.saveSettings({ customCss: '.markdown-body h1 { color: rgb(1, 2, 3) }' }))
+      await page.waitForFunction(() => getComputedStyle(document.querySelector('.markdown-body h1')).color === 'rgb(1, 2, 3)')
+      await sw.evaluate(() => MarkLens.saveSettings({ customCss: '.markdown-body h1 { color: rgb(4, 5, 6) } </style><b id="ml-injected">x</b>' }))
+      await page.waitForFunction(() => getComputedStyle(document.querySelector('.markdown-body h1')).color === 'rgb(4, 5, 6)')
+      const { html, file } = await exportFrom(page)
+      assert.ok(html.includes('color: rgb(4, 5, 6)'), '匯出檔含自訂 CSS')
+      const xp = await ctx.newPage()
+      await xp.goto(pathToFileURL(file).href)
+      assert.equal(await xp.locator('#ml-injected').count(), 0, '自訂 CSS 不能跳出 <style> 產生元素')
+      assert.equal(await xp.$eval('.markdown-body h1', el => getComputedStyle(el).color), 'rgb(4, 5, 6)', '匯出檔套用自訂 CSS')
+      await xp.close()
+      await sw.evaluate(() => MarkLens.saveSettings({ customCss: '' }))
+      await page.waitForFunction(() => getComputedStyle(document.querySelector('.markdown-body h1')).color !== 'rgb(4, 5, 6)')
+      assert.notEqual(await color(), 'rgb(4, 5, 6)')
+    } finally {
+      await sw.evaluate(() => MarkLens.saveSettings({ customCss: '' }))
+    }
+  })
+  await check('設定同步：寫入 storage.sync、套用其他電腦的變更；關閉後兩者都停止；裝置專屬設定不同步', async () => {
+    const local = () => sw.evaluate(() => MarkLens.loadSettings())
+    const remote = () => sw.evaluate(async () => (await chrome.storage.sync.get('marklens:settings'))['marklens:settings'] || {})
+    try {
+      assert.equal(await sw.evaluate(() => MarkLens.isSyncEnabled()), true, '預設開啟')
+      await sw.evaluate(() => MarkLens.saveSettings({ lineHeight: 1.9, tocWidth: 300, editorUrl: 'vscode://file/{path}' }))
+      const r = await remote()
+      assert.equal(r.lineHeight, 1.9)
+      assert.ok(r._from, '標示寫入的電腦')
+      // 自己寫入的變更通知不會被當成其他電腦的變更：連續快速修改後本機仍是最後的值
+      for (const v of [1.8, 1.85, 1.95]) await sw.evaluate(v => MarkLens.saveSettings({ lineHeight: v }), v)
+      await new Promise(r => setTimeout(r, 500))
+      assert.equal((await local()).lineHeight, 1.95, '自己的舊通知不會蓋回較新的設定')
+      assert.ok(!('tocWidth' in r) && !('editorUrl' in r) && !('enabled' in r), `不同步的鍵：${Object.keys(r)}`)
+      // 模擬其他電腦改了設定
+      await sw.evaluate(async () => {
+        const k = 'marklens:settings'
+        const cur = (await chrome.storage.sync.get(k))[k]
+        await chrome.storage.sync.set({ [k]: { ...cur, lineHeight: 2.1, _from: 'other-computer' } })
+      })
+      await until(async () => (await local()).lineHeight === 2.1)
+      assert.equal((await local()).tocWidth, 300, '裝置專屬設定不被覆蓋')
+      // 關閉同步：本機變更不再上傳，其他電腦的變更也不再套用
+      await sw.evaluate(() => MarkLens.setSyncEnabled(false))
+      await sw.evaluate(() => MarkLens.saveSettings({ lineHeight: 1.5 }))
+      assert.equal((await remote()).lineHeight, 2.1, '關閉後不上傳')
+      await sw.evaluate(async () => {
+        const k = 'marklens:settings'
+        const cur = (await chrome.storage.sync.get(k))[k]
+        await chrome.storage.sync.set({ [k]: { ...cur, lineHeight: 2.3, _from: 'other-computer' } })
+      })
+      await new Promise(r => setTimeout(r, 500))
+      assert.equal((await local()).lineHeight, 1.5, '關閉後不套用')
+      // 重新開啟：雲端已有設定，套用到這台
+      await sw.evaluate(() => MarkLens.setSyncEnabled(true))
+      assert.equal((await local()).lineHeight, 2.3)
+    } finally {
+      await sw.evaluate(async () => {
+        await MarkLens.setSyncEnabled(true)
+        await chrome.storage.sync.clear()
+        await MarkLens.saveSettings({ lineHeight: 1.7, tocWidth: 260, editorUrl: '' })
+      })
     }
   })
   await check('匯出 HTML：數學公式的字型內嵌，離線開啟也能顯示', async () => {

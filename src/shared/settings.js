@@ -9,6 +9,8 @@ MarkLens.DEFAULTS = Object.freeze({
   uiLang: 'auto', // 介面語言：auto（跟隨瀏覽器）| en | zh_TW | zh_CN
   // ----- 即時同步到所有分頁 -----
   theme: 'auto', // auto | light | dark
+  palette: 'github', // 配色：github | sepia | contrast
+  customCss: '', // 使用者自訂的 CSS，套用在閱讀頁
   fontSize: 16,
   lineHeight: 1.7,
   // ----- 新分頁的預設值（已開的分頁不受影響） -----
@@ -32,7 +34,7 @@ MarkLens.DEFAULTS = Object.freeze({
 })
 
 // 會即時同步到所有已開分頁的設定
-MarkLens.LIVE_KEYS = ['theme', 'fontSize', 'lineHeight']
+MarkLens.LIVE_KEYS = ['theme', 'palette', 'customCss', 'fontSize', 'lineHeight']
 
 // 文字寬度循環順序（快捷鍵與工具列使用）
 MarkLens.WIDTH_PRESETS = [0, 1600, 1200, 960]
@@ -54,6 +56,87 @@ MarkLens.fontPercent = function (px) {
   return `${Math.round((px / MarkLens.DEFAULTS.fontSize) * 100)}%`
 }
 
+MarkLens.PALETTES = ['github', 'sepia', 'contrast']
+
+/*
+ * 跨裝置同步：開啟時（預設），SYNC_KEYS 另存一份到 chrome.storage.sync，由瀏覽器帳號同步到其他電腦。
+ * 本機的 storage.local 仍是唯一的讀取來源；其他裝置的變更由 background 收到後寫回 storage.local。
+ * 不同步的：授權資料夾、閱讀位置、自訂編輯器網址（含本機路徑）、側邊欄寬度與啟用狀態（各台電腦不同）
+ */
+MarkLens.SYNC_FLAG_KEY = 'marklens:sync'
+MarkLens.SYNC_KEYS = [
+  'uiLang', 'theme', 'palette', 'fontSize', 'lineHeight', 'textWidth', 'tableWidth', 'tocHidden', 'tocDepth',
+  'tableWrap', 'codeWrap', 'autoRefresh', 'refreshInterval', 'rememberScroll', 'linkNewTab', 'fileIgnore',
+  'editor', 'taskWrite', 'mermaid', 'math',
+]
+// storage.sync 單一項目上限 8192 bytes（含鍵名），自訂 CSS 另存一項
+MarkLens.SYNC_CSS_KEY = 'marklens:customCss'
+MarkLens.CUSTOM_CSS_MAX_BYTES = 8000
+MarkLens.cssBytes = css => new TextEncoder().encode(JSON.stringify(css)).length
+
+MarkLens.isSyncEnabled = async function () {
+  return (await chrome.storage.local.get(MarkLens.SYNC_FLAG_KEY))[MarkLens.SYNC_FLAG_KEY] !== false
+}
+
+;(() => {
+  /**
+   * 這台電腦的隨機代號，隨同步資料寫入 _from。storage.sync 的變更通知也包含自己的寫入，
+   * 若照單全收，連續快速修改時較晚到的舊通知會把較新的本機設定蓋回去；因此只套用其他電腦的變更
+   */
+  const DEVICE_KEY = 'marklens:device'
+  async function deviceId() {
+    const have = (await chrome.storage.local.get(DEVICE_KEY))[DEVICE_KEY]
+    if (have) return have
+    const id = crypto.randomUUID()
+    await chrome.storage.local.set({ [DEVICE_KEY]: id })
+    return id
+  }
+
+  function syncPayload(s, from) {
+    const out = { [MarkLens.SETTINGS_KEY]: { ...Object.fromEntries(MarkLens.SYNC_KEYS.map(k => [k, s[k]])), _from: from } }
+    if (MarkLens.cssBytes(s.customCss) <= MarkLens.CUSTOM_CSS_MAX_BYTES) out[MarkLens.SYNC_CSS_KEY] = s.customCss
+    return out
+  }
+
+  /** 把本機設定寫到 storage.sync；內容相同時不寫，避免用掉寫入次數上限 */
+  MarkLens.pushSync = async function (s) {
+    const want = syncPayload(s, await deviceId())
+    const have = await chrome.storage.sync.get(Object.keys(want))
+    const diff = Object.fromEntries(Object.entries(want).filter(([k, v]) => JSON.stringify(have[k]) !== JSON.stringify(v)))
+    // 自訂 CSS 另存一項，也要標示來源：設定那一項沒變時一併寫入，讓 pullSync 判斷得出是誰改的
+    if (MarkLens.SYNC_CSS_KEY in diff && !(MarkLens.SETTINGS_KEY in diff)) diff[MarkLens.SETTINGS_KEY] = want[MarkLens.SETTINGS_KEY]
+    if (Object.keys(diff).length) await chrome.storage.sync.set(diff)
+  }
+
+  /** 把其他電腦寫入 storage.sync 的設定合併進本機設定；回傳是否有變更 */
+  MarkLens.pullSync = async function () {
+    const remote = await chrome.storage.sync.get([MarkLens.SETTINGS_KEY, MarkLens.SYNC_CSS_KEY])
+    if (!remote[MarkLens.SETTINGS_KEY] && remote[MarkLens.SYNC_CSS_KEY] === undefined) return false
+    if (remote[MarkLens.SETTINGS_KEY]?._from === (await deviceId())) return false
+    const current = await MarkLens.loadSettings()
+    const patch = {}
+    for (const k of MarkLens.SYNC_KEYS) {
+      const v = remote[MarkLens.SETTINGS_KEY]?.[k]
+      if (v !== undefined && JSON.stringify(v) !== JSON.stringify(current[k])) patch[k] = v
+    }
+    const css = remote[MarkLens.SYNC_CSS_KEY]
+    if (typeof css === 'string' && css !== current.customCss) patch.customCss = css
+    if (!Object.keys(patch).length) return false
+    await chrome.storage.local.set({ [MarkLens.SETTINGS_KEY]: { ...current, ...patch } })
+    return true
+  }
+
+  /** 開啟同步時：雲端已有設定就套用到這台電腦，沒有就上傳這台的設定 */
+  MarkLens.setSyncEnabled = async function (on) {
+    await chrome.storage.local.set({ [MarkLens.SYNC_FLAG_KEY]: on })
+    if (!on) return
+    // 雲端是其他電腦寫的就套用；沒有資料或是這台自己寫的（關閉期間本機可能又改過），上傳這台的設定
+    const remote = (await chrome.storage.sync.get(MarkLens.SETTINGS_KEY))[MarkLens.SETTINGS_KEY]
+    if (remote && remote._from !== (await deviceId())) await MarkLens.pullSync()
+    else await MarkLens.pushSync(await MarkLens.loadSettings())
+  }
+})()
+
 MarkLens.loadSettings = async function () {
   const data = await chrome.storage.local.get(MarkLens.SETTINGS_KEY)
   const stored = { ...(data[MarkLens.SETTINGS_KEY] || {}) }
@@ -67,6 +150,7 @@ MarkLens.saveSettings = async function (patch) {
   const current = await MarkLens.loadSettings()
   const next = { ...current, ...patch }
   await chrome.storage.local.set({ [MarkLens.SETTINGS_KEY]: next })
+  if (await MarkLens.isSyncEnabled()) await MarkLens.pushSync(next).catch(() => {}) // 同步失敗（例如超過寫入次數）不影響本機
   return next
 }
 

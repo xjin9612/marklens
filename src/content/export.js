@@ -84,6 +84,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     if (article.querySelector('.katex')) css += `\n${await katexCss()}`
     // 程式碼區塊中英對齊（fonts.js 依本機字型算出的設定）
     if (MarkLens.codeFontCss) css += `\n${MarkLens.codeFontCss}`
+    // 使用者自訂的 CSS 放在最後，與閱讀頁相同可覆蓋前面的樣式
+    const custom = (await MarkLens.loadSettings()).customCss
+    if (custom) css += `\n${custom.replace(/<\/style/gi, '<\\/style')}` // 不能提前結束 <style>
 
     // 沿用目前的主題、字體、行高與文字寬度
     const vars = Array.from(root.style)
@@ -95,7 +98,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     const version = chrome.runtime.getManifest().version
 
     return `<!doctype html>
-<html lang="${escapeHtml(root.lang || '')}" class="${classes.join(' ')}" data-ml-theme="${escapeHtml(root.dataset.mlTheme || 'light')}" style="${escapeHtml(vars)}">
+<html lang="${escapeHtml(root.lang || '')}" class="${classes.join(' ')}" data-ml-theme="${escapeHtml(root.dataset.mlTheme || 'light')}"${root.dataset.mlPalette ? ` data-ml-palette="${escapeHtml(root.dataset.mlPalette)}"` : ''} style="${escapeHtml(vars)}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

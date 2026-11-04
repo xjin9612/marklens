@@ -30,6 +30,13 @@
         <option value="dark" data-i18n="themeDark"></option>
       </select>
     </label>
+    <label><span data-i18n="palette"></span>
+      <select name="palette">
+        <option value="github" data-i18n="paletteGithub"></option>
+        <option value="sepia" data-i18n="paletteSepia"></option>
+        <option value="contrast" data-i18n="paletteContrast"></option>
+      </select>
+    </label>
     <label><span data-i18n="uiLang"></span>
       <select name="uiLang">
         <option value="auto" data-i18n="langAuto"></option>
@@ -83,6 +90,18 @@
     <label class="check" data-i18n-title="localOnlyTitle"><input type="checkbox" name="mermaid"> <span data-i18n="optMermaid"></span></label>
     <label class="check" data-i18n-title="localOnlyTitle"><input type="checkbox" name="math"> <span data-i18n="optMath"></span></label>
   </section>
+
+  <section>
+    <label class="check"><input type="checkbox" name="syncEnabled"> <span data-i18n="optSync"></span></label>
+    <p class="hint" data-i18n="optSyncNote"></p>
+  </section>
+
+  <details class="sec" data-sec="css">
+    <summary><span data-i18n="secCustomCss"></span> <small data-i18n="secCustomCssNote"></small></summary>
+    <div class="sec-body">
+      <textarea name="customCss" rows="6" spellcheck="false" data-i18n-placeholder="customCssPlaceholder"></textarea>
+    </div>
+  </details>
 
   <details class="sec" data-sec="files">
     <summary><span data-i18n="secFiles"></span> <small data-i18n="secFilesNote"></small></summary>

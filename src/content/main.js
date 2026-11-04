@@ -378,6 +378,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       const dark = s.theme === 'dark' || (s.theme === 'auto' && this.darkQuery.matches)
       // 列印時一律淺色：紙張不印背景，深色主題的淺色文字印出來看不清楚
       document.documentElement.dataset.mlTheme = dark && !this.printing ? 'dark' : 'light'
+      if (s.palette && s.palette !== 'github' && MarkLens.PALETTES.includes(s.palette)) document.documentElement.dataset.mlPalette = s.palette
+      else delete document.documentElement.dataset.mlPalette
+      this.applyCustomCss(s.customCss)
       // 給下一次開檔的等待畫面用（early.js）；只寫本機檔案的儲存空間，網站讀不到
       if (location.protocol === 'file:') {
         try {
@@ -462,6 +465,19 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       } finally {
         this.exportBtn.disabled = false
       }
+    }
+
+    /**
+     * 使用者自訂的 CSS：以 constructable stylesheet 套用，不受網站 CSP 的 style-src 限制；
+     * 語法錯誤的規則由瀏覽器略過，不影響其他規則
+     */
+    applyCustomCss(css) {
+      if (!this.customSheet) {
+        if (!css) return
+        this.customSheet = new CSSStyleSheet()
+        document.adoptedStyleSheets = [...document.adoptedStyleSheets, this.customSheet]
+      }
+      this.customSheet.replaceSync(css || '')
     }
 
     /** 進入／離開列印狀態（改用淺色）；回傳圖表重繪完成的 Promise */

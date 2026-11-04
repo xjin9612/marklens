@@ -661,5 +661,35 @@
   },
   "fontCustomItem": {
     "message": "自訂：$1 px"
+  },
+  "palette": {
+    "message": "配色"
+  },
+  "paletteGithub": {
+    "message": "GitHub"
+  },
+  "paletteSepia": {
+    "message": "米色"
+  },
+  "paletteContrast": {
+    "message": "高對比"
+  },
+  "optSync": {
+    "message": "同步設定到我的其他電腦"
+  },
+  "optSyncNote": {
+    "message": "透過瀏覽器帳號同步。授權資料夾、閱讀位置與編輯器網址只留在這台電腦。"
+  },
+  "secCustomCss": {
+    "message": "自訂 CSS"
+  },
+  "secCustomCssNote": {
+    "message": "加在閱讀頁上"
+  },
+  "customCssPlaceholder": {
+    "message": ".markdown-body h1 { color: teal; }"
+  },
+  "customCssTooLarge": {
+    "message": "自訂 CSS 超過 8 KB：已存在這台電腦，但不會同步"
   }
 }

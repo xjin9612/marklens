@@ -46,7 +46,8 @@ h2 { margin: 0; font-size: 12px; font-weight: 600; color: var(--muted); }
 h2 small { font-weight: 400; margin-left: 4px; }
 #status { flex-basis: 100%; }
 label.stack { display: grid; gap: 4px; justify-content: stretch; }
-input[type=text] {
+input[type=text],
+textarea {
   box-sizing: border-box;
   width: 100%;
   padding: 3px 6px;
@@ -57,6 +58,7 @@ input[type=text] {
   font: 12px/1.5 var(--ml-mono);
 }
 .hint { margin: 0; color: var(--muted); font-size: 12px; }
+textarea { resize: vertical; }
 
 /* 鍵盤焦點：與閱讀頁一致的外框 */
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
