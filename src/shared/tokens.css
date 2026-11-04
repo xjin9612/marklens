@@ -10,7 +10,7 @@
    * 否則英數與框線字元用系統等寬字型，中文用 fonts.js 依實際字寬縮放過的系統中文字型（MarkLens CJK Mono），
    * 讓中文剛好兩個英數字寬，框線字元表格才能對齊。
    */
-  --ml-mono: "Sarasa Mono TC", "Sarasa Term TC", "MarkLens CJK Mono", "Cascadia Code", Consolas, "SFMono-Regular", Menlo, "DejaVu Sans Mono", "Liberation Mono", "Microsoft JhengHei", "PingFang TC", "Noto Sans CJK TC", monospace;
+  --ml-mono: "Sarasa Mono TC", "Sarasa Term TC", "Sarasa Mono SC", "Sarasa Term SC", "MarkLens CJK Mono", "Cascadia Code", Consolas, "SFMono-Regular", Menlo, "DejaVu Sans Mono", "Liberation Mono", "Microsoft JhengHei", "PingFang TC", "Noto Sans CJK TC", monospace;
 
   /* 品牌色：圖示的靛藍，深淺色主題相同；白字對比 7.9:1 */
   --brand: #4338ca;

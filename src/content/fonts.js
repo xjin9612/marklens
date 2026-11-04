@@ -10,7 +10,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   const FAMILY = 'MarkLens CJK Mono' // content.css 的 --ml-mono 已預留此名稱
   // 與 content.css --ml-mono 的英數字型順序一致，才能量到實際使用的字型
   const ASCII_FONTS = ['Cascadia Code', 'Consolas', 'SFMono-Regular', 'Menlo', 'DejaVu Sans Mono', 'Liberation Mono']
-  const ALIGNED_FONTS = ['Sarasa Mono TC', 'Sarasa Term TC']
+  const ALIGNED_FONTS = ['Sarasa Mono TC', 'Sarasa Term TC', 'Sarasa Mono SC', 'Sarasa Term SC']
   // 系統中文字型：[字型家族名稱, 一般字重的 local() 名稱, 粗體的 local() 名稱]
   const CJK_FONTS = [
     ['Microsoft JhengHei', ['Microsoft JhengHei', 'Microsoft JhengHei Regular', 'MicrosoftJhengHeiRegular'], ['Microsoft JhengHei Bold', 'MicrosoftJhengHeiBold']],
