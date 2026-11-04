@@ -39,6 +39,11 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       delete el.dataset.mlFold
     }
     for (const el of clone.querySelectorAll('.ml-folded')) el.classList.remove('ml-folded')
+    // 全螢幕中的圖表回到文件裡，縮放與位移不帶進匯出檔
+    for (const el of clone.querySelectorAll('.ml-mermaid-full')) {
+      el.classList.remove('ml-mermaid-full')
+      el.removeAttribute('style')
+    }
     for (const tr of clone.querySelectorAll('tr[hidden]')) tr.hidden = false
     // 畫好的 Mermaid 圖顯示圖本身，不是原始碼
     for (const el of clone.querySelectorAll('.ml-mermaid-source')) {

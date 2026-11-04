@@ -762,6 +762,8 @@ html.marklens .ml-viewer :focus-visible { outline: 2px solid #fff; outline-offse
   html.marklens .markdown-body th { position: static; }
   /* 全螢幕表格回到文件中的位置，不然只印得出這張表 */
   html.marklens .markdown-body > .ml-table.ml-table-full { position: static; display: block; padding: 0; }
+  html.marklens .markdown-body > .ml-mermaid.ml-mermaid-full { position: static; }
+  html.marklens .ml-mermaid-full .ml-mermaid-view svg { transform: none; height: auto; }
   html.marklens .ml-table-full .ml-table-scroll { overflow: visible; }
   html.marklens.ml-noscroll, html.marklens.ml-noscroll body { overflow: visible; }
   html.marklens .ml-main { margin: 0 !important; }
@@ -845,6 +847,39 @@ html.marklens .markdown-body .ml-mermaid .ml-mermaid-view.ml-mermaid-error {
   border-left: 4px solid var(--danger);
   margin-bottom: 8px;
 }
+/* Mermaid 全螢幕：圖表填滿畫面，縮放與平移由 mermaid.js 設定的 CSS 變數控制 */
+html.marklens .markdown-body .ml-mermaid .ml-mermaid-zoom { display: none; }
+html.marklens .markdown-body .ml-mermaid-source .ml-mermaid-full-btn { display: none; }
+html.marklens .markdown-body > .ml-mermaid.ml-mermaid-full {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  max-width: none;
+  width: auto;
+  margin: 0;
+  background: var(--bg);
+}
+html.marklens .ml-mermaid-full .ml-code-bar { opacity: 1; z-index: 1; top: 12px; right: 16px; }
+html.marklens .markdown-body .ml-mermaid-full .ml-mermaid-zoom { display: inline-flex; }
+html.marklens .ml-mermaid-full .ml-mermaid-view:not(.ml-mermaid-error) {
+  height: 100%;
+  box-sizing: border-box;
+  padding: 56px 24px 24px;
+  border-radius: 0;
+  overflow: hidden;
+  zoom: 1;
+  cursor: grab;
+  touch-action: none;
+}
+html.marklens .ml-mermaid-full .ml-mermaid-view.ml-panning { cursor: grabbing; }
+html.marklens .ml-mermaid-full .ml-mermaid-view svg {
+  width: 100%;
+  height: 100%;
+  max-width: none !important;
+  transform-origin: 50% 50%; /* SVG 預設以左上角為原點，mermaid.js 的縮放計算以中心為準 */
+  transform: translate(var(--ml-pan-x, 0), var(--ml-pan-y, 0)) scale(var(--ml-zoom, 1));
+}
+
 html.marklens .markdown-body .ml-mermaid-error pre { padding: 8px 0 0; background: none; white-space: pre-wrap; text-align: left; }
 
 /* 網頁上的 Mermaid 與數學公式不繪製時，原文上方的說明 */
