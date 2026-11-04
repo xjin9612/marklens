@@ -6,7 +6,7 @@ MarkLens.SETTINGS_KEY = 'marklens:settings'
 
 MarkLens.DEFAULTS = Object.freeze({
   enabled: true,
-  uiLang: 'auto', // 介面語言：auto（跟隨瀏覽器）| en | zh_TW
+  uiLang: 'auto', // 介面語言：auto（跟隨瀏覽器）| en | zh_TW | zh_CN
   // ----- 即時同步到所有分頁 -----
   theme: 'auto', // auto | light | dark
   fontSize: 16,

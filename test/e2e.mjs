@@ -1642,13 +1642,17 @@ try {
   })
 
   /* ---------- 介面多語系 ---------- */
-  await check('語系檔：en 與 zh_TW 的鍵與 $1 參數一致，程式與頁面用到的鍵都存在', async () => {
+  await check('語系檔：各語系的鍵與 $1 參數都與 en 一致，程式與頁面用到的鍵都存在', async () => {
     const load = loc => JSON.parse(readFileSync(join(root, `_locales/${loc}/messages.json`), 'utf8'))
     const en = load('en')
-    const zh = load('zh_TW')
-    assert.deepEqual(Object.keys(zh).sort(), Object.keys(en).sort())
+    const locales = readdirSync(join(root, '_locales')).filter(l => l !== 'en')
+    assert.deepEqual(locales.sort(), ['zh_CN', 'zh_TW'])
     const params = m => (m.message.match(/\$\d/g) || []).sort().join()
-    for (const k of Object.keys(en)) assert.equal(params(zh[k]), params(en[k]), k)
+    for (const loc of locales) {
+      const other = load(loc)
+      assert.deepEqual(Object.keys(other).sort(), Object.keys(en).sort(), loc)
+      for (const k of Object.keys(en)) assert.equal(params(other[k]), params(en[k]), `${loc} ${k}`)
+    }
     // 掃描原始碼中的 t('key')、data-i18n="key"、__MSG_key__
     const used = new Set()
     const scan = (file, re) => {
@@ -1662,6 +1666,23 @@ try {
     }
     const missing = [...used].filter(k => !(k in en))
     assert.deepEqual(missing, [])
+  })
+  await check('介面語言設定：指定简体中文，閱讀頁與 popup 改為簡體中文', async () => {
+    await sw.evaluate(() => MarkLens.saveSettings({ uiLang: 'zh_CN' }))
+    try {
+      const lp = await openDoc()
+      const tools = (await lp.locator('.ml-toolbar').innerText()).replace(/\s+/g, ' ')
+      assert.ok(tools.includes('全部折叠') && tools.includes('导出 HTML'), tools)
+      assert.equal(await lp.locator('.ml-toc-search').getAttribute('placeholder'), '搜索标题')
+      await lp.close()
+      const pp = await ctx.newPage()
+      await pp.goto(`chrome-extension://${extId}/src/popup/popup.html`)
+      await pp.waitForFunction(() => document.querySelector('[data-i18n="uiLang"]')?.textContent === '界面语言')
+      assert.equal(await pp.locator('select[name="uiLang"]').inputValue(), 'zh_CN')
+      await pp.close()
+    } finally {
+      await sw.evaluate(() => MarkLens.saveSettings({ uiLang: 'auto' }))
+    }
   })
   await check('介面語言設定：中文瀏覽器下指定 English，閱讀頁、popup、引導頁改為英文', async () => {
     await sw.evaluate(() => MarkLens.saveSettings({ uiLang: 'en' }))

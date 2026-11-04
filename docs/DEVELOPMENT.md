@@ -35,7 +35,7 @@ Windows 上的 `npm test` 有一項必定失敗。「檔名中的 HTML 不會被
 
 ```
 manifest.json
-_locales/                介面文字：en（預設）與 zh_TW
+_locales/                介面文字：en（預設）、zh_TW、zh_CN（由 zh_TW 以 OpenCC tw2sp 轉換後人工校對）
 src/
   background.js          快捷鍵、代讀本機檔案、資料夾清單、勾選寫回
   shared/settings.js     設定預設值與存取（三端共用）

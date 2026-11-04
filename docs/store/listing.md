@@ -14,6 +14,8 @@
   - 名稱（zh_TW）：`MarkLens – Markdown 閱讀器`
   - 簡短說明（en，128 字元）：Lightweight, auditable Markdown reader: outline, folding, resizable sortable tables, Mermaid, and task check-off in local files.
   - 簡短說明（zh_TW）：輕量、可稽核的 Markdown 閱讀器：目錄、摺疊、可拖拉排序的表格、Mermaid 圖表，並可直接勾選本機檔案的任務。
+  - 名稱（zh_CN）：`MarkLens – Markdown 阅读器`
+  - 簡短說明（zh_CN）：轻量、可审计的 Markdown 阅读器：目录、折叠、可拖动排序的表格、Mermaid 图表，并可直接勾选本机文件的任务。
 
 ---
 

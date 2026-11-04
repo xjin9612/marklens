@@ -4,7 +4,7 @@
 var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
 ;(() => {
-  MarkLens.UI_LANGS = ['en', 'zh_TW'] // 與 _locales/ 的資料夾一致
+  MarkLens.UI_LANGS = ['en', 'zh_TW', 'zh_CN'] // 與 _locales/ 的資料夾一致
 
   // 不帶參數的訊息會快取：擴充功能被重新載入後，舊分頁的 chrome.* 會失效，快取讓已用過的文字仍可顯示
   const cache = new Map()
@@ -28,7 +28,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
   /**
    * 套用介面語言設定，需在 t() 之前呼叫
-   * @param {string} [setting] 'auto' | 'en' | 'zh_TW'；省略時從設定讀取
+   * @param {string} [setting] 'auto' | 'en' | 'zh_TW' | 'zh_CN'；省略時從設定讀取
    */
   MarkLens.initI18n = async function (setting) {
     try {
