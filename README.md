@@ -85,6 +85,7 @@ Local files get [Mermaid](https://mermaid.js.org/) diagrams and [KaTeX](https://
 - GitHub alerts (`> [!NOTE]`), `==highlight==`, emoji shortcodes (`:tada:`), collapsible front matter
 - Syntax highlighting with a language label, copy button and wrap toggle
 - Mermaid diagrams and KaTeX math (`$…$`, `$$…$$`, `` $`…`$ ``, ` ```math `) in local files; diagrams follow the theme and can be switched back to source
+- View a diagram fullscreen: scroll to zoom, drag to move, double-click to reset
 - Images load as you scroll; click to zoom
 
 **Local files**

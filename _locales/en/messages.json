@@ -200,6 +200,18 @@
   "tableFullscreenTitle": {
     "message": "Fullscreen (Esc to exit)"
   },
+  "mermaidFullscreenTitle": {
+    "message": "Fullscreen: scroll to zoom, drag to move, double-click to reset (Esc to exit)"
+  },
+  "zoomIn": {
+    "message": "Zoom in"
+  },
+  "zoomOut": {
+    "message": "Zoom out"
+  },
+  "zoomReset": {
+    "message": "Reset"
+  },
   "tableExitFullscreen": {
     "message": "Exit fullscreen"
   },

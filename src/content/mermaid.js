@@ -99,6 +99,103 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     return loading
   }
 
+  /**
+   * 全螢幕檢視：滾輪以游標為中心縮放、拖曳平移、雙擊或「重設」回到原大小，Esc 離開
+   * 縮放與位移存在 wrap 的 CSS 變數上，主題切換重繪 SVG 後仍然保留
+   */
+  const ZOOM_MIN = 0.25
+  const ZOOM_MAX = 8
+
+  function fullscreenControls(wrap) {
+    const view = () => wrap.querySelector('.ml-mermaid-view')
+    let zoom = 1
+    let x = 0
+    let y = 0
+    const apply = () => {
+      wrap.style.setProperty('--ml-zoom', String(zoom))
+      wrap.style.setProperty('--ml-pan-x', `${x}px`)
+      wrap.style.setProperty('--ml-pan-y', `${y}px`)
+    }
+    /** 以畫面上的 (cx, cy) 為中心縮放到 next 倍 */
+    const zoomAt = (next, cx, cy) => {
+      next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, next))
+      const c = svgCenter()
+      const px = cx - c.x
+      const py = cy - c.y
+      x = px - ((px - x) * next) / zoom
+      y = py - ((py - y) * next) / zoom
+      zoom = next
+      apply()
+    }
+    /** 未變形時 SVG 的中心：以自身中心縮放時中心只受位移影響，扣掉位移即可 */
+    const svgCenter = () => {
+      const r = view().querySelector('svg').getBoundingClientRect()
+      return { x: r.left + r.width / 2 - x, y: r.top + r.height / 2 - y }
+    }
+    const zoomCenter = factor => {
+      const c = svgCenter()
+      zoomAt(zoom * factor, c.x, c.y)
+    }
+    const reset = () => {
+      zoom = 1
+      x = 0
+      y = 0
+      apply()
+    }
+    const btn = (cls, text, title, fn) => h('button', { class: `ml-btn ${cls}`, text, title, on: { click: fn } })
+    const zoomBtns = [
+      btn('ml-mermaid-zoom', '+', t('zoomIn'), () => zoomCenter(1.25)),
+      btn('ml-mermaid-zoom', '−', t('zoomOut'), () => zoomCenter(0.8)),
+      btn('ml-mermaid-zoom', t('zoomReset'), t('zoomReset'), reset),
+    ]
+    const fullBtn = btn('ml-mermaid-full-btn', t('tableFullscreen'), t('mermaidFullscreenTitle'), () => toggle())
+    const toggle = force => {
+      const on = wrap.classList.toggle('ml-mermaid-full', typeof force === 'boolean' ? force : undefined)
+      fullBtn.textContent = t(on ? 'tableExitFullscreen' : 'tableFullscreen')
+      document.documentElement.classList.toggle('ml-noscroll', on)
+      reset()
+      if (!on) fullBtn.focus()
+    }
+    wrap.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && wrap.classList.contains('ml-mermaid-full')) toggle(false)
+    })
+    wrap.addEventListener(
+      'wheel',
+      e => {
+        if (!wrap.classList.contains('ml-mermaid-full') || !view().contains(e.target)) return
+        e.preventDefault()
+        zoomAt(zoom * Math.exp(-e.deltaY / 500), e.clientX, e.clientY)
+      },
+      { passive: false },
+    )
+    wrap.addEventListener('dblclick', e => {
+      if (wrap.classList.contains('ml-mermaid-full') && view().contains(e.target)) reset()
+    })
+    wrap.addEventListener('pointerdown', e => {
+      if (!wrap.classList.contains('ml-mermaid-full') || e.button !== 0 || !view().contains(e.target)) return
+      e.preventDefault()
+      const start = { px: e.clientX, py: e.clientY, x, y }
+      const v = view()
+      v.setPointerCapture(e.pointerId)
+      v.classList.add('ml-panning')
+      const move = ev => {
+        x = start.x + ev.clientX - start.px
+        y = start.y + ev.clientY - start.py
+        apply()
+      }
+      const up = () => {
+        v.removeEventListener('pointermove', move)
+        v.removeEventListener('pointerup', up)
+        v.removeEventListener('pointercancel', up)
+        v.classList.remove('ml-panning')
+      }
+      v.addEventListener('pointermove', move)
+      v.addEventListener('pointerup', up)
+      v.addEventListener('pointercancel', up)
+    })
+    return [fullBtn, ...zoomBtns]
+  }
+
   /** 顯示圖或原始碼 */
   function showSource(wrap, on) {
     wrap.classList.toggle('ml-mermaid-source', on)
@@ -183,6 +280,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       const lang = wrap.querySelector('.ml-code-lang')
       if (lang) lang.after(toggle)
       else wrap.querySelector('.ml-code-bar').prepend(toggle)
+      toggle.after(...fullscreenControls(wrap))
       wrap.insertBefore(view, wrap.querySelector('pre'))
       showSource(wrap, false)
       const key = `${themeNow()}\n${wrap.dataset.mlMermaidCode}`

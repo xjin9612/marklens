@@ -969,6 +969,52 @@ try {
       await mp.waitForFunction(() => document.documentElement.style.getPropertyValue('--ml-scale') === '1')
     }
   })
+  await check('Mermaid：全螢幕檢視，滾輪縮放、拖曳平移、雙擊重設，Esc 離開', async () => {
+    const wrap = mp.locator('.ml-mermaid').first()
+    const vars = () =>
+      wrap.evaluate(el => ['--ml-zoom', '--ml-pan-x', '--ml-pan-y'].map(v => el.style.getPropertyValue(v)))
+    await wrap.hover()
+    await wrap.locator('.ml-mermaid-full-btn').click()
+    try {
+      assert.ok(await wrap.evaluate(el => el.classList.contains('ml-mermaid-full')))
+      const box = await wrap.boundingBox()
+      const vp = mp.viewportSize()
+      assert.ok(box.x === 0 && box.y === 0 && box.width === vp.width && box.height === vp.height, `填滿畫面：${JSON.stringify(box)}`)
+      assert.ok(await mp.evaluate(() => document.documentElement.classList.contains('ml-noscroll')), '鎖住頁面捲動')
+      assert.ok(await wrap.locator('.ml-mermaid-zoom').first().isVisible(), '全螢幕時顯示縮放按鈕')
+      const view = await wrap.locator('.ml-mermaid-view').boundingBox()
+      // 滾輪以游標為中心縮放：游標下的節點留在原處
+      const node = wrap.locator('.ml-mermaid-view .node').first()
+      const n0 = await node.boundingBox()
+      await mp.mouse.move(n0.x + n0.width / 2, n0.y + n0.height / 2)
+      await mp.mouse.wheel(0, -300)
+      await mp.waitForFunction(() => parseFloat(document.querySelector('.ml-mermaid-full').style.getPropertyValue('--ml-zoom')) > 1)
+      const n1 = await node.boundingBox()
+      const shift = Math.hypot(n1.x + n1.width / 2 - n0.x - n0.width / 2, n1.y + n1.height / 2 - n0.y - n0.height / 2)
+      assert.ok(n1.width > n0.width * 1.3 && shift < 3, `節點放大 ${(n1.width / n0.width).toFixed(2)} 倍、位移 ${shift.toFixed(1)}px`)
+      const [, xBefore] = await vars()
+      await mp.mouse.move(view.x + view.width / 2, view.y + view.height / 2)
+      await mp.mouse.down()
+      await mp.mouse.move(view.x + view.width / 2 + 120, view.y + view.height / 2 + 40, { steps: 5 })
+      await mp.mouse.up()
+      const [, xAfter] = await vars()
+      assert.equal(parseFloat(xAfter) - parseFloat(xBefore), 120, `拖曳平移：${xBefore} → ${xAfter}`)
+      await mp.mouse.dblclick(view.x + view.width / 2, view.y + view.height / 2)
+      assert.deepEqual(await vars(), ['1', '0px', '0px'], '雙擊重設')
+      await wrap.locator('.ml-mermaid-zoom', { hasText: '+' }).click()
+      assert.ok(parseFloat((await vars())[0]) > 1, '放大按鈕')
+      await mp.keyboard.press('Escape')
+      assert.equal(await wrap.evaluate(el => el.classList.contains('ml-mermaid-full')), false)
+      assert.equal(await mp.evaluate(() => document.documentElement.classList.contains('ml-noscroll')), false)
+      assert.equal(await mp.evaluate(() => document.activeElement?.className), 'ml-btn ml-mermaid-full-btn', '焦點回到全螢幕按鈕')
+      assert.equal(await wrap.locator('.ml-mermaid-zoom').first().isVisible(), false, '離開後隱藏縮放按鈕')
+    } finally {
+      // 失敗時也離開全螢幕，以免蓋住工具列影響後面的檢查
+      await wrap.evaluate(el => {
+        if (el.classList.contains('ml-mermaid-full')) el.querySelector('.ml-mermaid-full-btn').click()
+      })
+    }
+  })
   await check('Mermaid：切換主題後重繪', async () => {
     const before = (await sw.evaluate(() => MarkLens.loadSettings())).theme
     await sw.evaluate(() => MarkLens.saveSettings({ theme: 'dark' }))

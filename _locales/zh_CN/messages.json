@@ -200,6 +200,18 @@
   "tableFullscreenTitle": {
     "message": "全屏查看（Esc 离开）"
   },
+  "mermaidFullscreenTitle": {
+    "message": "全屏查看：滚轮缩放、拖动移动、双击重置（Esc 离开）"
+  },
+  "zoomIn": {
+    "message": "放大"
+  },
+  "zoomOut": {
+    "message": "缩小"
+  },
+  "zoomReset": {
+    "message": "重置"
+  },
   "tableExitFullscreen": {
     "message": "离开全屏"
   },
