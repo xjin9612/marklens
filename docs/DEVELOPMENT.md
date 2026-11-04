@@ -163,7 +163,12 @@ npm run test:visual -- --update      # 以目前畫面作為新的基準圖
 
 比對幾個固定畫面的截圖與 `test/visual/<平台>/` 的基準圖：閱讀頁淺色、深色、窄螢幕、檔案分頁、深色 Mermaid、popup、引導頁。
 
-- 字型隨作業系統不同，基準圖依平台分開。`linux` 以 `scripts/setup-linux.sh` 的環境建立，`win32` 在 Windows 上建立。
+- 字型隨作業系統不同，基準圖依平台分開。`win32` 在 Windows 上建立。
+- `linux` 由 GitHub Actions 的 **Visual baselines** workflow 產生，環境與 CI 相同。手動觸發後下載 artifact，覆蓋 `test/visual/linux/` 再提交：
+  ```bash
+  gh workflow run visual-baselines.yml --ref <分支>
+  gh run download --name visual-linux --dir test/visual/linux
+  ```
 - 不同的像素超過 0.1% 才算失敗，以 `VISUAL_TOLERANCE` 調整。
 - 差異圖輸出到 `SHOT_DIR` 下的 `ml-visual/`，不同的像素標紅。
 - 介面有預期的改動時，先看差異圖，再加 `--update` 更新兩個平台的基準圖。
