@@ -57,7 +57,7 @@ The sidebar outline highlights the section you're reading. Fold any section, or 
 
 ### Diagrams, math and a dark theme
 
-Local files get [Mermaid](https://mermaid.js.org/) diagrams and [KaTeX](https://katex.org/) math. Choose light, dark, or follow your system. Text diagrams in code blocks line up, even with Chinese, Japanese and Korean text.
+[KaTeX](https://katex.org/) math works everywhere, and local files also get [Mermaid](https://mermaid.js.org/) diagrams. Choose light, dark, or follow your system. Text diagrams in code blocks line up, even with Chinese, Japanese and Korean text.
 
 ![Dark theme with a Mermaid flowchart, a formula and a box-drawing table](docs/screenshots/en/4-dark-mermaid.png)
 
@@ -84,7 +84,8 @@ Local files get [Mermaid](https://mermaid.js.org/) diagrams and [KaTeX](https://
 - CommonMark and GitHub Flavored Markdown: tables, task lists, footnotes, autolinks
 - GitHub alerts (`> [!NOTE]`), `==highlight==`, emoji shortcodes (`:tada:`), collapsible front matter
 - Syntax highlighting with a language label, copy button and wrap toggle
-- Mermaid diagrams and KaTeX math (`$…$`, `$$…$$`, `` $`…`$ ``, ` ```math `) in local files; diagrams follow the theme and can be switched back to source
+- KaTeX math (`$…$`, `$$…$$`, `` $`…`$ ``, ` ```math `), on web pages too
+- Mermaid diagrams in local files; they follow the theme and can be switched back to source
 - View a diagram fullscreen: scroll to zoom, drag to move, double-click to reset
 - Images load as you scroll; click to zoom
 
@@ -148,8 +149,8 @@ MarkLens only runs on addresses that end in `.md`, `.markdown`, `.mkd` or `.mdx`
 **A local `.md` file shows as plain text.**<br>
 Turn on **Allow access to file URLs** on the extension's **Details** page, then reload the file. The welcome page (MarkLens icon → **Help**) walks you through it.
 
-**Diagrams and math aren't drawn on web pages.**<br>
-They're drawn only for files opened from your computer. MarkLens keeps its diagram and math libraries away from websites, so sites can't detect it's installed. A note above the source explains this. Save the file and open it locally to see the diagram.
+**Diagrams aren't drawn on web pages.**<br>
+Mermaid diagrams are drawn only for files opened from your computer. MarkLens keeps its diagram library away from websites, so sites can't detect it's installed. A note above the source explains this. Save the file and open it locally to see the diagram.
 
 **Checking a box asks for folder access.**<br>
 The first time, pick a top-level folder such as `D:\Projects`. Every `.md` under it becomes writable. After a restart, Chrome asks again unless you chose **Allow on every visit**. Manage folders from the MarkLens icon → **Manage folders**. Files that aren't UTF-8 (such as Big5) display normally, but their checkboxes are read-only.
