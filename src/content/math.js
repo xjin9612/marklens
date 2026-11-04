@@ -10,24 +10,31 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   let katex = null // 載入完成後同步繪製，自動更新時不閃爍
   let loading = null
 
-  /** 與 Mermaid 相同：程式庫只對 file:// 頁面開放（manifest 的 web_accessible_resources） */
-  function supported() {
-    return location.protocol === 'file:'
-  }
-
   function load() {
     loading ??= (async () => {
-      // 字型由樣式表以相對路徑載入，所以樣式表必須從擴充功能網址引用
-      const link = document.createElement('link')
-      link.rel = 'stylesheet'
-      link.href = chrome.runtime.getURL(STYLE)
-      document.head.append(link)
+      await adoptStyle()
       const mod = await import(chrome.runtime.getURL(ENTRY))
       katex = mod.default
       document.documentElement.dataset.mlMath = 'loaded'
       return katex
     })()
     return loading
+  }
+
+  /**
+   * KaTeX 樣式。程式庫以動態網址開放給網頁（manifest 的 use_dynamic_url，網址每個工作階段不同，網站無法藉此偵測 MarkLens），
+   * 但樣式表裡的相對路徑會被解析成固定 ID 的網址而載入失敗，所以字型改為動態網址的絕對路徑；只留 woff2（vendor 只收這種）。
+   * 以 constructable stylesheet 套用，不受頁面 CSP 的 style-src 限制
+   */
+  async function adoptStyle() {
+    const res = await chrome.runtime.sendMessage({ type: 'read-asset', path: STYLE })
+    if (res?.status !== 'ok') throw new Error(res?.error || `cannot read ${STYLE}`)
+    const css = res.text
+      .replace(/,\s*url\(fonts\/[^)]+\.(?:woff|ttf)\)\s*format\("[a-z]+"\)/g, '')
+      .replace(/url\((fonts\/[^)]+)\)/g, (_, path) => `url(${chrome.runtime.getURL(`vendor/katex/${path}`)})`)
+    const sheet = new CSSStyleSheet()
+    sheet.replaceSync(css)
+    document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet]
   }
 
   function isDisplay(el) {
@@ -64,15 +71,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   MarkLens.renderMath = async function (article, enabled) {
     const els = Array.from(article.querySelectorAll(SELECTOR))
     if (!els.length) return
-    if (!enabled || !supported()) {
-      // 網頁上不繪製：只在第一個公式所在的段落上方提示一次（公式可能散布全文，逐一提示太吵）；使用者自己關掉時不提示
-      if (enabled) {
-        let block = els[0]
-        while (block.parentElement && block.parentElement !== article) block = block.parentElement
-        block.before(MarkLens.localOnlyNote(MarkLens.t('mathLocalOnly')))
-      }
-      return showSource(els)
-    }
+    if (!enabled) return showSource(els)
     if (!katex) {
       try {
         await load()

@@ -176,11 +176,8 @@
   "mermaidLocalOnly": {
     "message": "Mermaid 图表只在打开本机文件时绘制。把这个文件存到电脑后用浏览器打开，就能看到图表。"
   },
-  "mathLocalOnly": {
-    "message": "数学公式只在打开本机文件时绘制，这一页显示的是 TeX 原文。"
-  },
   "localOnlyWhy": {
-    "message": "MarkLens 的图表与公式程序库不开放给网站访问，网站才无法借此得知你装了 MarkLens。"
+    "message": "MarkLens 的图表程序库不开放给网站访问，网站才无法借此得知你装了 MarkLens。"
   },
   "mermaidPending": {
     "message": "Mermaid 图表绘制中…"

@@ -2,7 +2,7 @@
 
 填寫開發者後台用的文字，依後台頁面順序排列。標示「待確認」的地方是後台實際欄位或規定可能與此不同，填寫時以後台為準。
 
-> **維護注意**：Mermaid 與數學公式目前只在本機檔案繪製，下方說明據此寫明。若日後網頁上也能繪製，要同時修改這裡、商店截圖的說明（`scripts/screenshots.mjs` 的 `4-dark-mermaid`）與 README。
+> **維護注意**：Mermaid 圖表目前只在本機檔案繪製，數學公式在網頁上也能繪製，下方說明據此寫明。若日後網頁上也能繪製 Mermaid，要同時修改這裡、商店截圖的說明（`scripts/screenshots.mjs` 的 `4-dark-mermaid`）與 README。
 
 ---
 
@@ -56,7 +56,7 @@ READ AND NAVIGATE
 MARKDOWN SUPPORT
 • CommonMark and GitHub Flavored Markdown: tables, task lists, footnotes, GitHub alerts (> [!NOTE]), emoji shortcodes, ==highlight==
 • Syntax highlighting with a copy button for code blocks
-• Mermaid diagrams and KaTeX math in local files
+• KaTeX math, on web pages too; Mermaid diagrams in local files
 • Box-drawing tables in code blocks stay aligned with Chinese, Japanese and Korean text
 • Export the current view as one self-contained HTML file to share, or print it / save it as a PDF with every section expanded
 
@@ -69,7 +69,7 @@ PRIVATE AND AUDITABLE
 
 GOOD TO KNOW
 • For local files, turn on "Allow access to file URLs" on the extension's Details page. A welcome page walks you through it after installing.
-• Mermaid diagrams and math are drawn in local files only, not on web pages.
+• Mermaid diagrams are drawn in local files only, not on web pages.
 • When you install it, Chrome warns that MarkLens can read and change your data on all websites, because its permission prompt ignores the part of the address after the site name. MarkLens only runs on addresses that end in .md, .markdown, .mkd or .mdx. You can limit it further under Site access on the extension's Details page.
 
 Source code, changelog and issues: https://github.com/xjin9612/marklens
@@ -102,7 +102,7 @@ MarkLens 把你在瀏覽器中開啟的 Markdown 檔案變成清楚好讀的頁�
 Markdown 支援
 • CommonMark 與 GitHub Flavored Markdown：表格、任務清單、腳註、GitHub 提示框（> [!NOTE]）、Emoji 短碼、==螢光標記==
 • 程式碼語法高亮，附複製按鈕
-• 本機檔案支援 Mermaid 圖表與 KaTeX 數學公式
+• KaTeX 數學公式在網頁上也能繪製；本機檔案另外支援 Mermaid 圖表
 • 程式碼區塊中的框線字元表格，中日韓文字也能對齊
 • 把目前畫面匯出成單一 HTML 檔方便分享，或列印／存成 PDF，摺疊的段落會全部展開
 
@@ -115,7 +115,7 @@ Markdown 支援
 
 使用須知
 • 要開啟本機檔案，請在擴充功能的「詳細資料」頁面開啟「允許存取檔案網址」。安裝後的歡迎頁會帶你完成設定。
-• Mermaid 圖表與數學公式只在本機檔案中繪製，網頁上不繪製。
+• Mermaid 圖表只在本機檔案中繪製，網頁上不繪製。
 • 安裝時 Chrome 會警告 MarkLens 可以讀取及變更所有網站上的資料，因為它的權限提示忽略網址中網站名稱之後的部分。MarkLens 只在網址以 .md、.markdown、.mkd 或 .mdx 結尾時執行；你也可以在擴充功能「詳細資料」頁面的「網站存取權」進一步限制。
 
 原始碼、更新紀錄與問題回報：https://github.com/xjin9612/marklens

@@ -26,7 +26,10 @@ const localMermaid = join(work, 'mermaid.md')
 copyFileSync(mermaidFixture, localMermaid)
 
 const server = createServer((req, res) => {
-  res.writeHead(200, { 'content-type': 'text/markdown; charset=utf-8' })
+  const headers = { 'content-type': 'text/markdown; charset=utf-8' }
+  // /strict/…：仿 raw.githubusercontent.com 的 CSP（不允許任何外部資源，且頁面在沙箱中）
+  if (req.url.startsWith('/strict/')) headers['content-security-policy'] = "default-src 'none'; style-src 'unsafe-inline'; sandbox"
+  res.writeHead(200, headers)
   const name = ['mermaid', 'math'].find(n => req.url.includes(n))
   res.end(readFileSync(name ? join(root, `test/fixtures/${name}.md`) : fixture))
 }).listen(0)
@@ -1317,16 +1320,49 @@ try {
       await sw.evaluate(() => MarkLens.saveSettings({ math: true }))
     }
   })
-  await check('數學公式：http:// 頁面不載入 KaTeX，保留 $ 原文', async () => {
-    const hp = await openDoc(`http://127.0.0.1:${port}/docs/math.md`)
-    await hp.waitForTimeout(300)
-    assert.equal(await hp.locator('.katex').count(), 0)
-    assert.ok((await hp.textContent('.markdown-body')).includes('行內公式 $E = mc^2$'))
-    // 只提示一次，放在第一個公式所在的段落上方
-    assert.equal(await hp.locator('.ml-local-only').count(), 1)
-    const next = await hp.$eval('.ml-local-only', el => el.nextElementSibling.querySelector('.math-inline, .math-display') !== null || el.nextElementSibling.matches('.math-display'))
-    assert.ok(next, '說明之後應是第一個公式所在的段落')
-    await hp.close()
+  await check('數學公式：http(s) 頁面也繪製，字型載入成功（含嚴格 CSP 的網站）', async () => {
+    for (const path of ['docs/math.md', 'strict/docs/math.md']) {
+      // 不用 openDoc：它的 addStyleTag 在 sandbox CSP 的頁面上等不到載入事件，會一直卡住
+      const hp = await ctx.newPage()
+      hp.on('pageerror', e => errors.push(e.message))
+      await hp.goto(`http://127.0.0.1:${port}/${path}`)
+      await hp.waitForSelector('#ml-root .markdown-body h1', { timeout: 5000 })
+      try {
+        const state = () =>
+          hp.evaluate(() => ({
+            display: document.querySelectorAll('.katex-display').length,
+            math: document.documentElement.dataset.mlMath,
+            fonts: [...document.fonts].filter(f => f.family.startsWith('KaTeX_Main')).map(f => f.status),
+          }))
+        try {
+          await hp.waitForFunction(() => document.querySelectorAll('.katex-display').length === 2, null, { timeout: 10000 })
+          // 主動載入字型並等完成；載入失敗（被擋）時回傳空陣列
+          const loaded = await hp.evaluate(() => document.fonts.load('16px KaTeX_Main').then(f => f.length))
+          assert.ok(loaded > 0, 'KaTeX_Main 字型載入失敗')
+        } catch (e) {
+          throw new Error(`${path}：${e.message.split('\n')[0]} ${JSON.stringify(await state())}`)
+        }
+        assert.equal(await hp.locator('.ml-local-only').count(), 0, `${path}：不應出現「只在本機檔案繪製」`)
+      } finally {
+        await hp.close()
+      }
+    }
+  })
+  await check('網站無法以固定的擴充功能網址探測 MarkLens 的資源', async () => {
+    const pp = await ctx.newPage()
+    try {
+      await pp.goto(`http://127.0.0.1:${port}/probe`)
+      const extId = sw.url().split('/')[2]
+      const results = await pp.evaluate(async id => {
+        // 不開放的資源有時不回應而非拒絕：逾時也算讀不到
+        const probe = async path =>
+          fetch(`chrome-extension://${id}/${path}`, { signal: AbortSignal.timeout(3000) }).then(r => `可讀取 ${r.status}`, () => '無法讀取')
+        return [await probe('vendor/katex/katex.min.css'), await probe('vendor/mermaid/mermaid.esm.min.mjs')]
+      }, extId)
+      assert.deepEqual(results, ['無法讀取', '無法讀取'])
+    } finally {
+      await pp.close()
+    }
   })
 
   /* ---------- 安全性：攻擊樣本（test/fixtures/security.md） ---------- */

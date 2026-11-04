@@ -168,13 +168,22 @@
     {
       "resources": [
         "vendor/mermaid/*",
-        "vendor/mermaid/chunks/mermaid.esm.min/*",
-        "vendor/katex/*",
-        "vendor/katex/fonts/*"
+        "vendor/mermaid/chunks/mermaid.esm.min/*"
       ],
       "matches": [
         "file:///*"
       ]
+    },
+    {
+      "resources": [
+        "vendor/katex/*",
+        "vendor/katex/fonts/*"
+      ],
+      "matches": [
+        "file:///*",
+        "*://*/*"
+      ],
+      "use_dynamic_url": true
     }
   ],
   "content_security_policy": {
