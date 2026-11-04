@@ -6,3 +6,4 @@ dist/
 test/manual/09-*.md
 .node-version
 .claude/settings.local.json
+CLAUDE.local.md

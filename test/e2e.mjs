@@ -45,6 +45,11 @@ const ctx = await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), 'm
 })
 
 const results = []
+/** 這個環境做不到的檢查：列出原因，不算通過也不算失敗 */
+function skip(name, reason) {
+  results.push(`－ ${name}（略過：${reason}）`)
+}
+
 async function check(name, fn) {
   try {
     await fn()
@@ -1299,7 +1304,8 @@ try {
     assert.deepEqual(hrefs, ['http://www.example.com', 'https://example.com/a', 'mailto:a@example.com'])
   })
   await sp.close()
-  await check('安全性：檔名中的 HTML 不會被執行', async () => {
+  if (process.platform === 'win32') skip('安全性：檔名中的 HTML 不會被執行', 'Windows 檔名不能含 < >，CI 在 Linux 上檢查')
+  else await check('安全性：檔名中的 HTML 不會被執行', async () => {
     const evilName = '<img src=x onerror=document.body.dataset.xss=1>.md'
     writeFileSync(join(work, evilName), '沒有標題的文件，頁面標題取自檔名。\n')
     const fp = await ctx.newPage()
@@ -1756,5 +1762,6 @@ try {
   server.close()
 }
 const failed = results.filter(r => r.startsWith('✘')).length
-console.log(`\n${results.length - failed} 通過，${failed} 失敗`)
+const skipped = results.filter(r => r.startsWith('－')).length
+console.log(`\n${results.length - failed - skipped} 通過，${failed} 失敗${skipped ? `，${skipped} 略過` : ''}`)
 process.exit(failed ? 1 : 0)
