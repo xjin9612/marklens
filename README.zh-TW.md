@@ -57,9 +57,9 @@
 
 ### 圖表、數學公式與深色主題
 
-本機檔案支援 [Mermaid](https://mermaid.js.org/) 圖表與 [KaTeX](https://katex.org/) 數學公式。主題可選淺色、深色或跟隨系統。程式碼區塊中的罫線表格，中日韓文字也能對齊。
+本機檔案支援 [Mermaid](https://mermaid.js.org/) 圖表與 [KaTeX](https://katex.org/) 數學公式。主題可選淺色、深色或跟隨系統。程式碼區塊中的框線字元表格，中日韓文字也能對齊。
 
-![深色主題下的 Mermaid 流程圖、數學公式與罫線表格](docs/screenshots/zh-TW/4-dark-mermaid.png)
+![深色主題下的 Mermaid 流程圖、數學公式與框線字元表格](docs/screenshots/zh-TW/4-dark-mermaid.png)
 
 ### 列印、PDF 與匯出 HTML
 
@@ -151,7 +151,7 @@ MarkLens 只在網址以 `.md`、`.markdown`、`.mkd`、`.mdx` 結尾時執行�
 **勾選任務時要求授權資料夾。**<br>
 第一次請選較上層的資料夾，例如 `D:\Projects`。底下所有 `.md` 都能寫回。Chrome 重新啟動後會再詢問，除非你選了「每次造訪時允許」。可從 MarkLens 圖示 →「管理授權資料夾」管理。非 UTF-8 的檔案（例如 Big5）可以正常顯示，但勾選框是唯讀的。
 
-**程式碼區塊中的罫線表格沒有完全對齊。**<br>
+**程式碼區塊中的框線字元表格沒有完全對齊。**<br>
 MarkLens 會縮放系統字型，讓中日韓文字剛好兩個英數字寬，所以這些字看起來略大。想要最好的效果，可安裝[更紗黑體（Sarasa Gothic）](https://github.com/be5invis/Sarasa-Gothic)：
 
 1. 從它的 Releases 下載 **Single Family TTF Package → Mono**。

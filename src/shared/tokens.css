@@ -7,8 +7,8 @@
   --ml-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", "Noto Sans CJK TC", sans-serif;
   /*
    * 程式碼字型：更紗黑體（有安裝才生效）中英本來就是 2:1，最優先。
-   * 否則英數與罫線用系統等寬字型，中文用 fonts.js 依實際字寬縮放過的系統中文字型（MarkLens CJK Mono），
-   * 讓中文剛好兩個英數字寬，罫線表格才能對齊。
+   * 否則英數與框線字元用系統等寬字型，中文用 fonts.js 依實際字寬縮放過的系統中文字型（MarkLens CJK Mono），
+   * 讓中文剛好兩個英數字寬，框線字元表格才能對齊。
    */
   --ml-mono: "Sarasa Mono TC", "Sarasa Term TC", "MarkLens CJK Mono", "Cascadia Code", Consolas, "SFMono-Regular", Menlo, "DejaVu Sans Mono", "Liberation Mono", "Microsoft JhengHei", "PingFang TC", "Noto Sans CJK TC", monospace;
 

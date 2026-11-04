@@ -3,7 +3,7 @@
 # 用法：sh scripts/setup-linux.sh（需要 sudo；重複執行無妨）
 #
 #   Playwright Chromium 與系統套件  npm test、npm run test:visual、npm run audit:layout、截圖腳本
-#   fonts-noto-cjk                  中日韓字型：罫線對齊測試與視覺基準圖需要（與 CI 相同）
+#   fonts-noto-cjk                  中日韓字型：框線字元對齊測試與視覺基準圖需要（與 CI 相同）
 #   poppler-utils                   pdftoppm／pdftotext：把 page.pdf() 的輸出轉成圖片或文字，檢查列印結果
 #   ffmpeg                          把錄影畫格轉成 README 的 GIF（npm run gifs）
 #

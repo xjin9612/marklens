@@ -520,7 +520,7 @@ html.marklens .markdown-body pre {
   margin: 0;
   padding: 16px;
   overflow: auto;
-  /* 行距略收緊，罫線字元（│ ┃）上下較能連成直線 */
+  /* 行距略收緊，框線字元（│ ┃）上下較能連成直線 */
   /* 13.6px @16px；以設定的字體大小為基準（不用 em：放在 front matter、腳註等縮小的區塊裡也一樣大） */
   font: calc(var(--ml-font-size) * .85)/1.35 var(--ml-mono);
   background: var(--code-bg);

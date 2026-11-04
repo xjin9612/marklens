@@ -1,8 +1,8 @@
 'use strict'
 // 程式碼區塊的中英對齊：讓中文字寬剛好等於兩個英數字寬
 // 系統內建的等寬字型（Consolas、Menlo…）沒有中文，中文會改用系統中文字型顯示，寬度通常不是英數的兩倍，
-// 罫線表格（┌─┬─┐）因此錯位。做法：量出實際使用的英數字寬，以 @font-face 的 size-adjust
-// 只針對中文字元範圍，把系統中文字型等比例縮放到剛好兩倍寬。罫線字元仍用英數字型（半形）。
+// 框線字元表格（┌─┬─┐）因此錯位。做法：量出實際使用的英數字寬，以 @font-face 的 size-adjust
+// 只針對中文字元範圍，把系統中文字型等比例縮放到剛好兩倍寬。框線字元仍用英數字型（半形）。
 // 已安裝更紗黑體（中英本來就 2:1）時不需要校正。
 var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
@@ -19,7 +19,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     ['Noto Sans TC', ['Noto Sans TC Regular', 'NotoSansTC-Regular', 'Noto Sans TC'], ['Noto Sans TC Bold', 'NotoSansTC-Bold']],
     ['Microsoft YaHei', ['Microsoft YaHei', 'Microsoft YaHei Regular', 'MicrosoftYaHei'], ['Microsoft YaHei Bold', 'MicrosoftYaHei-Bold']],
   ]
-  // 中日韓文字、全形標點與符號；不含罫線（U+2500–257F），罫線維持英數字型的半形
+  // 中日韓文字、全形標點與符號；不含框線字元（U+2500–257F），框線字元維持英數字型的半形
   const CJK_RANGE = 'U+2E80-2FDF, U+3000-303F, U+3040-30FF, U+3100-31FF, U+3400-4DBF, U+4E00-9FFF, U+AC00-D7AF, U+F900-FAFF, U+FE30-FE4F, U+FF00-FFEF'
 
   const ctx = document.createElement('canvas').getContext('2d')

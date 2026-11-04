@@ -31,7 +31,7 @@ jobs:
       - name: 安裝相依套件
         run: npm ci
 
-      # 罫線表格對齊的測試需要中日韓字型，GitHub 的 Linux 機器預設沒有
+      # 框線字元表格對齊的測試需要中日韓字型，GitHub 的 Linux 機器預設沒有
       - name: 安裝 Chromium 與中日韓字型
         run: |
           npx playwright install --with-deps chromium
