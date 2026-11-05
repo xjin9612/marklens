@@ -36,6 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - The outline highlighted an earlier section when the last, short sections couldn't scroll to the top of the window: after jumping to a heading from the outline or a `#link`, that heading stays highlighted, and at the end of the document the last heading on screen is highlighted
 
 ### Security
+- Mermaid labels are drawn as SVG text, so diagrams contain no HTML at all
 - Saving a checked task accepts only a valid line number and the two checkbox states
 
 ## [1.5.0] - 2026-11-02

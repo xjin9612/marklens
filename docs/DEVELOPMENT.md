@@ -108,7 +108,7 @@ flowchart LR
 - **HTML 白名單**（`src/content/sanitize.js`）：保留 `<details>`、`<kbd>`、表格等常用標籤。移除 `<script>`、`<iframe>`、`<svg>`、事件屬性與 `style`（表格對齊除外）。也移除 `javascript:` 與非圖片的 `data:` 連結。
 - **不能借用介面**：文件中的 HTML 不能使用 `ml-` 開頭的 class 與 id，無法蓋出假的提示。`name` 屬性只保留給 `<a>`，防止 DOM clobbering。
 - **數學公式**：KaTeX 以 `trust: false` 繪製，停用 `\href`、`\url`、`\includegraphics` 與 `\html…`。巨集展開次數有上限。
-- **Mermaid**：以 `securityLevel: 'strict'` 繪製。標籤經 DOMPurify 過濾，點擊事件停用。
+- **Mermaid**：以 `securityLevel: 'strict'` 繪製。標籤經 DOMPurify 過濾，點擊事件停用。`htmlLabels: false` 讓標籤畫成 SVG 文字，圖表裡沒有 `foreignObject` 與任何 HTML 元素。
 - **程式庫不讓網站探測**：Mermaid 與 KaTeX 用到時才載入，所以列為 web accessible resources。
   - 兩者都開放給所有網頁，但設 `use_dynamic_url`，網址每個工作階段都不同，網站無法以固定的擴充功能 ID 探測。
   - 動態網址下，模組內的相對路徑 import 會被解析成固定 ID 的網址而被擋，所以程式庫必須是單一檔案。Mermaid 官方的 ESM 版拆成多個 chunk，`scripts/vendor.mjs` 改取單檔版，把結尾掛上 `globalThis` 的那一行改成 `export default`。

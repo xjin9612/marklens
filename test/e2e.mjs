@@ -1458,6 +1458,14 @@ try {
     await sp.waitForFunction(() => document.documentElement.dataset.mlMath === 'loaded')
     await sp.waitForTimeout(200)
   })
+  await check('安全性：Mermaid 圖表不含 foreignObject 與任何 HTML 元素', async () => {
+    const html = await inSec(() =>
+      Array.from(Document.prototype.querySelectorAll.call(document, '.ml-mermaid-view svg *'))
+        .filter(el => el.namespaceURI !== 'http://www.w3.org/2000/svg' || el.localName === 'foreignObject')
+        .map(el => el.localName),
+    )
+    assert.deepEqual(html, [])
+  })
   await check('安全性：攻擊碼在載入與點擊後都沒有執行', async () => {
     const targets = sp.locator('.markdown-body a, .markdown-body summary, .markdown-body p, .ml-mermaid-view .node, .ml-mermaid-view .edgeLabel')
     // 正常的 http／mailto 連結會連到外部，攔下它的預設跳轉；其他網址（若有漏網的危險連結）照常放行，才測得出來

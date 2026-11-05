@@ -225,6 +225,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     mermaid.initialize({
       startOnLoad: false,
       securityLevel: 'strict',
+      // 標籤畫成 SVG 文字，不產生 foreignObject：圖表裡不會出現任何 HTML 元素
+      htmlLabels: false,
+      flowchart: { htmlLabels: false },
       theme: 'base',
       themeVariables: themeVariables(theme),
       fontFamily: getComputedStyle(wrap).fontFamily,
