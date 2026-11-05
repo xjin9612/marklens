@@ -1,6 +1,6 @@
 # 商店送審資料（Chrome Web Store／Edge Add-ons）
 
-填寫開發者後台用的文字，依後台頁面順序排列。標示「待確認」的地方是後台實際欄位或規定可能與此不同，填寫時以後台為準。
+填寫開發者後台用的文字，依後台頁面順序排列。
 
 ---
 
@@ -21,11 +21,11 @@
 
 ### 類別
 
-Productivity → **Developer Tools**（待確認：後台下拉選單的實際名稱）
+**Developer Tools**（[Chrome 的類別清單](https://developer.chrome.com/docs/webstore/best-practices)）
 
 ### 語言
 
-English（預設）、中文（繁體）。每個語言各自填寫詳細說明並上傳截圖與宣傳圖。
+English（預設）、中文（繁體）、中文（簡體）。每個語言各自填寫詳細說明。截圖與宣傳圖只有 en、zh-TW 兩組，簡體沿用 zh-TW。
 
 ### 詳細說明（English）
 
@@ -117,9 +117,56 @@ Markdown 支援
 原始碼、更新紀錄與問題回報：https://github.com/xjin9612/marklens
 ```
 
+### 詳細說明（中文簡體）
+
+Edge 要求套件中的每個語言都有詳細說明（[Edge 文件](https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/publish-extension#enter-properties-for-a-language)）。由繁中轉換後改用大陸用語；簡中版沒有另外的隱私權政策，連到繁中版。
+
+```text
+MarkLens 把你在浏览器中打开的 Markdown 文件变成清晰易读的页面，而且里面的表格是真的能拿来用的。
+
+表格真的能用
+• 拖动列边缘调整宽度，双击自动适应内容
+• 点表头排序：千分位数字、容量单位（KB、MB）、日期与中文都能正确排序
+• 边输入边筛选数据行，任何表格都能全屏查看，表头固定
+• 一键复制表格，直接粘贴到 Excel 或 Google 表格
+
+直接勾选文件中的任务
+• 本机 .md 文件中点任务的勾选框，[ ]／[x] 立即写回文件，不必开编辑器
+• 提示栏可以撤销；文件已在其他地方被修改时会拒绝写入；保留 CRLF 换行与 BOM
+• 只需授权文件夹一次，而且只会修改你点的那一行
+
+阅读与导航
+• 侧边栏目录：标出当前章节，可搜索标题
+• 任何段落都能折叠，也能一次全部折叠或展开
+• “文件”标签：浏览同一文件夹中的 Markdown 文件与子文件夹，完全免费
+• 本机文件自动更新，保留滚动位置、折叠状态与表格设置
+• 以 VS Code 打开文件并跳到当前阅读的段落
+• 可调整文本宽度、字体大小与行高；浅色、深色或跟随系统
+
+Markdown 支持
+• CommonMark 与 GitHub Flavored Markdown：表格、任务清单、脚注、GitHub 提示框（> [!NOTE]）、Emoji 短码、==高亮标记==
+• 代码语法高亮，附复制按钮
+• KaTeX 数学公式与 Mermaid 图表，本机文件与网页上都能绘制
+• 代码块中的框线字符表格，中日韩文字也能对齐
+• 把当前画面导出为单个 HTML 文件方便分享，或打印／存成 PDF，折叠的段落会全部展开
+
+注重隐私、可以审计
+• 不收集任何数据。没有账号、没有分析追踪、没有广告、没有服务器
+• 只要求一项权限：storage，用来保存你的设置。可选的设置同步通过浏览器账号进行，不经过我们
+• 没有远程代码：所有程序库都打包在扩展程序内
+• 以 MIT 许可证开源；测试包含 60 多个攻击样本，确保它们都无法运行任何代码
+• 隐私政策：https://github.com/xjin9612/marklens/blob/main/PRIVACY.zh-TW.md
+
+使用须知
+• 要打开本机文件，请在扩展程序的“详情”页面打开“允许访问文件网址”。安装后的欢迎页会带你完成设置。
+• 安装时 Chrome 会警告 MarkLens 可以读取及变更所有网站上的数据，因为它的权限提示忽略网址中网站名称之后的部分。MarkLens 只在网址以 .md、.markdown、.mkd 或 .mdx 结尾时运行；你也可以在扩展程序“详情”页面的“网站访问权限”进一步限制。
+
+源代码、更新日志与问题反馈：https://github.com/xjin9612/marklens
+```
+
 ### 圖片
 
-| 欄位 | 檔案（en／zh-TW 各一組） |
+| 欄位 | 檔案（en／zh-TW 各一組，簡體沿用 zh-TW） |
 |---|---|
 | 商店圖示 128×128 | `icons/icon128.png` |
 | 螢幕截圖 1280×800（最多 5 張，依序上傳） | `docs/store/<語系>/1-tables.png` … `5-table-fullscreen.png` |
@@ -156,7 +203,7 @@ Saves the user's reading settings (theme, font size, text width, language, edito
 The content scripts match only URLs whose path ends in a Markdown extension (.md, .markdown, .mkd, .mdx, in http, https and file URLs), so that MarkLens can render the Markdown file the user opened. They never run on other pages. The broad host part (*://*/) is needed because Markdown files can be hosted on any site; Chrome's warning ignores the path restriction.
 ```
 
-> 待確認：manifest 沒有 `host_permissions`，但 content scripts 的比對網址仍可能讓後台要求填寫主機權限理由。若後台沒有這個欄位就略過。
+> Chrome 把 `content_scripts.matches` 視同主機存取，變更時會觸發權限警告（[宣告權限](https://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions)）。後台是否另列這個欄位，官方文件沒有寫明；出現就填上面這段，沒有就略過。
 
 ### 遠端程式碼（Remote code）
 
@@ -199,8 +246,8 @@ https://github.com/xjin9612/marklens/blob/main/PRIVACY.md
 
 ## 5. Edge Add-ons（另外送審）
 
-使用同一個 `-store.zip`，文字與圖片沿用上面的內容。差異與待確認事項：
+使用同一個 `-store.zip`，文字與圖片沿用上面的內容。欄位規定見 [Edge 發布文件](https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/publish-extension)，差異如下：
 - 隱私權政策網址：必填，用同一個
-- 詳細說明：Edge 有最少字數規定（待確認），上面的說明遠超過一般下限
-- 搜尋關鍵字（待確認是否仍有此欄位）：markdown, md, reader, viewer, table, mermaid, preview
-- 類別：Developer tools（待確認名稱）
+- 詳細說明：每個語言必填，250～10,000 字元。英文約 2,800 字元、繁中約 1,200 字元，都符合
+- 搜尋關鍵字（Search terms，選填，最多 7 個、每個 30 字元、合計 21 個字）：markdown, md, reader, viewer, table, mermaid, preview
+- 類別：Developer tools（[Edge 文件中的類別名稱](https://learn.microsoft.com/en-us/microsoft-edge/devtools/customize/extensions)）
