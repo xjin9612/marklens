@@ -1,0 +1,23 @@
+# 每月檢查 GitHub Actions 與 npm 開發套件的新版，各自合成一個 PR
+# vendor/ 的程式庫不在 package.json，不由 Dependabot 追蹤，升級方式見 docs/DEVELOPMENT.md
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7 # 新版發布滿 7 天才提議，避開剛上架就被撤下的惡意版本
+    groups:
+      actions:
+        patterns: ['*']
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    groups:
+      npm:
+        patterns: ['*']
