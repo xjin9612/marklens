@@ -35,24 +35,27 @@ jobs:
       - name: 驗證相依套件簽章
         run: npm audit signatures
 
-      # Chromium 與中日韓字型（52 MB）存進快取：Ubuntu 套件鏡像站常常很慢，命中時字型直接以 dpkg 安裝
+      # Chromium 與 apt 下載的套件（Playwright 的系統相依套件、中日韓字型）存進快取：Ubuntu 套件鏡像站常常很慢
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.cache/ms-playwright
-            ~/apt-fonts
-          key: browser-deps-ubuntu-26.04-${{ hashFiles('package-lock.json') }}
+            ~/apt-cache
+          key: browser-apt-ubuntu-26.04-${{ hashFiles('package-lock.json') }}
 
       # 框線字元表格對齊的測試需要中日韓字型，GitHub 的 Linux 機器預設沒有
       - name: 安裝 Chromium 與中日韓字型
-        timeout-minutes: 10 # 第一次建立快取時字型仍要從鏡像站下載
+        timeout-minutes: 10 # 第一次建立快取時仍要從鏡像站下載
         run: |
+          # apt 下載的 .deb 放在快取的資料夾，已有相同版本時不再下載；partial 要讓 apt 的下載帳號 _apt 寫入
+          mkdir -p ~/apt-cache/partial
+          sudo chown _apt ~/apt-cache/partial
+          echo "Dir::Cache::Archives \"$HOME/apt-cache\";" | sudo tee /etc/apt/apt.conf.d/99marklens-cache >/dev/null
           npx playwright install --with-deps chromium
-          if ! ls ~/apt-fonts/*.deb >/dev/null 2>&1; then
-            mkdir -p ~/apt-fonts
-            (cd ~/apt-fonts && apt-get download fonts-noto-cjk)
-          fi
-          sudo dpkg -i ~/apt-fonts/*.deb
+          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+          # apt 留下的 lock 只有 root 能讀，快取存檔時會讀不到
+          sudo rm -f ~/apt-cache/lock
+          sudo chmod -R a+rX ~/apt-cache
 
       - name: 執行測試
         run: |
