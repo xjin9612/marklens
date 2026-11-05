@@ -1096,25 +1096,36 @@ try {
     assert.equal(await pending.jsonValue(), 1)
   })
   await mp.close()
-  await check('Mermaid：http:// 頁面不載入，保留程式碼，每個圖表上方說明只在本機檔案繪製', async () => {
-    const hp = await openDoc(`http://127.0.0.1:${port}/docs/mermaid.md`)
-    await hp.waitForTimeout(500)
-    assert.equal(await hp.locator('.ml-mermaid').count(), 0)
-    assert.equal(await hp.locator('code.language-mermaid').count(), 3)
-    assert.equal(await hp.evaluate(() => document.documentElement.dataset.mlMermaid), undefined)
-    const notes = await hp.$$eval('.ml-local-only', els => els.map(el => [el.textContent, el.nextElementSibling?.querySelector('code.language-mermaid') ? 'mermaid' : '']))
-    assert.equal(notes.length, 3, '每個圖表一則說明')
-    assert.ok(notes.every(([text, next]) => text.includes('只在開啟本機檔案時繪製') && next === 'mermaid'), JSON.stringify(notes))
-    assert.ok(await hp.locator('.ml-local-only').first().isVisible())
-    // 寬視窗下仍與文字欄對齊（左緣與標題相同），不會貼到內容區最左邊
-    await hp.setViewportSize({ width: 1900, height: 900 })
-    const [noteX, headingX] = await hp.evaluate(() =>
-      [document.querySelector('.ml-local-only'), document.querySelector('.markdown-body > h1')].map(el => Math.round(el.getBoundingClientRect().left)),
-    )
-    assert.equal(noteX, headingX, '說明應與文字欄左緣對齊')
-    await hp.close()
+  await check('Mermaid：http(s) 頁面也繪製（含嚴格 CSP 的網站）', async () => {
+    for (const path of ['docs/mermaid.md', 'strict/docs/mermaid.md']) {
+      // 不用 openDoc：它的 addStyleTag 在 sandbox CSP 的頁面上等不到載入事件，會一直卡住
+      const hp = await ctx.newPage()
+      hp.on('pageerror', e => errors.push(e.message))
+      try {
+        await hp.goto(`http://127.0.0.1:${port}/${path}`)
+        // waitForFunction 的輪詢在 sandbox CSP 的頁面上不會執行，第一次檢查不成立就只能等到逾時；改用 evaluate 自己輪詢
+        await (async () => {
+          const done = () => hp.evaluate(() => document.querySelectorAll('.ml-mermaid-view svg').length === 2 && document.querySelectorAll('.ml-mermaid-error').length === 1)
+          for (const end = Date.now() + 15000; !(await done()); await hp.waitForTimeout(200)) {
+            if (Date.now() > end) throw new Error('Timeout 15000ms exceeded.')
+          }
+        })().catch(async e => {
+          const state = await hp.evaluate(() => ({
+            svg: document.querySelectorAll('.ml-mermaid-view svg').length,
+            errors: [...document.querySelectorAll('.ml-mermaid-error')].map(el => el.textContent.slice(0, 120)),
+            mermaid: document.documentElement.dataset.mlMermaid,
+          }))
+          throw new Error(`${path}：${e.message.split('\n')[0]} ${JSON.stringify(state)}`)
+        })
+        // 圖表內的 <style> 生效：節點填色取自主題變數，不是瀏覽器預設的黑色
+        const fill = await hp.evaluate(() => getComputedStyle(document.querySelector('.ml-mermaid-view svg .node rect, .ml-mermaid-view svg .node polygon')).fill)
+        assert.notEqual(fill, 'rgb(0, 0, 0)', `${path}：圖表樣式沒有套用`)
+      } finally {
+        await hp.close()
+      }
+    }
   })
-  await check('Mermaid：關閉設定後不繪製，網頁上也不提示只在本機檔案繪製', async () => {
+  await check('Mermaid：關閉設定後不繪製', async () => {
     await sw.evaluate(() => MarkLens.saveSettings({ mermaid: false }))
     try {
       const op = await openDoc(pathToFileURL(localMermaid).href)
@@ -1122,11 +1133,6 @@ try {
       assert.equal(await op.locator('.ml-mermaid').count(), 0)
       assert.equal(await op.locator('code.language-mermaid').count(), 3, '保留程式碼')
       await op.close()
-      // 使用者自己關掉的，網頁上也不提示「只在本機檔案繪製」
-      const hp = await openDoc(`http://127.0.0.1:${port}/docs/mermaid.md`)
-      await hp.waitForTimeout(500)
-      assert.equal(await hp.locator('.ml-local-only').count(), 0)
-      await hp.close()
     } finally {
       await sw.evaluate(() => MarkLens.saveSettings({ mermaid: true }))
     }
@@ -1342,7 +1348,6 @@ try {
         } catch (e) {
           throw new Error(`${path}：${e.message.split('\n')[0]} ${JSON.stringify(await state())}`)
         }
-        assert.equal(await hp.locator('.ml-local-only').count(), 0, `${path}：不應出現「只在本機檔案繪製」`)
       } finally {
         await hp.close()
       }
@@ -1357,7 +1362,7 @@ try {
         // 不開放的資源有時不回應而非拒絕：逾時也算讀不到
         const probe = async path =>
           fetch(`chrome-extension://${id}/${path}`, { signal: AbortSignal.timeout(3000) }).then(r => `可讀取 ${r.status}`, () => '無法讀取')
-        return [await probe('vendor/katex/katex.min.css'), await probe('vendor/mermaid/mermaid.esm.min.mjs')]
+        return [await probe('vendor/katex/katex.min.css'), await probe('vendor/mermaid/mermaid.mjs')]
       }, extId)
       assert.deepEqual(results, ['無法讀取', '無法讀取'])
     } finally {

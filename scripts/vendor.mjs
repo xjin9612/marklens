@@ -2,7 +2,7 @@
 // 用法：node scripts/vendor.mjs
 // 只使用 Node 標準庫與系統內建的 npm、tar（Windows 10+ 內建 tar.exe）
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, mkdirSync, copyFileSync, writeFileSync, rmSync, readdirSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, rmSync, readdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -46,13 +46,21 @@ const PACKAGES = [
     dirs: [['dist/fonts', 'katex/fonts', /\.woff2$/]],
   },
   {
-    // ESM 版本：主檔加上按圖表類型拆分的 chunk，只在頁面有 mermaid 區塊時才動態載入
+    // 單檔版改成模組，只在頁面有 mermaid 區塊時才動態載入。
+    // 不用官方 ESM 版：它的 chunk 以相對路徑互相引用，在 use_dynamic_url 下會解析成固定網址而被擋
     name: 'mermaid',
     version: '12.2.0',
-    files: [['dist/mermaid.esm.min.mjs', 'mermaid/mermaid.esm.min.mjs']],
-    dirs: [['dist/chunks/mermaid.esm.min', 'mermaid/chunks/mermaid.esm.min']],
+    files: [['dist/mermaid.min.js', 'mermaid/mermaid.mjs', iifeToModule]],
+    clean: ['mermaid'],
   },
 ]
+
+/** 官方單檔版以 var 宣告全域變數，結尾再掛到 globalThis；當模組載入時 var 只在模組內，改成直接 export */
+function iifeToModule(src) {
+  const tail = 'globalThis["mermaid"] = globalThis.__esbuild_esm_mermaid_nm["mermaid"].default;'
+  if (!src.includes(tail)) throw new Error('mermaid.min.js 的結尾與預期不同，請檢查新版的打包格式')
+  return src.replace(tail, 'export default __esbuild_esm_mermaid_nm["mermaid"].default;')
+}
 
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm'
 const work = mkdtempSync(join(tmpdir(), 'ml-vendor-'))
@@ -74,9 +82,12 @@ try {
     const out = join(work, pkg.name.replace(/[@/]/g, '_'))
     mkdirSync(out)
     execFileSync('tar', ['-xzf', join(work, tgz), '-C', out])
-    for (const [from, to] of pkg.files) {
+    // 先清空，避免殘留舊版的檔案
+    for (const dir of pkg.clean ?? []) rmSync(join(vendorDir, dir), { recursive: true, force: true })
+    for (const [from, to, transform] of pkg.files) {
       mkdirSync(dirname(join(vendorDir, to)), { recursive: true })
-      copyFileSync(join(out, 'package', from), join(vendorDir, to))
+      if (transform) writeFileSync(join(vendorDir, to), transform(readFileSync(join(out, 'package', from), 'utf8')))
+      else copyFileSync(join(out, 'package', from), join(vendorDir, to))
     }
     // 整個資料夾（不含 sourcemap）；先清空，避免殘留舊版的 chunk
     for (const [from, to, only] of pkg.dirs ?? []) {
@@ -90,7 +101,7 @@ try {
     }
     const licName = pkg.license ?? pkg.name
     copyFileSync(join(out, 'package', 'LICENSE'), join(licenseDir, `${licName}.LICENSE`))
-    lines.push(`| ${pkg.name} | ${pkg.version} | ${[...pkg.files, ...(pkg.dirs ?? [])].map(f => f[1]).join(', ')} |`)
+    lines.push(`| ${pkg.name} | ${pkg.version} | ${[...pkg.files.map(f => (f[2] ? `${f[1]}（${f[0]} 改為模組）` : f[1])), ...(pkg.dirs ?? []).map(d => d[1])].join(', ')} |`)
   }
   writeFileSync(join(vendorDir, 'VERSIONS.md'), lines.join('\n') + '\n')
   console.log('完成')

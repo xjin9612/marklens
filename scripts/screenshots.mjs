@@ -29,7 +29,6 @@ const LANGS = [
     readme: 'README.md',
     text: { services: 'Services', requests: 'Requests / day', flow: 'Deployment flow' },
     promoText: { tagline: 'A Markdown reader with<br>tables you can actually use', note: 'Open source · Collects no data' },
-    // 4-dark-mermaid 沒有註明只限本機檔案，但目前網頁上不繪製 Mermaid 與數學；上架前若仍是如此，要補上「in local files／本機檔案」
     captions: {
       '1-tables': 'Sort, filter and resize tables, then paste them into a spreadsheet',
       '2-outline-tasks': 'Check off tasks in local .md files — saved straight back to the file',
