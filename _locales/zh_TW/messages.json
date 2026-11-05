@@ -595,5 +595,11 @@
   },
   "filesUpLabel": {
     "message": "上一層資料夾"
+  },
+  "imageClose": {
+    "message": "關閉圖片（Esc）"
+  },
+  "imageOpen": {
+    "message": "放大圖片"
   }
 }

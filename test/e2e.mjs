@@ -309,6 +309,16 @@ try {
     assert.deepEqual(small, [], JSON.stringify(small))
     await page.keyboard.press('Escape')
   })
+  await check('圖片放大：鍵盤可開啟，焦點移到關閉鈕，Esc 關閉後焦點回到圖片', async () => {
+    const img = page.locator('img.ml-zoomable').first()
+    await img.focus()
+    await page.keyboard.press('Enter')
+    assert.equal(await visible(page, '.ml-viewer.open'), true)
+    assert.equal(await page.evaluate(() => document.activeElement.className), 'ml-viewer-close')
+    await page.keyboard.press('Escape')
+    assert.equal(await visible(page, '.ml-viewer.open'), false)
+    assert.equal(await page.evaluate(() => document.activeElement.classList.contains('ml-zoomable')), true)
+  })
   await check('原始文字：快捷鍵 r 來回切換', async () => {
     await page.keyboard.press('r')
     assert.equal(await visible(page, 'pre.ml-source'), true)

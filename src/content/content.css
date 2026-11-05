@@ -707,6 +707,23 @@ html.marklens .ml-viewer {
 }
 html.marklens .ml-viewer.open { display: flex; }
 html.marklens .ml-viewer img { max-width: 95vw; max-height: 95vh; object-fit: contain; background: #fff; }
+html.marklens .ml-viewer-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: var(--ml-radius-md);
+  background: rgba(0, 0, 0, .5);
+  color: #fff;
+  cursor: pointer;
+}
+html.marklens .ml-viewer-close:hover { background: rgba(0, 0, 0, .75); }
+html.marklens .ml-viewer-close .ml-icon { width: 18px; height: 18px; }
+html.marklens .ml-viewer :focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
 /* ---------- 列印 ---------- */
 @media print {

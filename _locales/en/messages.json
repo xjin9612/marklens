@@ -595,5 +595,11 @@
   },
   "filesUpLabel": {
     "message": "Parent folder"
+  },
+  "imageClose": {
+    "message": "Close image (Esc)"
+  },
+  "imageOpen": {
+    "message": "Enlarge image"
   }
 }
