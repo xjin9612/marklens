@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -42,7 +42,7 @@ jobs:
           path: |
             ~/.cache/ms-playwright
             ~/apt-fonts
-          key: browser-deps-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          key: browser-deps-ubuntu-26.04-${{ hashFiles('package-lock.json') }}
 
       - name: 安裝 Chromium 與中日韓字型
         timeout-minutes: 10 # 第一次建立快取時字型仍要從鏡像站下載
