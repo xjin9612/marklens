@@ -544,6 +544,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       chrome.storage.onChanged.addListener(c => {
         if (c[MarkLens.SETTINGS_KEY]?.newValue?.enabled) location.reload()
       })
+      // 讀取設定到掛上監聽之間若剛好被重新啟用，會漏掉通知：再確認一次
+      if ((await MarkLens.loadSettings()).enabled) location.reload()
       return
     }
     let raw = pre.textContent
