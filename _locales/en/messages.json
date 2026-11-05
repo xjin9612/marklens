@@ -137,6 +137,9 @@
   "taskReadonlyOff": {
     "message": "Saving checkboxes is turned off — turn it on in the popup"
   },
+  "taskAmbiguous": {
+    "message": "Several authorized folders contain this file, so MarkLens can't tell which one to save. Remove the extra folder"
+  },
   "taskNotUtf8": {
     "message": "This file is not UTF-8 and cannot be saved"
   },

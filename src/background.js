@@ -190,12 +190,38 @@ async function toggleTask(msg, sender) {
   const url = (sender.url || '').split('#')[0]
   if (!url.startsWith('file:')) return { status: 'unsupported' }
 
-  const found = await MarkLens.Roots.locate(url)
-  if (!found) return { status: 'no-root' }
-  const perm = await found.root.handle.queryPermission({ mode: 'readwrite' })
-  if (perm !== 'granted') return { status: 'permission', root: found.root.handle.name }
+  const candidates = await MarkLens.Roots.locate(url)
+  if (!candidates.length) return { status: 'no-root' }
+  const granted = []
+  for (const c of candidates) {
+    if ((await c.root.handle.queryPermission({ mode: 'readwrite' })) !== 'granted') continue
+    // 巢狀的授權資料夾（例如 D:\A 與 D:\A\sub）會找到同一個實體檔案，只留一個
+    let dup = false
+    for (const g of granted) if (await g.file.isSameEntry(c.file)) dup = true
+    if (!dup) granted.push(c)
+  }
+  if (!granted.length) return { status: 'permission', root: candidates[0].root.handle.name }
 
-  const bytes = new Uint8Array(await (await found.file.getFile()).arrayBuffer())
+  // 同名的授權資料夾可能不只一個：與頁面實際所在的檔案內容一致的才是同一個檔案
+  const read = async c => new Uint8Array(await (await c.file.getFile()).arrayBuffer())
+  let found = granted[0]
+  let bytes = await read(found)
+  if (granted.length > 1) {
+    let pageBytes
+    try {
+      pageBytes = new Uint8Array(await (await fetch(url, { cache: 'no-store' })).arrayBuffer())
+    } catch {
+      return { status: 'ambiguous' }
+    }
+    const same = []
+    for (const c of granted) {
+      const b = await read(c)
+      if (sameBytes(b, pageBytes)) same.push([c, b])
+    }
+    // 找不到或有兩份內容完全相同的副本：無法確定是哪一個檔案，不寫入
+    if (same.length !== 1) return { status: 'ambiguous' }
+    ;[found, bytes] = same[0]
+  }
   const hasBom = bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf
   let text
   try {

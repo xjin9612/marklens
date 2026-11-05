@@ -46,13 +46,15 @@ MarkLens.Roots = (() => {
   const remove = id => run('readwrite', s => s.delete(id))
 
   /**
-   * 由頁面網址找到對應的檔案
-   * handle 不提供絕對路徑，所以在網址路徑中找出與資料夾同名的段落，再逐層往下；
-   * 同名段落可能出現多次，逐一嘗試。找到的檔案是否正確，由呼叫端比對內容確認。
-   * @returns {Promise<{root, file: FileSystemFileHandle, path: string} | null>}
+   * 由頁面網址找出所有可能對應的檔案
+   * handle 不提供絕對路徑，只能在網址路徑中找出與資料夾同名的段落，再逐層往下。
+   * 同名資料夾可能不只一個（備份、另一份 clone、同步副本），所以回傳全部候選，
+   * 由呼叫端比對檔案內容挑出真正的那一個。
+   * @returns {Promise<Array<{root, file: FileSystemFileHandle, path: string}>>}
    */
   async function locate(pageUrl) {
     const segs = decodeURIComponent(new URL(pageUrl).pathname).split('/').filter(Boolean)
+    const found = []
     for (const root of await list()) {
       const name = root.handle.name.toLowerCase()
       for (let i = 0; i < segs.length - 1; i++) {
@@ -62,13 +64,13 @@ MarkLens.Roots = (() => {
           const rest = segs.slice(i + 1)
           for (const part of rest.slice(0, -1)) dir = await dir.getDirectoryHandle(part)
           const file = await dir.getFileHandle(rest[rest.length - 1])
-          return { root, file, path: `${root.handle.name}/${rest.join('/')}` }
+          found.push({ root, file, path: `${root.handle.name}/${rest.join('/')}` })
         } catch {
           // 這個位置對不上，繼續找下一個
         }
       }
     }
-    return null
+    return found
   }
 
   return { list, add, remove, locate }

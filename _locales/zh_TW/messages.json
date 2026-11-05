@@ -137,6 +137,9 @@
   "taskReadonlyOff": {
     "message": "勾選寫回已關閉，可在 popup 開啟"
   },
+  "taskAmbiguous": {
+    "message": "多個授權資料夾都有這個檔案，無法確定要寫入哪一個；請移除多餘的授權資料夾"
+  },
   "taskNotUtf8": {
     "message": "此檔案不是 UTF-8 編碼，無法寫回"
   },

@@ -402,10 +402,6 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
 
     /* ---------- 任務勾選寫回 ---------- */
-    canWriteTasks() {
-      return !this.taskReadonlyReason()
-    }
-
     /** 無法寫回的原因（訊息 key）；可以寫回時回傳 null */
     taskReadonlyReason() {
       if (location.protocol !== 'file:') return 'taskReadonlyRemote'
@@ -489,6 +485,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           break
         case 'not-utf8':
           MarkLens.toast(t('taskNotUtf8'))
+          break
+        case 'ambiguous':
+          MarkLens.toast(t('taskAmbiguous'), [{ label: t('authorizeFolder'), fn: openGrant }], 8000)
           break
         default:
           MarkLens.toast(t('taskError', res?.error || t('unknownError')))
