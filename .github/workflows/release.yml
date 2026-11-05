@@ -11,7 +11,7 @@ permissions:
 jobs:
   # 先做便宜的檢查：標籤、manifest.json、package.json、CHANGELOG.md 版本一致
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -27,7 +27,7 @@ jobs:
 
   release:
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: write # 建立 Release 與上傳 zip
       id-token: write # 建置來源證明：向 Sigstore 取得簽章憑證

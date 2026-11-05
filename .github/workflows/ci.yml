@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -41,7 +41,7 @@ jobs:
           path: |
             ~/.cache/ms-playwright
             ~/apt-fonts
-          key: browser-deps-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          key: browser-deps-ubuntu-26.04-${{ hashFiles('package-lock.json') }}
 
       # 框線字元表格對齊的測試需要中日韓字型，GitHub 的 Linux 機器預設沒有
       - name: 安裝 Chromium 與中日韓字型
@@ -71,7 +71,7 @@ jobs:
 
   # vendor/ 的每個檔案都要能由 npm 上的官方套件加上 vendor.mjs 的轉換重現（npm pack 會比對 registry 的雜湊）
   vendor:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
