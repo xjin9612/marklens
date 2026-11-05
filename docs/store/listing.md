@@ -62,7 +62,7 @@ MARKDOWN SUPPORT
 
 PRIVATE AND AUDITABLE
 • Collects no data. No account, no analytics, no ads, no server
-• Only one permission: storage, for your settings
+• Only one permission: storage, for your settings. Optional settings sync goes through your browser account, never to us
 • No remote code: every library is packaged inside the extension
 • Open source under the MIT license; the test suite includes 60+ attack samples that must not run any code
 • Privacy policy: https://github.com/xjin9612/marklens/blob/main/PRIVACY.md
@@ -108,7 +108,7 @@ Markdown 支援
 
 注重隱私、可以稽核
 • 不收集任何資料。沒有帳號、沒有分析追蹤、沒有廣告、沒有伺服器
-• 只要求一項權限：storage，用來保存你的設定
+• 只要求一項權限：storage，用來保存你的設定。可選的設定同步透過瀏覽器帳號進行，不經過我們
 • 沒有遠端程式碼：所有程式庫都打包在擴充功能內
 • 以 MIT 授權開源；測試包含 60 多個攻擊樣本，確保它們都無法執行任何程式碼
 • 隱私權政策：https://github.com/xjin9612/marklens/blob/main/PRIVACY.zh-TW.md
@@ -151,7 +151,7 @@ Display Markdown files (.md, .markdown, .mkd, .mdx) opened in the browser as for
 **storage**
 
 ```text
-Saves the user's reading settings (theme, font size, text width, language, editor and similar options) and the reading position of recently opened Markdown files, so they apply the next time a document is opened. Data stays in chrome.storage.local and is never transmitted.
+Saves the user's reading settings (theme, font size, text width, language, editor and similar options) and the reading position of recently opened Markdown files, so they apply the next time a document is opened. Data stays in chrome.storage.local. If the user keeps settings sync on, the settings (not reading positions or folder access) are also saved to chrome.storage.sync, which the browser syncs through the user's own account. MarkLens never transmits any data itself.
 ```
 
 **主機權限（content scripts 的比對網址）**

@@ -674,6 +674,12 @@
   "paletteContrast": {
     "message": "High contrast"
   },
+  "optSync": {
+    "message": "Sync settings to my other computers"
+  },
+  "optSyncNote": {
+    "message": "Uses your browser account. Folder access, reading positions and the editor URL stay on this computer."
+  },
   "secCustomCss": {
     "message": "Custom CSS"
   },

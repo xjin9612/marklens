@@ -674,6 +674,12 @@
   "paletteContrast": {
     "message": "高對比"
   },
+  "optSync": {
+    "message": "同步設定到我的其他電腦"
+  },
+  "optSyncNote": {
+    "message": "透過瀏覽器帳號同步。授權資料夾、閱讀位置與編輯器網址只留在這台電腦。"
+  },
   "secCustomCss": {
     "message": "自訂 CSS"
   },

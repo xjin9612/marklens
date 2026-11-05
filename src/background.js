@@ -7,6 +7,15 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
   if (reason === 'install') chrome.tabs.create({ url: chrome.runtime.getURL('src/welcome/welcome.html') })
 })
 
+// 跨裝置同步：其他電腦改了設定，寫回這台的 storage.local，已開的分頁照常由 storage.onChanged 套用
+chrome.storage.onChanged.addListener(async (changes, area) => {
+  if (area !== 'sync' || !(MarkLens.SETTINGS_KEY in changes || MarkLens.SYNC_CSS_KEY in changes)) return
+  if (await MarkLens.isSyncEnabled()) await MarkLens.pullSync()
+})
+chrome.runtime.onStartup.addListener(async () => {
+  if (await MarkLens.isSyncEnabled()) await MarkLens.pullSync()
+})
+
 /** 瀏覽器快捷鍵（manifest 的 commands）；具名函式方便測試直接呼叫 */
 async function onCommand(command, tab) {
   if (command === 'cycle-theme') {

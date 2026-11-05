@@ -1248,6 +1248,50 @@ try {
       await sw.evaluate(() => MarkLens.saveSettings({ customCss: '' }))
     }
   })
+  await check('設定同步：寫入 storage.sync、套用其他電腦的變更；關閉後兩者都停止；裝置專屬設定不同步', async () => {
+    const local = () => sw.evaluate(() => MarkLens.loadSettings())
+    const remote = () => sw.evaluate(async () => (await chrome.storage.sync.get('marklens:settings'))['marklens:settings'] || {})
+    try {
+      assert.equal(await sw.evaluate(() => MarkLens.isSyncEnabled()), true, '預設開啟')
+      await sw.evaluate(() => MarkLens.saveSettings({ lineHeight: 1.9, tocWidth: 300, editorUrl: 'vscode://file/{path}' }))
+      const r = await remote()
+      assert.equal(r.lineHeight, 1.9)
+      assert.ok(r._from, '標示寫入的電腦')
+      // 自己寫入的變更通知不會被當成其他電腦的變更：連續快速修改後本機仍是最後的值
+      for (const v of [1.8, 1.85, 1.95]) await sw.evaluate(v => MarkLens.saveSettings({ lineHeight: v }), v)
+      await new Promise(r => setTimeout(r, 500))
+      assert.equal((await local()).lineHeight, 1.95, '自己的舊通知不會蓋回較新的設定')
+      assert.ok(!('tocWidth' in r) && !('editorUrl' in r) && !('enabled' in r), `不同步的鍵：${Object.keys(r)}`)
+      // 模擬其他電腦改了設定
+      await sw.evaluate(async () => {
+        const k = 'marklens:settings'
+        const cur = (await chrome.storage.sync.get(k))[k]
+        await chrome.storage.sync.set({ [k]: { ...cur, lineHeight: 2.1, _from: 'other-computer' } })
+      })
+      await until(async () => (await local()).lineHeight === 2.1)
+      assert.equal((await local()).tocWidth, 300, '裝置專屬設定不被覆蓋')
+      // 關閉同步：本機變更不再上傳，其他電腦的變更也不再套用
+      await sw.evaluate(() => MarkLens.setSyncEnabled(false))
+      await sw.evaluate(() => MarkLens.saveSettings({ lineHeight: 1.5 }))
+      assert.equal((await remote()).lineHeight, 2.1, '關閉後不上傳')
+      await sw.evaluate(async () => {
+        const k = 'marklens:settings'
+        const cur = (await chrome.storage.sync.get(k))[k]
+        await chrome.storage.sync.set({ [k]: { ...cur, lineHeight: 2.3, _from: 'other-computer' } })
+      })
+      await new Promise(r => setTimeout(r, 500))
+      assert.equal((await local()).lineHeight, 1.5, '關閉後不套用')
+      // 重新開啟：雲端已有設定，套用到這台
+      await sw.evaluate(() => MarkLens.setSyncEnabled(true))
+      assert.equal((await local()).lineHeight, 2.3)
+    } finally {
+      await sw.evaluate(async () => {
+        await MarkLens.setSyncEnabled(true)
+        await chrome.storage.sync.clear()
+        await MarkLens.saveSettings({ lineHeight: 1.7, tocWidth: 260, editorUrl: '' })
+      })
+    }
+  })
   await check('匯出 HTML：數學公式的字型內嵌，離線開啟也能顯示', async () => {
     await mt.bringToFront()
     const { file, html } = await exportFrom(mt)
