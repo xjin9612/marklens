@@ -661,5 +661,29 @@
   },
   "fontCustomItem": {
     "message": "自定义：$1 px"
+  },
+  "palette": {
+    "message": "配色"
+  },
+  "paletteGithub": {
+    "message": "GitHub"
+  },
+  "paletteSepia": {
+    "message": "米色"
+  },
+  "paletteContrast": {
+    "message": "高对比"
+  },
+  "secCustomCss": {
+    "message": "自定义 CSS"
+  },
+  "secCustomCssNote": {
+    "message": "加在阅读页上"
+  },
+  "customCssPlaceholder": {
+    "message": ".markdown-body h1 { color: teal; }"
+  },
+  "customCssTooLarge": {
+    "message": "自定义 CSS 超过 8 KB：已保存在这台电脑，但不会同步"
   }
 }

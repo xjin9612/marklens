@@ -1015,6 +1015,22 @@ try {
       })
     }
   })
+  await check('配色：米色與高對比套用到閱讀頁，Mermaid 依配色重繪，GitHub 不設屬性', async () => {
+    const bg = () => mp.evaluate(() => getComputedStyle(document.body).backgroundColor)
+    try {
+      await sw.evaluate(() => MarkLens.saveSettings({ theme: 'light', palette: 'sepia' }))
+      await mp.waitForFunction(() => document.documentElement.dataset.mlPalette === 'sepia')
+      assert.equal(await bg(), 'rgb(246, 239, 227)')
+      await mp.waitForFunction(() => [...document.querySelectorAll('.ml-mermaid[data-ml-mermaid-theme]')].every(el => el.dataset.mlMermaidTheme === 'default-sepia'))
+      await sw.evaluate(() => MarkLens.saveSettings({ theme: 'dark', palette: 'contrast' }))
+      await mp.waitForFunction(() => document.documentElement.dataset.mlPalette === 'contrast' && document.documentElement.dataset.mlTheme === 'dark')
+      assert.equal(await bg(), 'rgb(0, 0, 0)')
+      await sw.evaluate(() => MarkLens.saveSettings({ palette: 'github' }))
+      await mp.waitForFunction(() => !('mlPalette' in document.documentElement.dataset))
+    } finally {
+      await sw.evaluate(() => MarkLens.saveSettings({ theme: 'auto', palette: 'github' }))
+    }
+  })
   await check('Mermaid：切換主題後重繪', async () => {
     const before = (await sw.evaluate(() => MarkLens.loadSettings())).theme
     await sw.evaluate(() => MarkLens.saveSettings({ theme: 'dark' }))
@@ -1208,6 +1224,28 @@ try {
     } finally {
       await page.emulateMedia({ media: null })
       await page.click('.ml-toolbar button:has-text("全部展開")')
+    }
+  })
+  await check('自訂 CSS：即時套用到閱讀頁，匯出檔也帶上，且不能提前結束 <style>', async () => {
+    await page.bringToFront()
+    const color = () => page.$eval('.markdown-body h1', el => getComputedStyle(el).color)
+    try {
+      await sw.evaluate(() => MarkLens.saveSettings({ customCss: '.markdown-body h1 { color: rgb(1, 2, 3) }' }))
+      await page.waitForFunction(() => getComputedStyle(document.querySelector('.markdown-body h1')).color === 'rgb(1, 2, 3)')
+      await sw.evaluate(() => MarkLens.saveSettings({ customCss: '.markdown-body h1 { color: rgb(4, 5, 6) } </style><b id="ml-injected">x</b>' }))
+      await page.waitForFunction(() => getComputedStyle(document.querySelector('.markdown-body h1')).color === 'rgb(4, 5, 6)')
+      const { html, file } = await exportFrom(page)
+      assert.ok(html.includes('color: rgb(4, 5, 6)'), '匯出檔含自訂 CSS')
+      const xp = await ctx.newPage()
+      await xp.goto(pathToFileURL(file).href)
+      assert.equal(await xp.locator('#ml-injected').count(), 0, '自訂 CSS 不能跳出 <style> 產生元素')
+      assert.equal(await xp.$eval('.markdown-body h1', el => getComputedStyle(el).color), 'rgb(4, 5, 6)', '匯出檔套用自訂 CSS')
+      await xp.close()
+      await sw.evaluate(() => MarkLens.saveSettings({ customCss: '' }))
+      await page.waitForFunction(() => getComputedStyle(document.querySelector('.markdown-body h1')).color !== 'rgb(4, 5, 6)')
+      assert.notEqual(await color(), 'rgb(4, 5, 6)')
+    } finally {
+      await sw.evaluate(() => MarkLens.saveSettings({ customCss: '' }))
     }
   })
   await check('匯出 HTML：數學公式的字型內嵌，離線開啟也能顯示', async () => {

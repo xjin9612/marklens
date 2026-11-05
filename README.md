@@ -94,7 +94,9 @@ Local files get [Mermaid](https://mermaid.js.org/) diagrams and [KaTeX](https://
 - Optional **Edit** button: open the file in VS Code at the section you're reading. Other editors with a URL scheme work too
 
 **Appearance**
-- Light, dark, or follow the system
+- Light, dark, or follow the system; GitHub, sepia or high-contrast colors
+- Add your own CSS to reading pages
+- Sync settings to your other computers through your browser account (can be turned off)
 - Text width (full, 1600, 1200, 960 or custom); tables and code can grow past the text column
 - Font size scales the whole document, including code, tables, math and diagrams; adjustable line height
 - Interface in English, Traditional Chinese and Simplified Chinese
@@ -130,7 +132,7 @@ Browser-wide, changeable at `chrome://extensions/shortcuts`:
 
 Open the MarkLens icon in the toolbar for all settings.
 
-- **Theme, font size and line height** apply to every open tab right away.
+- **Theme, colors, custom CSS, font size and line height** apply to every open tab right away.
 - **Sidebar, its width, and text width** apply to the current tab only, so you can compare documents side by side. They're kept when you reload or open another file in the same tab.
 - **Everything else** is the default for new tabs; open tabs pick it up after a reload.
 

@@ -83,6 +83,68 @@
   --alert-note: #4493f8; --alert-tip: var(--ok); --alert-important: #ab7df8; --alert-warning: var(--warn); --alert-caution: var(--danger);
 }
 
+/*
+ * 配色（閱讀頁）：在淺色／深色之上替換部分變數；GitHub 為預設，不設 data-ml-palette
+ * sepia：米色紙張、暖色文字，長時間閱讀較不刺眼；contrast：黑白高對比，框線與次要文字加深
+ */
+html.marklens[data-ml-palette="sepia"][data-ml-theme="light"] {
+  --bg: #f6efe3;
+  --fg: #3b3226;
+  --muted: #65584a;
+  --faint: #6f6252;
+  --border: #d8cab2;
+  --border-soft: #e6dac5;
+  --subtle: #efe5d3;
+  --hover: #e6dac5;
+  --code-bg: #efe5d3;
+  --inline-code-bg: rgba(120, 90, 40, .12);
+  --link: #8a4f12;
+  --accent: #8a4f12;
+  --accent-soft: #eadcc2;
+}
+html.marklens[data-ml-palette="sepia"][data-ml-theme="dark"] {
+  --bg: #1f1a14;
+  --fg: #e8dcc6;
+  --muted: #b3a58e;
+  --faint: #a1937c;
+  --border: #4a4032;
+  --border-soft: #352d23;
+  --subtle: #28211a;
+  --hover: #352d23;
+  --code-bg: #28211a;
+  --link: #e0a96d;
+  --accent: #e0a96d;
+  --accent-soft: #3a2c1c;
+  --on-accent: #1f1a14;
+}
+html.marklens[data-ml-palette="contrast"][data-ml-theme="light"] {
+  --bg: #ffffff;
+  --fg: #000000;
+  --muted: #2b2b2b;
+  --faint: #333333;
+  --border: #4d4d4d;
+  --border-soft: #8c8c8c;
+  --subtle: #f2f2f2;
+  --hover: #e0e0e0;
+  --code-bg: #f2f2f2;
+  --link: #0040b0;
+  --accent: #0040b0;
+}
+html.marklens[data-ml-palette="contrast"][data-ml-theme="dark"] {
+  --bg: #000000;
+  --fg: #ffffff;
+  --muted: #dddddd;
+  --faint: #cccccc;
+  --border: #bfbfbf;
+  --border-soft: #808080;
+  --subtle: #111111;
+  --hover: #262626;
+  --code-bg: #111111;
+  --link: #9cc3ff;
+  --accent: #9cc3ff;
+  --on-accent: #000000;
+}
+
 /* 擴充功能頁面：主題腳本尚未執行前跟隨系統，避免閃白 */
 @media (prefers-color-scheme: dark) {
   html.ml-ui:not([data-ml-theme]) { color-scheme: dark; background: #0d1117; }

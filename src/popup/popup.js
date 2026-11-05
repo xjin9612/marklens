@@ -62,6 +62,9 @@
       await MarkLens.saveSettings({ uiLang: el.value })
       await MarkLens.initI18n(el.value)
       MarkLens.localize()
+    } else if (el.name === 'customCss') {
+      await MarkLens.saveSettings({ customCss: el.value })
+      if (MarkLens.cssBytes(el.value) > MarkLens.CUSTOM_CSS_MAX_BYTES) return say(t('customCssTooLarge'))
     } else if (el.name === 'customWidth') {
       const w = Math.min(4000, Math.max(480, Number(el.value) || 0))
       await MarkLens.saveSettings({ textWidth: w })

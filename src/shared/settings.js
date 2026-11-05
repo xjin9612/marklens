@@ -9,6 +9,8 @@ MarkLens.DEFAULTS = Object.freeze({
   uiLang: 'auto', // 介面語言：auto（跟隨瀏覽器）| en | zh_TW | zh_CN
   // ----- 即時同步到所有分頁 -----
   theme: 'auto', // auto | light | dark
+  palette: 'github', // 配色：github | sepia | contrast
+  customCss: '', // 使用者自訂的 CSS，套用在閱讀頁
   fontSize: 16,
   lineHeight: 1.7,
   // ----- 新分頁的預設值（已開的分頁不受影響） -----
@@ -32,7 +34,7 @@ MarkLens.DEFAULTS = Object.freeze({
 })
 
 // 會即時同步到所有已開分頁的設定
-MarkLens.LIVE_KEYS = ['theme', 'fontSize', 'lineHeight']
+MarkLens.LIVE_KEYS = ['theme', 'palette', 'customCss', 'fontSize', 'lineHeight']
 
 // 文字寬度循環順序（快捷鍵與工具列使用）
 MarkLens.WIDTH_PRESETS = [0, 1600, 1200, 960]
@@ -53,6 +55,13 @@ MarkLens.stepFontSize = function (current, dir) {
 MarkLens.fontPercent = function (px) {
   return `${Math.round((px / MarkLens.DEFAULTS.fontSize) * 100)}%`
 }
+
+MarkLens.PALETTES = ['github', 'sepia', 'contrast']
+
+// storage.sync 單一項目上限 8192 bytes（含鍵名），自訂 CSS 另存一項
+MarkLens.SYNC_CSS_KEY = 'marklens:customCss'
+MarkLens.CUSTOM_CSS_MAX_BYTES = 8000
+MarkLens.cssBytes = css => new TextEncoder().encode(JSON.stringify(css)).length
 
 MarkLens.loadSettings = async function () {
   const data = await chrome.storage.local.get(MarkLens.SETTINGS_KEY)

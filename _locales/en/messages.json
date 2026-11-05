@@ -661,5 +661,29 @@
   },
   "fontCustomItem": {
     "message": "Custom: $1 px"
+  },
+  "palette": {
+    "message": "Colors"
+  },
+  "paletteGithub": {
+    "message": "GitHub"
+  },
+  "paletteSepia": {
+    "message": "Sepia"
+  },
+  "paletteContrast": {
+    "message": "High contrast"
+  },
+  "secCustomCss": {
+    "message": "Custom CSS"
+  },
+  "secCustomCssNote": {
+    "message": "Added to reading pages"
+  },
+  "customCssPlaceholder": {
+    "message": ".markdown-body h1 { color: teal; }"
+  },
+  "customCssTooLarge": {
+    "message": "Custom CSS is over 8 KB; it is saved here but not synced"
   }
 }
