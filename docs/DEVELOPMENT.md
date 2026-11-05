@@ -133,11 +133,16 @@ flowchart LR
 
 修改 `scripts/vendor.mjs` 的版本表，再執行 `npm run vendor`。版本記錄在 `vendor/VERSIONS.md`，授權檔在 `vendor/licenses/`。
 
+- 每個套件都記錄 `integrity`（套件檔的 sha512）。下載的檔案不符就中止。
+- 升級時改版本並清空 `integrity`。腳本會印出新值，確認來源後填回。
+- 版本發布未滿 7 天就中止，避開剛發布就被撤下的惡意版本。
+- 安全性修補要立刻升級時，在該套件加上 `minAgeDays: 0` 並註明原因。滿 7 天後拿掉。
+
 ## 供應鏈
 
 | 檢查 | 位置 | 內容 |
 |---|---|---|
-| 重現 vendor | `ci.yml` 的 `vendor` job | 重新執行 `vendor.mjs`，`vendor/` 有任何差異就失敗 |
+| 重現 vendor | `ci.yml` 的 `vendor` job | 重新執行 `vendor.mjs`：套件檔要符合記錄的 integrity，`vendor/` 有任何差異就失敗 |
 | 套件簽章 | `ci.yml` 的 `e2e` job | `npm audit signatures` 驗證開發套件的 registry 簽章 |
 | Actions 釘選 | 所有 workflow | 以 commit SHA 引用，註解標示版本 |
 | 自動更新 | `.github/dependabot.yml` | 每月為 Actions 與 npm 開 PR，新版滿 7 天才提議 |
