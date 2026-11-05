@@ -31,9 +31,9 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
 const lastRead = new Map()
 const LAST_READ_LIMIT = 20
 
-function rememberRead(url, bytes) {
-  lastRead.delete(url)
-  lastRead.set(url, bytes)
+function rememberRead(key, bytes) {
+  lastRead.delete(key)
+  lastRead.set(key, bytes)
   if (lastRead.size > LAST_READ_LIMIT) lastRead.delete(lastRead.keys().next().value)
 }
 
@@ -51,6 +51,8 @@ const HANDLERS = {
   async 'read-self'(msg, sender) {
     const url = (sender.url || '').split('#')[0]
     if (!url.startsWith('file:')) return { text: null }
+    // 快取以分頁區分：同一個檔案開在兩個分頁時，各自都要拿到變更
+    const cacheKey = `${sender.tab?.id}:${sender.frameId}:${url}`
     let bytes
     try {
       bytes = new Uint8Array(await (await fetch(url, { cache: 'no-store' })).arrayBuffer())
@@ -58,8 +60,8 @@ const HANDLERS = {
       return { text: null }
     }
     // 自動更新：內容與上次相同就不回傳，省下大檔的傳輸與頁面端比對
-    const same = sameBytes(lastRead.get(url), bytes)
-    rememberRead(url, bytes)
+    const same = sameBytes(lastRead.get(cacheKey), bytes)
+    rememberRead(cacheKey, bytes)
     if (msg.ifChanged && same) return { unchanged: true }
     try {
       return { text: new TextDecoder('utf-8', { fatal: true }).decode(bytes) }
