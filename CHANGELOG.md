@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - The extension is named **MarkLens – Markdown Reader** (Traditional Chinese: **MarkLens – Markdown 閱讀器**) so it can be found by searching for "Markdown"; the short name stays MarkLens
 - Shorter English extension description, to fit the Chrome Web Store's 132-character limit
 - Each GitHub release also includes `marklens-vX.Y.Z-store.zip`, with `manifest.json` at the root of the zip as the Chrome Web Store and Edge Add-ons require
+- Release zips carry a build provenance attestation, so you can check that a zip was built by this repository's workflow from its tag: `gh attestation verify marklens-vX.Y.Z-store.zip --repo xjin9612/marklens`
+- Box-drawing text in code blocks also uses Sarasa Mono SC (Simplified Chinese) when it is installed, not only Sarasa Mono TC
 
 ### Fixed
 - On wide windows, display math blocks were laid out across the whole page instead of the text column, and a long Mermaid error message stretched its block past the text column; both now line up with the text
