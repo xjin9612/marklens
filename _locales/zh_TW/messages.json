@@ -218,6 +218,9 @@
   "filesSearch": {
     "message": "搜尋檔名…"
   },
+  "filesUp": {
+    "message": "上一層：$1"
+  },
   "filesSummary": {
     "message": "📂 $1 · $2 份"
   },

@@ -218,6 +218,9 @@
   "filesSearch": {
     "message": "Search file names…"
   },
+  "filesUp": {
+    "message": "Up to “$1”"
+  },
   "filesSummary": {
     "message": "📂 $1 · $2 files"
   },

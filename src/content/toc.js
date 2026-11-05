@@ -29,7 +29,6 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.hovering = false
       this.tab = 'toc'
       this.statsText = ''
-      this.filesText = ''
 
       // 標題列：☰ ｜ 目錄 檔案 ｜ 🔍；搜尋時分頁標籤換成搜尋框
       const menu = h('button', {
@@ -72,12 +71,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       // 「檔案」分頁只有本機檔案才有（網路上的資料夾無法列出內容）
       if (location.protocol === 'file:') {
         this.files = new MarkLens.FileTree({
+          root: app.view.filesRoot,
           open: app.view.filesOpen,
-          onToggle: open => app.setView({ filesOpen: open }),
-          onSummary: text => {
-            this.filesText = text
-            this.syncStats()
-          },
+          onChange: ({ root, open }) => app.setView({ filesRoot: root, filesOpen: open }),
         })
         this.el.insertBefore(this.files.el, this.resizer)
       } else {
@@ -135,7 +131,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
 
     syncStats() {
-      this.stats.textContent = this.tab === 'files' ? this.filesText : this.statsText
+      // 檔案分頁的摘要顯示在分頁自己的頂端（含「↑ 上一層」）
+      this.stats.textContent = this.tab === 'files' ? '' : this.statsText
     }
 
     build(headings, depth) {

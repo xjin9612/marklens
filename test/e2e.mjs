@@ -435,7 +435,7 @@ try {
     const rows = await np.locator('.ml-files-list > li').evaluateAll(lis => lis.map(li => li.textContent.trim()))
     assert.deepEqual(rows, ['▸📁empty', '▸📁sub', '▸📁z.md', '📄1-a.md', '📄2-b.md', '📄10-c.md', '📄中文 檔名.md'])
     assert.equal(await np.textContent('.ml-files-file.active'), '📄2-b.md')
-    assert.equal(await np.textContent('.ml-toc-stats'), '📂 nav · 4 份')
+    assert.equal(await np.textContent('.ml-files-summary'), '📂 nav · 4 份')
     // 展開子資料夾：點開才讀取，再往下一層
     await np.click('.ml-files-dir[data-dir="sub"]')
     await np.waitForSelector('.ml-files-file a[href$="inner.md"]')
@@ -450,7 +450,7 @@ try {
     // 搜尋：只找已展開的資料夾
     await np.keyboard.press('/')
     await np.keyboard.type('e')
-    await np.waitForFunction(() => document.querySelector('.ml-toc-stats').textContent.startsWith('已展開的資料夾中找到'))
+    await np.waitForFunction(() => document.querySelector('.ml-files-summary').textContent.startsWith('已展開的資料夾中找到'))
     const found = await np.locator('.ml-files-file').allTextContents()
     assert.deepEqual(found.sort(), ['📄sub / inner.md', '📄sub/deeper / deep.md'])
     await np.keyboard.press('Escape')
@@ -468,6 +468,15 @@ try {
     }
     const ok = await sw.evaluate(([u]) => HANDLERS['list-dir']({ path: ['sub'] }, { url: u }), [url])
     assert.deepEqual(ok.files.map(f => f.name), ['inner.md'])
+    // 起點只能是頁面所在資料夾或它的上層，不能是旁支或其他位置
+    const deepUrl = pathToFileURL(join(work, 'nav', 'sub', 'inner.md')).href
+    const navDir = pathToFileURL(join(work, 'nav')).href + '/'
+    for (const root of [pathToFileURL(join(work, 'other')).href + '/', 'file:///etc/', navDir + 'sub/../', 'http://example.com/']) {
+      const r = await sw.evaluate(([u, rt]) => HANDLERS['list-dir']({ root: rt, path: [] }, { url: u }), [deepUrl, root])
+      assert.equal(r.status, 'error', root)
+    }
+    const up = await sw.evaluate(([u, rt]) => HANDLERS['list-dir']({ root: rt, path: ['sub'] }, { url: u }), [deepUrl, navDir])
+    assert.deepEqual(up.files.map(f => f.name), ['inner.md'])
     await sw.evaluate(() => MarkLens.saveSettings({ fileIgnore: 'sub, *.md' }))
     const ip = await openDoc(pathToFileURL(join(work, 'nav', '1-a.md')).href)
     await ip.click('.ml-side-tab:text("檔案")')
@@ -476,6 +485,50 @@ try {
     assert.deepEqual(rows, ['▸📁.git', '▸📁empty', '▸📁node_modules'])
     await ip.close()
     await sw.evaluate(d => MarkLens.saveSettings({ fileIgnore: d }), '.*, node_modules, target, dist, build')
+  })
+  await check('檔案分頁：點進子資料夾的檔案後起點不變，可再點回上層；↑ 可往上一層', async () => {
+    const np = await openDoc(pathToFileURL(join(work, 'nav', '1-a.md')).href)
+    await np.click('.ml-side-tab:text("檔案")')
+    await np.click('.ml-files-dir[data-dir="sub"]')
+    await np.click('.ml-files-dir[data-dir="sub/deeper"]')
+    await np.click('.ml-files-file a[href$="deep.md"]')
+    await np.waitForURL(/deep\.md$/)
+    // 起點仍是 nav，樹自動展開到目前檔案並標亮
+    await np.waitForSelector('.ml-files-file.active')
+    assert.equal(await np.textContent('.ml-files-summary'), '📂 nav · 4 份')
+    assert.equal(await np.textContent('.ml-files-file.active'), '📄deep.md')
+    await np.click('.ml-files-file a[href$="1-a.md"]')
+    await np.waitForURL(/1-a\.md$/)
+    // 另開新分頁直接開子資料夾的檔案：起點是該資料夾，按 ↑ 回到上一層
+    const dp = await openDoc(pathToFileURL(join(work, 'nav', 'sub', 'inner.md')).href)
+    await dp.click('.ml-side-tab:text("檔案")')
+    await dp.waitForSelector('.ml-files-file.active')
+    assert.equal(await dp.textContent('.ml-files-summary'), '📂 sub · 1 份')
+    assert.equal(await dp.getAttribute('.ml-files-up', 'title'), '上一層：nav')
+    await dp.click('.ml-files-up')
+    await dp.waitForFunction(() => document.querySelector('.ml-files-summary').textContent === '📂 nav · 4 份')
+    assert.equal(await dp.getAttribute('.ml-files-dir[data-dir="sub"]', 'aria-expanded'), 'true', '原本的資料夾維持展開')
+    assert.equal(await dp.textContent('.ml-files-file.active'), '📄inner.md')
+    await np.close()
+    await dp.close()
+  })
+  await check('用編輯器開啟：預設不顯示；選 VS Code 後跳到目前章節的行號；自訂網址不能用網頁協定', async () => {
+    assert.equal(await page.locator('.ml-tool-edit').isVisible(), false)
+    await sw.evaluate(() => MarkLens.saveSettings({ editor: 'vscode' }))
+    const ep = await openDoc()
+    await ep.click('.ml-toc-list a:text("程式碼")')
+    await ep.waitForTimeout(200)
+    await ep.click('.ml-tool-edit')
+    const href = await ep.getAttribute('.ml-tool-edit', 'data-ml-href')
+    const line = readFileSync(localMd, 'utf8').split('\n').findIndex(l => l === '## 程式碼') + 1
+    const path = encodeURI(decodeURIComponent(new URL(localUrl).pathname).replace(/^\/+/, ''))
+    assert.equal(href, `vscode://file/${path}:${line}`)
+    await ep.close()
+    await sw.evaluate(() => MarkLens.saveSettings({ editor: 'custom', editorUrl: 'javascript:alert("{path}")' }))
+    const bp = await openDoc()
+    assert.equal(await bp.locator('.ml-tool-edit').isVisible(), false, '不合法的網址不顯示按鈕')
+    await bp.close()
+    await sw.evaluate(() => MarkLens.saveSettings({ editor: 'none', editorUrl: '' }))
   })
   await check('剛好放得下的小表格不出現水平捲軸', async () => {
     const r = await page.locator('.ml-table-scroll', { has: page.locator('th', { hasText: '小表格' }) }).evaluate(s => [s.scrollWidth, s.clientWidth])

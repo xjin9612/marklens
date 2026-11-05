@@ -79,18 +79,23 @@ const HANDLERS = {
   'toggle-task': toggleTask,
 
   /**
-   * 側邊欄「檔案」分頁：列出頁面所在資料夾（或其子資料夾）的 Markdown 與子資料夾
-   * 讀取 Chrome 對 file:// 資料夾產生的清單頁。只能往下，不能用 .. 往上：
-   * path 是從頁面所在資料夾往下的資料夾名稱陣列
+   * 側邊欄「檔案」分頁：列出資料夾的 Markdown 與子資料夾（讀取 Chrome 對 file:// 資料夾產生的清單頁）
+   * root：樹的起點，只能是發出請求的頁面所在資料夾或它的上層；
+   * path：從起點往下的資料夾名稱陣列，不接受 .. 等跳脫
    */
   async 'list-dir'(msg, sender) {
     const url = (sender.url || '').split(/[?#]/)[0]
     if (!url.startsWith('file:')) return { status: 'unsupported' }
+    const pageDir = url.slice(0, url.lastIndexOf('/') + 1)
+    const root = msg.root ?? pageDir
+    if (typeof root !== 'string' || !root.startsWith('file:///') || !root.endsWith('/') || !pageDir.startsWith(root) || /\/\.\.?\//.test(root)) {
+      return { status: 'error', error: 'invalid root' }
+    }
     const segs = Array.isArray(msg.path) ? msg.path : []
     if (segs.length > 32 || !segs.every(s => typeof s === 'string' && s && s !== '.' && s !== '..' && !/[\\/]/.test(s))) {
       return { status: 'error', error: 'invalid path' }
     }
-    const dir = url.slice(0, url.lastIndexOf('/') + 1) + segs.map(s => `${encodeURIComponent(s)}/`).join('')
+    const dir = root + segs.map(s => `${encodeURIComponent(s)}/`).join('')
     let html
     try {
       html = await (await fetch(dir)).text()
