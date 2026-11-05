@@ -100,9 +100,7 @@ flowchart LR
   bg -- "fetch file://" --> fs[("本機檔案")]
   bg -- "寫回一行" --> roots[("授權資料夾<br>IndexedDB")]
   roots --> fs
-  page -. "import（只限 file://）" .-> war["vendor/mermaid<br>web accessible resources"]
-  page -. "import（動態網址）" .-> katex["vendor/katex<br>use_dynamic_url"]
-  web -. "無法探測" .-x katex
+  page -. "import（動態網址）" .-> war["vendor/mermaid、vendor/katex<br>use_dynamic_url"]
   web["一般網站"] -. "無法探測" .-x war
 ```
 
@@ -111,8 +109,8 @@ flowchart LR
 - **數學公式**：KaTeX 以 `trust: false` 繪製，停用 `\href`、`\url`、`\includegraphics` 與 `\html…`。巨集展開次數有上限。
 - **Mermaid**：以 `securityLevel: 'strict'` 繪製。標籤經 DOMPurify 過濾，點擊事件停用。
 - **程式庫不讓網站探測**：Mermaid 與 KaTeX 用到時才載入，所以列為 web accessible resources。
-  - Mermaid 只開放給 `file://` 頁面。網頁上不繪製圖表，原文上方會說明。
-  - KaTeX 開放給所有網頁，但設 `use_dynamic_url`，網址每個工作階段都不同，網站無法以固定的擴充功能 ID 探測。
+  - 兩者都開放給所有網頁，但設 `use_dynamic_url`，網址每個工作階段都不同，網站無法以固定的擴充功能 ID 探測。
+  - 動態網址下，模組內的相對路徑 import 會被解析成固定 ID 的網址而被擋，所以程式庫必須是單一檔案。Mermaid 官方的 ESM 版拆成多個 chunk，`scripts/vendor.mjs` 改取單檔版，把結尾掛上 `globalThis` 的那一行改成 `export default`。
   - KaTeX 樣式表裡字型的相對路徑會被解析成固定 ID 的網址而被擋，`math.js` 讀取樣式表後改寫成動態網址，再以 constructable stylesheet 套用。
 - **匯出的 HTML**：不含 JavaScript，並以 CSP 禁止執行腳本。文件中的遠端圖片在開啟時仍會載入。
 - **最小權限**：只要求 `storage`。content script 只在 Markdown 副檔名結尾的網址上執行。Chrome 計算權限時不看網址路徑，所以仍顯示為可存取所有網站。

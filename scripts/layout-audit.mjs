@@ -56,7 +56,7 @@ function measure() {
       out.push(['C 寬區塊超出文字欄', what])
     }
   }
-  for (const el of body.querySelectorAll('blockquote, .markdown-alert, li, p, .ml-local-only, .ml-mermaid-error, details, h1, h2, h3, h4')) {
+  for (const el of body.querySelectorAll('blockquote, .markdown-alert, li, p, .ml-mermaid-error, details, h1, h2, h3, h4')) {
     if (/(auto|scroll|hidden)/.test(getComputedStyle(el).overflowX)) continue
     if (el.clientWidth > 0 && el.scrollWidth > el.clientWidth + 2) {
       out.push(['E 內容溢出容器', `${desc(el)} ${el.scrollWidth} > ${el.clientWidth}：${el.textContent.trim().slice(0, 30)}`])

@@ -173,12 +173,6 @@
   "mermaidError": {
     "message": "Mermaid 語法錯誤"
   },
-  "mermaidLocalOnly": {
-    "message": "Mermaid 圖表只在開啟本機檔案時繪製。把這個檔案存到電腦後用瀏覽器開啟，就能看到圖表。"
-  },
-  "localOnlyWhy": {
-    "message": "MarkLens 的圖表程式庫不開放給網站存取，網站才無法藉此得知你裝了 MarkLens。"
-  },
   "mermaidPending": {
     "message": "Mermaid 圖表繪製中…"
   },
@@ -376,9 +370,6 @@
   },
   "optMath": {
     "message": "顯示數學公式（$$…$$）"
-  },
-  "localOnlyTitle": {
-    "message": "只在本機檔案繪製"
   },
   "secEditor": {
     "message": "編輯器"

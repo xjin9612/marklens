@@ -4,7 +4,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
 ;(() => {
   const { h, t } = MarkLens
-  const ENTRY = 'vendor/mermaid/mermaid.esm.min.mjs'
+  const ENTRY = 'vendor/mermaid/mermaid.mjs'
   const CACHE_LIMIT = 50
 
   let loading = null // 載入中／已載入的 Promise
@@ -84,14 +84,6 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     cache.delete(key)
     cache.set(key, svg)
     if (cache.size > CACHE_LIMIT) cache.delete(cache.keys().next().value)
-  }
-
-  /**
-   * 程式庫檔案只對 file:// 頁面開放（manifest 的 web_accessible_resources），
-   * 避免一般網站藉由探測這些檔案得知使用者裝了 MarkLens
-   */
-  function supported() {
-    return location.protocol === 'file:'
   }
 
   function load() {
@@ -264,11 +256,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   MarkLens.renderMermaid = function (article, enabled) {
     const codes = article.querySelectorAll('.ml-code code.language-mermaid')
     if (!codes.length) return Promise.resolve()
-    if (!enabled || !supported()) {
-      // 網頁上不繪製：每個圖表上方說明原因；使用者自己關掉時不提示
-      if (enabled) for (const code of codes) code.closest('.ml-code').before(MarkLens.localOnlyNote(t('mermaidLocalOnly')))
-      return Promise.resolve()
-    }
+    if (!enabled) return Promise.resolve()
     const pending = []
     for (const code of codes) {
       const wrap = code.closest('.ml-code')
