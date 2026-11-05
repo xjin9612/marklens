@@ -131,18 +131,23 @@ flowchart LR
 
 ## 升級第三方程式庫
 
-修改 `scripts/vendor.mjs` 的版本表，再執行 `npm run vendor`。版本記錄在 `vendor/VERSIONS.md`，授權檔在 `vendor/licenses/`。
+版本記在 `scripts/vendor/package.json`，integrity（套件檔的 sha512）記在同一資料夾的 `package-lock.json`。這兩個檔案只用來記錄版本與讓 GitHub 發出漏洞警示，不會安裝套件。
 
-- 每個套件都記錄 `integrity`（套件檔的 sha512）。下載的檔案不符就中止。
-- 升級時改版本並清空 `integrity`。腳本會印出新值，確認來源後填回。
+1. 修改 `scripts/vendor/package.json` 的版本。
+2. 在 `scripts/vendor/` 執行 `npm install --package-lock-only --ignore-scripts`，更新 lockfile。
+3. 在 repo 根目錄執行 `npm run vendor`。檔案寫進 `vendor/`，版本表寫進 `vendor/VERSIONS.md`，授權檔寫進 `vendor/licenses/`。
+
+- 下載的套件檔與 lockfile 的 integrity 不符就中止。
 - 版本發布未滿 7 天就中止，避開剛發布就被撤下的惡意版本。
-- 安全性修補要立刻升級時，在該套件加上 `minAgeDays: 0` 並註明原因。滿 7 天後拿掉。
+- 安全性修補要立刻升級時，在 `vendor.mjs` 的 `PACKAGES` 該套件加上 `minAgeDays: 0` 並註明原因。滿 7 天後拿掉。
+- 有漏洞時 Dependabot 會發警示，並開 PR 更新這兩個檔案。PR 不會重新產生 `vendor/`，CI 的 `vendor` job 會失敗；在該分支執行第 3 步再提交。
 
 ## 供應鏈
 
 | 檢查 | 位置 | 內容 |
 |---|---|---|
-| 重現 vendor | `ci.yml` 的 `vendor` job | 重新執行 `vendor.mjs`：套件檔要符合記錄的 integrity，`vendor/` 有任何差異就失敗 |
+| 重現 vendor | `ci.yml` 的 `vendor` job | 重新執行 `vendor.mjs`：套件檔要符合 lockfile 的 integrity，`vendor/` 有任何差異就失敗 |
+| 漏洞警示 | `scripts/vendor/package-lock.json` | Dependabot alerts 依 lockfile 檢查 `vendor/` 的程式庫 |
 | 套件簽章 | `ci.yml` 的 `e2e` job | `npm audit signatures` 驗證開發套件的 registry 簽章 |
 | Actions 釘選 | 所有 workflow | 以 commit SHA 引用，註解標示版本 |
 | 自動更新 | `.github/dependabot.yml` | 每月為 Actions 與 npm 開 PR，新版滿 7 天才提議 |
@@ -150,7 +155,7 @@ flowchart LR
 | 不執行安裝腳本 | `.npmrc` | `ignore-scripts=true`：`npm ci` 不執行套件的 install 腳本 |
 
 - 重現 vendor 證明 repo 中的檔案等於 npm 上的官方套件，加上 `vendor.mjs` 寫明的轉換。`npm pack` 下載時會比對 registry 的雜湊。
-- Dependabot 不追蹤 `vendor/` 的程式庫，它們不在 `package.json`。升級照上一節手動執行。
+- `vendor/` 的程式庫不在 `dependabot.yml`，不會收到每月的版本更新 PR；只有出現漏洞時才有警示與安全性更新 PR。
 - 驗證 Release 的 zip：
   ```bash
   gh attestation verify marklens-vX.Y.Z-store.zip --repo xjin9612/marklens

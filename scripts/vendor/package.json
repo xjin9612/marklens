@@ -1,0 +1,16 @@
+{
+  "name": "marklens-vendor",
+  "private": true,
+  "description": "Libraries copied into vendor/ by scripts/vendor.mjs. Not installed; tracked so GitHub can alert on vulnerable versions.",
+  "license": "MIT",
+  "dependencies": {
+    "markdown-it": "14.3.3",
+    "markdown-it-footnote": "4.0.0",
+    "markdown-it-container": "4.0.0",
+    "markdown-it-deflist": "3.0.0",
+    "markdown-it-emoji": "3.1.0",
+    "@highlightjs/cdn-assets": "11.11.1",
+    "katex": "0.19.1",
+    "mermaid": "12.2.0"
+  }
+}
