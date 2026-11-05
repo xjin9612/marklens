@@ -78,6 +78,7 @@ The sidebar outline highlights the section you're reading. Fold any section, or 
 **Tables**
 - Drag to resize columns (double-click the handle to fit), click headers to sort (a third click restores the original order)
 - Filter rows (tables with 5+ rows), wrap toggle, fullscreen with a sticky header
+- Tables wider than the text column scroll sideways, with a shadow on the side that has more
 - Copy as tab-separated text that pastes into a spreadsheet
 
 **Markdown**
@@ -99,7 +100,7 @@ The sidebar outline highlights the section you're reading. Fold any section, or 
 - Light, dark, or follow the system; GitHub, sepia or high-contrast colors
 - Add your own CSS to reading pages
 - Sync settings to your other computers through your browser account (can be turned off)
-- Text width (full, 1600, 1200, 960 or custom); tables and code can grow past the text column
+- Text width (full, 1600, 1200, 960 or custom); tables and code can optionally grow to the right of the text column
 - Font size scales the whole document, including code, tables, math and diagrams; adjustable line height
 - Interface in English, Traditional Chinese and Simplified Chinese
 

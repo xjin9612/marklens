@@ -179,12 +179,29 @@ try {
   })
 
   /* ---------- 版面：文字欄與寬表格 ---------- */
-  await check('文字欄限制 1200px，表格可超出文字欄', async () => {
+  await check('文字欄限制 1200px；寬表格預設留在文字欄內橫向捲動，右側顯示陰影', async () => {
     const p = await page.$eval('.markdown-body > p', el => el.getBoundingClientRect().width)
-    const t = await page.locator('.markdown-body > .ml-table').nth(2).evaluate(el => el.getBoundingClientRect().width)
-    const art = await page.$eval('.ml-body', el => el.clientWidth - 80)
+    const wide = page.locator('.markdown-body > .ml-table').nth(2)
     assert.ok(p <= 1200, `p=${p}`)
-    assert.ok(t > 1200 && t <= art + 1, `table=${t} article=${art}`)
+    assert.equal(Math.round(await wide.evaluate(el => el.getBoundingClientRect().width)), 1200)
+    await wide.locator('.ml-table-view.ml-more-right').waitFor({ timeout: 2000 })
+    assert.equal(await wide.locator('.ml-table-view.ml-more-left').count(), 0)
+  })
+  await check('設定「可超出文字欄」：寬表格左緣對齊文字欄，往右撐開到版面右緣', async () => {
+    await page.evaluate(() => document.documentElement.classList.add('ml-wide-blocks'))
+    try {
+      const r = await page.evaluate(() => {
+        const p = document.querySelector('.markdown-body > p').getBoundingClientRect()
+        const t = document.querySelectorAll('.markdown-body > .ml-table')[2].getBoundingClientRect()
+        const body = document.querySelector('.ml-body')
+        const right = body.getBoundingClientRect().right - parseFloat(getComputedStyle(body).paddingRight)
+        return { pLeft: p.left, tLeft: t.left, tRight: t.right, width: t.width, right }
+      })
+      assert.equal(Math.round(r.tLeft), Math.round(r.pLeft), JSON.stringify(r))
+      assert.ok(r.width > 1200 && r.tRight <= r.right + 1, JSON.stringify(r))
+    } finally {
+      await page.evaluate(() => document.documentElement.classList.remove('ml-wide-blocks'))
+    }
   })
   await check('小表格對齊文字欄寬度', async () => {
     const t = await page.locator('.markdown-body > .ml-table').nth(1).evaluate(el => el.getBoundingClientRect().width)
@@ -840,9 +857,12 @@ try {
     await page.bringToFront()
     const wrap = page.locator('.ml-table').first()
     await wrap.hover()
+    assert.equal(await wrap.locator('.ml-table-esc').isVisible(), false, '一般模式不顯示 Esc 提示')
     await wrap.locator('.ml-table-bar button:text("全螢幕")').click()
     assert.equal(await wrap.evaluate(el => el.classList.contains('ml-table-full')), true)
     assert.equal(await page.evaluate(() => document.documentElement.classList.contains('ml-noscroll')), true)
+    assert.match(await wrap.locator('.ml-table-title').textContent(), /^.+ · \d+ 列$/, '標題是章節名稱與列數')
+    assert.ok(await wrap.locator('.ml-table-esc').isVisible())
     await page.keyboard.press('Escape')
     assert.equal(await wrap.evaluate(el => el.classList.contains('ml-table-full')), false)
     assert.equal(await page.evaluate(() => document.documentElement.classList.contains('ml-noscroll')), false)

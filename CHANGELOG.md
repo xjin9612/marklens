@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Print / PDF** button in the toolbar: prints the whole document, or saves it as a PDF from the print dialog. Folded sections and filtered table rows are printed, a fullscreen table goes back into the page, images that haven't loaded yet are loaded first, a dark theme switches to light colors for paper (Mermaid diagrams are redrawn in light colors before the dialog opens), and pages carry only a page number instead of Chrome's date, title and full local file path. Ctrl+P also prints folded sections and uses light colors, but diagrams keep their dark colors there — use the button for the best result
 
 ### Changed
+- Tables and code blocks now stay within the text width you set, and wide ones scroll sideways, with a shadow on the side that has more. The **Table / code width** option in the popup still lets them grow past the text column; they now line up with the text on the left and grow to the right instead of being centered
+- Fullscreen tables have a full-width bar with the section title and row count on the left, the filter and buttons on the right and an Esc hint; a table narrower than the window is centered
 - The extension is named **MarkLens – Markdown Reader** (Traditional Chinese: **MarkLens – Markdown 閱讀器**) so it can be found by searching for "Markdown"; the short name stays MarkLens
 - Shorter English extension description, to fit the Chrome Web Store's 132-character limit
 - Each GitHub release also includes `marklens-vX.Y.Z-store.zip`, with `manifest.json` at the root of the zip as the Chrome Web Store and Edge Add-ons require

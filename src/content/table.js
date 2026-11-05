@@ -82,6 +82,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     const headerKey = ths.map(th => th.textContent.trim()).join('\u0001')
 
     const scroller = h('div', { class: 'ml-table-scroll' })
+    const view = h('div', { class: 'ml-table-view' }, [scroller])
     const wrap = h('div', { class: 'ml-table' })
     if (!settings.tableWrap) wrap.classList.add('ml-nowrap')
     table.replaceWith(wrap)
@@ -107,16 +108,38 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       MarkLens.flash(copyBtn, t((await MarkLens.copyText(toTSV())) ? 'copied' : 'failed'))
     })
     const fullBtn = btn(t('tableFullscreen'), t('tableFullscreenTitle'), () => toggleFull())
+    const title = h('span', { class: 'ml-table-title' })
     const bar = h('div', { class: 'ml-table-bar' }, [
+      title,
       filter,
       count,
       simple ? btn(t('tableReset'), t('tableResetTitle'), resetAll) : null,
       btn(t('wrap'), t('tableWrapTitle'), () => wrap.classList.toggle('ml-nowrap')),
       copyBtn,
       fullBtn,
+      h('span', { class: 'ml-table-esc', attrs: { 'aria-hidden': 'true' } }), // 文字由 CSS 產生，不算進字數與頁內搜尋
     ])
     // inner 的寬度貼齊表格本身，工具列才會對齊表格右緣（wrap 可能比表格寬）
-    wrap.append(h('div', { class: 'ml-table-inner' }, [bar, scroller]))
+    wrap.append(h('div', { class: 'ml-table-inner' }, [bar, view]))
+
+    // 橫向捲動時，還有內容的一側顯示陰影；欄寬拖拉與視窗縮放都會改變可捲動的範圍
+    const edges = MarkLens.rafThrottle(() => {
+      const max = scroller.scrollWidth - scroller.clientWidth
+      view.classList.toggle('ml-more-left', scroller.scrollLeft > 1)
+      view.classList.toggle('ml-more-right', scroller.scrollLeft < max - 1)
+    })
+    scroller.addEventListener('scroll', edges, { passive: true })
+    const ro = new ResizeObserver(edges)
+    ro.observe(scroller)
+    ro.observe(table)
+
+    /** 全螢幕標題：表格所在章節的標題與列數 */
+    function fullTitle() {
+      let n = wrap
+      while (n.parentElement && !n.parentElement.classList.contains('markdown-body')) n = n.parentElement
+      while ((n = n.previousElementSibling) && !/^H[1-6]$/.test(n.tagName));
+      return `${n?.dataset.mlText || document.title} · ${t('tableRows', String(rowCount))}`
+    }
 
     function applyFilter() {
       const q = filter ? filter.value.trim().toLowerCase() : ''
@@ -143,6 +166,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
     function toggleFull(force) {
       const on = wrap.classList.toggle('ml-table-full', typeof force === 'boolean' ? force : undefined)
+      if (on) title.textContent = fullTitle()
       fullBtn.textContent = t(on ? 'tableExitFullscreen' : 'tableFullscreen')
       document.documentElement.classList.toggle('ml-noscroll', on)
     }

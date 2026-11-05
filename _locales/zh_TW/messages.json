@@ -203,6 +203,9 @@
   "tableCopyTitle": {
     "message": "複製為 TSV（可直接貼到 Excel），套用目前排序與篩選"
   },
+  "tableRows": {
+    "message": "$1 列"
+  },
   "tableFullscreen": {
     "message": "全螢幕"
   },

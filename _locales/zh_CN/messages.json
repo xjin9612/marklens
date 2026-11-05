@@ -203,6 +203,9 @@
   "tableCopyTitle": {
     "message": "复制为 TSV（可直接贴到 Excel），应用当前排序与筛选"
   },
+  "tableRows": {
+    "message": "$1 行"
+  },
   "tableFullscreen": {
     "message": "全屏"
   },

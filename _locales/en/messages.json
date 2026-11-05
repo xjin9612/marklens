@@ -203,6 +203,9 @@
   "tableCopyTitle": {
     "message": "Copy as TSV (paste into Excel), using the current sort and filter"
   },
+  "tableRows": {
+    "message": "$1 rows"
+  },
   "tableFullscreen": {
     "message": "Fullscreen"
   },

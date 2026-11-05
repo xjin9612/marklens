@@ -15,7 +15,7 @@ MarkLens.DEFAULTS = Object.freeze({
   lineHeight: 1.7,
   // ----- 新分頁的預設值（已開的分頁不受影響） -----
   textWidth: 1200, // 文字欄最大寬度 px；0 = 滿版
-  tableWidth: 'full', // full：表格與程式碼可超出文字欄 | text：跟隨文字欄
+  tableWidth: 'text', // text：跟隨文字欄，太寬時橫向捲動 | full：可往右超出文字欄
   tocHidden: false,
   tocDepth: 3, // 目錄顯示到第幾層標題
   tocWidth: 260,
