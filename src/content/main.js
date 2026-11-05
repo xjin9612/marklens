@@ -529,11 +529,17 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
   }
 
+  /** 不接管這一頁：取消 content.css 載入期間對原始文字的隱藏 */
+  function reveal() {
+    document.documentElement.classList.add('ml-off')
+  }
+
   async function boot() {
     const pre = sourcePre()
-    if (!pre) return
+    if (!pre) return reveal()
     const settings = await MarkLens.loadSettings()
     if (!settings.enabled) {
+      reveal()
       // 停用時仍監聽設定，重新啟用後重新整理頁面
       chrome.storage.onChanged.addListener(c => {
         if (c[MarkLens.SETTINGS_KEY]?.newValue?.enabled) location.reload()
@@ -556,5 +562,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     MarkLens.app.mount()
   }
 
-  boot().catch(err => console.error('[MarkLens]', err))
+  boot().catch(err => {
+    reveal()
+    console.error('[MarkLens]', err)
+  })
 })()
