@@ -1909,6 +1909,15 @@ try {
     )
     for (const r of results) assert.deepEqual(r, { status: 'error', error: 'invalid message' })
   })
+  await check('勾選寫回：任務行的比對不會因大量引用符號而回溯過久（ReDoS）', async () => {
+    const ms = await sw.evaluate(() => {
+      const line = '> '.repeat(30) + '!'
+      const start = performance.now()
+      TASK_LINE_RE.exec(line)
+      return performance.now() - start
+    })
+    assert.ok(ms < 100, `比對花了 ${Math.round(ms)}ms`)
+  })
   await check('勾選寫回過程沒有 JS 錯誤', async () => {
     assert.deepEqual(errors.filter(e => !e.includes('ERR_FILE_NOT_FOUND') && !e.includes('404')), [])
   })
