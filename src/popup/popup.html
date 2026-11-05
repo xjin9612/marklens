@@ -20,6 +20,7 @@
     <button type="button" id="open-details" data-i18n="openSettings"></button>
   </p>
 
+  <!-- 常用設定直接顯示，其餘可收合（展開狀態記在本機） -->
   <section>
     <h2><span data-i18n="secAppearance"></span> <small data-i18n="secAppearanceNote"></small></h2>
     <label><span data-i18n="theme"></span>
@@ -82,47 +83,55 @@
     <label class="check" data-i18n-title="localOnlyTitle"><input type="checkbox" name="math"> <span data-i18n="optMath"></span></label>
   </section>
 
-  <section>
-    <h2><span data-i18n="secFiles"></span> <small data-i18n="secFilesNote"></small></h2>
-    <label class="stack"><span data-i18n="fileIgnore"></span>
-      <input type="text" name="fileIgnore" spellcheck="false" data-i18n-title="fileIgnoreTitle">
-    </label>
-  </section>
+  <details class="sec" data-sec="files">
+    <summary><span data-i18n="secFiles"></span> <small data-i18n="secFilesNote"></small></summary>
+    <div class="sec-body">
+      <label class="stack"><span data-i18n="fileIgnore"></span>
+        <input type="text" name="fileIgnore" spellcheck="false" data-i18n-title="fileIgnoreTitle">
+      </label>
+    </div>
+  </details>
 
-  <section>
-    <h2><span data-i18n="secEditor"></span> <small data-i18n="secEditorNote"></small></h2>
-    <label><span data-i18n="editor"></span>
-      <select name="editor">
-        <option value="none" data-i18n="editorNone"></option>
-        <option value="vscode">VS Code</option>
-        <option value="custom" data-i18n="editorCustom"></option>
-      </select>
-    </label>
-    <label class="stack" id="editor-url-row" hidden><span data-i18n="editorUrl"></span>
-      <input type="text" name="editorUrl" spellcheck="false" placeholder="vscode-insiders://file/{path}:{line}">
-    </label>
-    <p class="hint" data-i18n="editorHint"></p>
-  </section>
+  <details class="sec" data-sec="editor">
+    <summary><span data-i18n="secEditor"></span> <small data-i18n="secEditorNote"></small></summary>
+    <div class="sec-body">
+      <label><span data-i18n="editor"></span>
+        <select name="editor">
+          <option value="none" data-i18n="editorNone"></option>
+          <option value="vscode">VS Code</option>
+          <option value="custom" data-i18n="editorCustom"></option>
+        </select>
+      </label>
+      <label class="stack" id="editor-url-row" hidden><span data-i18n="editorUrl"></span>
+        <input type="text" name="editorUrl" spellcheck="false" placeholder="vscode-insiders://file/{path}:{line}">
+      </label>
+      <p class="hint" data-i18n="editorHint"></p>
+    </div>
+  </details>
 
-  <section>
-    <h2><span data-i18n="secTaskWrite"></span> <small data-i18n="secTaskWriteNote"></small></h2>
-    <label class="check"><input type="checkbox" name="taskWrite"> <span data-i18n="optTaskWrite"></span></label>
-    <button type="button" id="manage-roots" data-i18n="manageFolders"></button>
-  </section>
+  <details class="sec" data-sec="task">
+    <summary><span data-i18n="secTaskWrite"></span> <small data-i18n="secTaskWriteNote"></small></summary>
+    <div class="sec-body">
+      <label class="check"><input type="checkbox" name="taskWrite"> <span data-i18n="optTaskWrite"></span></label>
+      <button type="button" id="manage-roots" data-i18n="manageFolders"></button>
+    </div>
+  </details>
 
-  <section>
-    <h2><span data-i18n="secRefresh"></span> <small data-i18n="secLayoutNote"></small></h2>
-    <label><span data-i18n="mode"></span>
-      <select name="autoRefresh">
-        <option value="off" data-i18n="refreshOff"></option>
-        <option value="local" data-i18n="refreshLocal"></option>
-        <option value="all" data-i18n="refreshAll"></option>
-      </select>
-    </label>
-    <label><span data-i18n="refreshInterval"></span>
-      <input type="number" name="refreshInterval" min="300" max="10000" step="100">
-    </label>
-  </section>
+  <details class="sec" data-sec="refresh">
+    <summary><span data-i18n="secRefresh"></span> <small data-i18n="secLayoutNote"></small></summary>
+    <div class="sec-body">
+      <label><span data-i18n="mode"></span>
+        <select name="autoRefresh">
+          <option value="off" data-i18n="refreshOff"></option>
+          <option value="local" data-i18n="refreshLocal"></option>
+          <option value="all" data-i18n="refreshAll"></option>
+        </select>
+      </label>
+      <label><span data-i18n="refreshInterval"></span>
+        <input type="number" name="refreshInterval" min="300" max="10000" step="100">
+      </label>
+    </div>
+  </details>
 
   <footer>
     <button type="button" id="toggle-raw" data-i18n="toggleRaw"></button>

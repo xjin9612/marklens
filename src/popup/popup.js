@@ -72,6 +72,26 @@
     say(t(MarkLens.LIVE_KEYS.includes(el.name) || el.name === 'enabled' ? 'statusSaved' : 'statusSavedReload'))
   })
 
+  // 可收合區塊的展開狀態：只是這台電腦上的介面偏好，存在 localStorage
+  const OPEN_KEY = 'marklens:popup-open'
+  let opened = []
+  try {
+    opened = JSON.parse(localStorage.getItem(OPEN_KEY)) || []
+  } catch {
+    // 讀不到就全部收合
+  }
+  for (const d of document.querySelectorAll('details.sec')) {
+    d.open = opened.includes(d.dataset.sec)
+    d.addEventListener('toggle', () => {
+      const now = [...document.querySelectorAll('details.sec[open]')].map(x => x.dataset.sec)
+      try {
+        localStorage.setItem(OPEN_KEY, JSON.stringify(now))
+      } catch {
+        // 存不了就下次再收合
+      }
+    })
+  }
+
   // 本機檔案存取權限提示
   chrome.extension.isAllowedFileSchemeAccess(allowed => {
     $('#file-warning').hidden = allowed

@@ -9,7 +9,12 @@ body {
   font: 13px/1.5 var(--ml-font);
 }
 header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-section { border-top: 1px solid var(--border); padding: 8px 0; display: grid; gap: 6px; }
+section, details.sec { border-top: 1px solid var(--border); padding: 8px 0; }
+section, .sec-body { display: grid; gap: 6px; }
+.sec-body { margin-top: 6px; }
+/* 可收合的區塊：標題與 h2 相同，使用瀏覽器原生的展開箭頭 */
+details.sec > summary { font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; }
+details.sec > summary small { font-weight: 400; margin-left: 4px; }
 label { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 label.check { justify-content: flex-start; }
 select, input[type=number] {
