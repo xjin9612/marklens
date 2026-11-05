@@ -111,7 +111,9 @@ try {
     const t = await page.locator('.markdown-body p', { hasText: 'Emoji：' }).innerText()
     assert.equal(t, 'Emoji：🎉 👍 :)，程式碼 :tada: 與時間 10:30:45 不轉換。')
   })
-  await check('front matter 顯示為可收合區塊', async () => {
+  await check('front matter 顯示為預設收合的區塊', async () => {
+    assert.equal(await page.$eval('.ml-frontmatter', el => el.tagName), 'DETAILS')
+    assert.equal(await page.$eval('.ml-frontmatter', el => el.open), false, '預設收合')
     assert.ok((await page.textContent('.ml-frontmatter pre')).includes('title: MarkLens 測試文件'))
   })
   await check('刪除線與表格對齊', async () => {
@@ -154,7 +156,15 @@ try {
     const spread = Math.max(...widths) - Math.min(...widths)
     assert.ok(spread < 0.5, `各列寬度差 ${spread.toFixed(2)}px：${widths.map(w => w.toFixed(1)).join(', ')}；${JSON.stringify(info)}`)
   })
-  await check('腳註', async () => {
+  await check('腳註：正文的上標連到底部的說明，說明的返回連結指回正文', async () => {
+    const r = await page.evaluate(() => {
+      const ref = document.querySelector('.markdown-body sup.footnote-ref a')
+      const note = ref && document.getElementById(decodeURIComponent(ref.hash.slice(1)))
+      const back = note?.querySelector('a.footnote-backref')
+      return { note: note?.textContent ?? null, backTo: back ? document.getElementById(decodeURIComponent(back.hash.slice(1))) === ref : false }
+    })
+    assert.ok(r.note?.includes('這是腳註內容'), JSON.stringify(r))
+    assert.equal(r.backTo, true, '返回連結應指向正文的上標')
     assert.equal(await page.locator('.footnotes li').count(), 1)
   })
   await check('XSS 全部被過濾', async () => {
