@@ -3,7 +3,7 @@
     "message": "輕量、可稽核的 Markdown 閱讀器：目錄、摺疊、可拖拉排序的表格、Mermaid 圖表，並可直接勾選本機檔案的任務。"
   },
   "cmdToggleToc": {
-    "message": "顯示／收合側邊目錄（目前分頁）"
+    "message": "顯示／收合側邊欄（目前分頁）"
   },
   "cmdCycleTheme": {
     "message": "切換主題（自動 → 淺色 → 深色，所有分頁）"
@@ -261,7 +261,7 @@
     "message": "拖拉調整寬度"
   },
   "tocLabel": {
-    "message": "目錄"
+    "message": "側邊欄"
   },
   "tocStats": {
     "message": "約 $1 字 · $2 分鐘"
@@ -558,7 +558,7 @@
     "message": "功能"
   },
   "keyToc": {
-    "message": "顯示／收合目錄"
+    "message": "顯示／收合側邊欄"
   },
   "keyRaw": {
     "message": "原始文字／返回閱讀"

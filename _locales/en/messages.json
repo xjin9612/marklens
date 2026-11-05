@@ -3,7 +3,7 @@
     "message": "Lightweight, auditable Markdown reader: outline, folding, resizable and sortable tables, Mermaid diagrams, and checking off tasks in local files."
   },
   "cmdToggleToc": {
-    "message": "Show / hide outline (current tab)"
+    "message": "Show / hide sidebar (current tab)"
   },
   "cmdCycleTheme": {
     "message": "Cycle theme (auto → light → dark, all tabs)"
@@ -261,7 +261,7 @@
     "message": "Drag to resize"
   },
   "tocLabel": {
-    "message": "Outline"
+    "message": "Sidebar"
   },
   "tocStats": {
     "message": "About $1 words · $2 min"
@@ -558,7 +558,7 @@
     "message": "Action"
   },
   "keyToc": {
-    "message": "Show / hide outline"
+    "message": "Show / hide sidebar"
   },
   "keyRaw": {
     "message": "Source / back to reading"
