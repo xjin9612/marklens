@@ -147,6 +147,7 @@ flowchart LR
 | Actions 釘選 | 所有 workflow | 以 commit SHA 引用，註解標示版本 |
 | 自動更新 | `.github/dependabot.yml` | 每月為 Actions 與 npm 開 PR，新版滿 7 天才提議 |
 | 建置來源證明 | `release.yml` | Release 的 zip 附 GitHub 的 build provenance |
+| 不執行安裝腳本 | `.npmrc` | `ignore-scripts=true`：`npm ci` 不執行套件的 install 腳本 |
 
 - 重現 vendor 證明 repo 中的檔案等於 npm 上的官方套件，加上 `vendor.mjs` 寫明的轉換。`npm pack` 下載時會比對 registry 的雜湊。
 - Dependabot 不追蹤 `vendor/` 的程式庫，它們不在 `package.json`。升級照上一節手動執行。
