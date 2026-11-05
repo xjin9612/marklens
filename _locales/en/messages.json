@@ -174,7 +174,7 @@
     "message": "Toggle diagram / source"
   },
   "tableFilter": {
-    "message": "Filter rows…"
+    "message": "Filter"
   },
   "tableCopyTitle": {
     "message": "Copy as TSV (paste into Excel), using the current sort and filter"
@@ -216,7 +216,7 @@
     "message": "Close search (Esc)"
   },
   "filesSearch": {
-    "message": "Search file names…"
+    "message": "Search files"
   },
   "filesSetRoot": {
     "message": "Make this the top folder"
@@ -252,7 +252,7 @@
     "message": "Comma-separated; * matches anything, .* hides names starting with a dot"
   },
   "tocSearch": {
-    "message": "Search headings…"
+    "message": "Search headings"
   },
   "tocResizeTitle": {
     "message": "Drag to resize"

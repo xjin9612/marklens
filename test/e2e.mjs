@@ -1405,7 +1405,7 @@ try {
       const lp = await openDoc()
       const tools = (await lp.locator('.ml-toolbar').innerText()).replace(/\s+/g, ' ')
       assert.ok(tools.includes('Fold all') && tools.includes('Export HTML'), tools)
-      assert.equal(await lp.locator('.ml-toc-search').getAttribute('placeholder'), 'Search headings…', 'placeholder')
+      assert.equal(await lp.locator('.ml-toc-search').getAttribute('placeholder'), 'Search headings', 'placeholder')
       await lp.close()
       const wp = await ctx.newPage()
       await wp.goto(`chrome-extension://${extId}/src/welcome/welcome.html`)

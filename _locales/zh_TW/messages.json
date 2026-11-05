@@ -174,7 +174,7 @@
     "message": "切換圖表／原始碼"
   },
   "tableFilter": {
-    "message": "篩選列…"
+    "message": "篩選"
   },
   "tableCopyTitle": {
     "message": "複製為 TSV（可直接貼到 Excel），套用目前排序與篩選"
@@ -216,7 +216,7 @@
     "message": "關閉搜尋（Esc）"
   },
   "filesSearch": {
-    "message": "搜尋檔名…"
+    "message": "搜尋檔名"
   },
   "filesSetRoot": {
     "message": "以此資料夾為起點"
@@ -252,7 +252,7 @@
     "message": "以逗號分隔；* 代表任意字元，.* 代表以 . 開頭的名稱"
   },
   "tocSearch": {
-    "message": "搜尋標題…"
+    "message": "搜尋標題"
   },
   "tocResizeTitle": {
     "message": "拖拉調整寬度"
