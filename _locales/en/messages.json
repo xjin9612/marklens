@@ -92,6 +92,21 @@
   "toolUnfoldAllTitle": {
     "message": "Unfold all (])"
   },
+  "toolCopyMd": {
+    "message": "Copy Markdown"
+  },
+  "toolCopyMdTitle": {
+    "message": "Copy the document's Markdown source, ready to paste into an AI chat"
+  },
+  "headingCopy": {
+    "message": "Copy this section's Markdown"
+  },
+  "mdCopied": {
+    "message": "Markdown copied"
+  },
+  "mdCopyFailed": {
+    "message": "Couldn't copy to the clipboard"
+  },
   "toolExport": {
     "message": "Export HTML"
   },

@@ -1370,6 +1370,29 @@ try {
     }
   })
 
+  await check('複製 Markdown：整份文件的原文，以及單一章節（到下一個同級標題為止）', async () => {
+    await ctx.grantPermissions(['clipboard-read', 'clipboard-write'])
+    const cp = await openDoc()
+    try {
+      await cp.bringToFront()
+      // Windows 的剪貼簿會把 \n 存成 \r\n，讀回時統一換行再比對
+      const read = async () => (await cp.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/g, '\n')
+      await cp.click('.ml-tool-copy')
+      await cp.waitForSelector('.ml-toast')
+      assert.equal(await read(), readFileSync(localMd, 'utf8'))
+      const heading = cp.locator('.markdown-body h2', { hasText: /^任務清單/ }).first()
+      await heading.hover()
+      await heading.locator('.ml-heading-copy').click()
+      await cp.waitForFunction(() => document.querySelector('.ml-toast')?.textContent.includes('Markdown'))
+      const section = await read()
+      assert.ok(section.startsWith('## 任務清單\n'), JSON.stringify(section.slice(0, 40)))
+      assert.ok(!section.includes('## 寬表格'), '不應包含下一節')
+      assert.ok(section.includes('- [ ]'), '應包含任務清單內容')
+    } finally {
+      await cp.close()
+    }
+  })
+
   /* ---------- 安全性：攻擊樣本（test/fixtures/security.md） ---------- */
   // 攻擊成功會在 body 留下 data-xss 或跳出對話框。頁面上的 document 方法可能被樣本覆蓋（DOM clobbering），
   // 所以檢查一律透過 Document.prototype 呼叫
@@ -1422,7 +1445,9 @@ try {
         // KaTeX 輸出（含 MathML 與錯誤提示的紅字樣式）另外檢查
         const inMath = !!el.closest('.katex, .katex-error')
         const tag = el.tagName.toUpperCase()
-        if (!inDiagram && !(inMath && tag === 'MATH') && /^(SCRIPT|IFRAME|OBJECT|EMBED|FORM|INPUT|TEXTAREA|META|BASE|LINK|STYLE|SVG|MATH|TEMPLATE|NOSCRIPT|FRAME|FRAMESET)$/.test(tag)) out.push(tag)
+        // 介面的「複製這一節」按鈕圖示（文件中的 HTML 不能使用 ml- 開頭的 class，無法冒用）
+        const inUi = !!el.closest('.ml-heading-copy')
+        if (!inDiagram && !inUi && !(inMath && tag === 'MATH') && /^(SCRIPT|IFRAME|OBJECT|EMBED|FORM|INPUT|TEXTAREA|META|BASE|LINK|STYLE|SVG|MATH|TEMPLATE|NOSCRIPT|FRAME|FRAMESET)$/.test(tag)) out.push(tag)
         if (!inDiagram && tag === 'BUTTON' && !/\bml-/.test(el.className)) out.push('BUTTON')
         if (inDiagram && /^(SCRIPT|IFRAME|OBJECT|EMBED)$/.test(tag)) out.push(`mermaid ${tag}`)
         if (inMath && /^(A|IMG|SCRIPT)$/.test(tag)) out.push(`katex ${tag}`)

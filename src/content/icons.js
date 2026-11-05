@@ -32,6 +32,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     'text-size': ['M1.5 13 5.5 3l4 10', 'M3 9.5h5', 'M10 13l2.5-6 2.5 6', 'M10.9 11h3.2'],
     plus: ['M8 3v10', 'M3 8h10'],
     minus: ['M3 8h10'],
+    copy: ['M5.5 5.5h8v8h-8z', 'M3 10.5H2.5v-8h8V3'],
     edit: ['M10.5 2.5l3 3-8 8H2.5v-3z', 'M9 4l3 3'],
     'arrow-up': ['M8 13.5v-11', 'M4 6.5l4-4 4 4'],
     'arrow-left': ['M13.5 8h-11', 'M6.5 4l-4 4 4 4'],

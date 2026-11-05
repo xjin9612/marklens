@@ -8,7 +8,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     "default-src 'none'; img-src * data: blob: file:; media-src * data: blob: file:; style-src 'unsafe-inline'; font-src data:"
 
   // 閱讀頁才有用的互動元件
-  const REMOVE = '.ml-fold, .ml-anchor, .ml-code-bar, .ml-table-bar, .ml-col-resizer, .ml-mermaid-toggle, .ml-mermaid-pending'
+  const REMOVE = '.ml-fold, .ml-anchor, .ml-heading-copy, .ml-code-bar, .ml-table-bar, .ml-col-resizer, .ml-mermaid-toggle, .ml-mermaid-pending'
 
   /** 由背景程式讀取擴充功能內的檔案（content script 無法直接讀取未開放的擴充功能檔案） */
   async function asset(path) {

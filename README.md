@@ -105,6 +105,7 @@ The sidebar outline highlights the section you're reading. Fold any section, or 
 **Sharing**
 - Print or save as PDF, with sections expanded and only page numbers in the margins
 - Export as a single HTML file with styles, diagrams and math fonts embedded and no scripts
+- **Copy Markdown** copies the whole source, ready to paste into an AI chat; the copy button next to a heading copies just that section
 
 ## Keyboard shortcuts
 

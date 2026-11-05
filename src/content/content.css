@@ -383,18 +383,15 @@ html.marklens.ml-wide-blocks .markdown-body > :is(.ml-table, .ml-code) {
   html.marklens .ml-body { padding: 16px 16px 80px 36px; }
   html.marklens .ml-toc-resizer { display: none; }
   html.marklens .ml-tool-width { display: none; }
-  /* 只在畫面上隱藏文字，螢幕閱讀器仍以文字作為按鈕名稱 */
-  html.marklens .ml-toolbar .ml-tool-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
   html.marklens .ml-toolbar { overflow-x: auto; padding: 0 4px; }
   html.marklens .ml-tool { padding: 0 7px; }
 }
+/* 窄螢幕，或按鈕文字放不下（main.js 的 fitToolbar 加上 .ml-tool-icon）：只在畫面上隱藏文字，螢幕閱讀器仍以文字作為按鈕名稱 */
+@media (max-width: 900px) {
+  html.marklens .ml-toolbar .ml-tool-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+html.marklens .ml-tool-icon .ml-tool-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+html.marklens .ml-tool-icon { padding: 0 7px; }
 
 /* ---------- Markdown 內容 ---------- */
 /* 只設定上下外距，左右交給文字欄置中 */
@@ -464,6 +461,23 @@ html.marklens .markdown-body .ml-anchor {
 html.marklens .markdown-body :is(h1, h2, h3, h4, h5, h6):hover .ml-anchor { opacity: .6; }
 html.marklens .markdown-body .ml-anchor:focus-visible { opacity: 1; }
 html.marklens .markdown-body .ml-folded .ml-anchor { display: none; }
+/* 複製這一節：跟錨點一樣滑過標題才顯示 */
+html.marklens .markdown-body .ml-heading-copy {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: .25em;
+  padding: 2px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--muted);
+  opacity: 0;
+  cursor: pointer;
+}
+html.marklens .markdown-body .ml-heading-copy .ml-icon { width: .7em; height: .7em; min-width: 12px; min-height: 12px; }
+html.marklens .markdown-body :is(h1, h2, h3, h4, h5, h6):hover .ml-heading-copy { opacity: .6; }
+html.marklens .markdown-body .ml-heading-copy:is(:hover, :focus-visible) { opacity: 1; background: var(--hover); color: var(--fg); }
+html.marklens .markdown-body .ml-folded .ml-heading-copy { display: none; }
 
 html.marklens .markdown-body ul,
 html.marklens .markdown-body ol { padding-left: 2em; }
@@ -752,7 +766,7 @@ html.marklens .ml-viewer :focus-visible { outline: 2px solid #fff; outline-offse
 }
 
 @media print {
-  html.marklens :is(.ml-toc, .ml-toolbar, .ml-progress, .ml-table-bar, .ml-code-bar, .ml-anchor, .ml-fold, .ml-col-resizer) { display: none !important; }
+  html.marklens :is(.ml-toc, .ml-toolbar, .ml-progress, .ml-table-bar, .ml-code-bar, .ml-anchor, .ml-heading-copy, .ml-fold, .ml-col-resizer) { display: none !important; }
   /* 與匯出 HTML 相同：摺疊的段落與篩選掉的表格列都印出來 */
   /* hidden=until-found 由瀏覽器以 content-visibility 隱藏內容 */
   html.marklens .markdown-body > [hidden="until-found"] { content-visibility: visible !important; }

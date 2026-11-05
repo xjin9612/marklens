@@ -92,6 +92,21 @@
   "toolUnfoldAllTitle": {
     "message": "全部展开（]）"
   },
+  "toolCopyMd": {
+    "message": "复制 Markdown"
+  },
+  "toolCopyMdTitle": {
+    "message": "复制整份文档的 Markdown 原文，可直接粘贴给 AI"
+  },
+  "headingCopy": {
+    "message": "复制这一节的 Markdown"
+  },
+  "mdCopied": {
+    "message": "已复制 Markdown"
+  },
+  "mdCopyFailed": {
+    "message": "无法复制到剪贴板"
+  },
   "toolExport": {
     "message": "导出 HTML"
   },

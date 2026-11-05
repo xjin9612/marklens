@@ -57,6 +57,7 @@ MARKDOWN SUPPORT
 • KaTeX math and Mermaid diagrams, in local files and on web pages
 • Box-drawing tables in code blocks stay aligned with Chinese, Japanese and Korean text
 • Export the current view as one self-contained HTML file to share, or print it / save it as a PDF with every section expanded
+• Copy the Markdown source of the whole document or one section, ready to paste into an AI chat
 
 PRIVATE AND AUDITABLE
 • Collects no data. No account, no analytics, no ads, no server
@@ -102,6 +103,7 @@ Markdown 支援
 • KaTeX 數學公式與 Mermaid 圖表，本機檔案與網頁上都能繪製
 • 程式碼區塊中的框線字元表格，中日韓文字也能對齊
 • 把目前畫面匯出成單一 HTML 檔方便分享，或列印／存成 PDF，摺疊的段落會全部展開
+• 複製整份文件或單一章節的 Markdown 原文，可直接貼給 AI
 
 注重隱私、可以稽核
 • 不收集任何資料。沒有帳號、沒有分析追蹤、沒有廣告、沒有伺服器
@@ -149,6 +151,7 @@ Markdown 支持
 • KaTeX 数学公式与 Mermaid 图表，本机文件与网页上都能绘制
 • 代码块中的框线字符表格，中日韩文字也能对齐
 • 把当前画面导出为单个 HTML 文件方便分享，或打印／存成 PDF，折叠的段落会全部展开
+• 复制整份文档或单个章节的 Markdown 原文，可直接粘贴给 AI
 
 注重隐私、可以审计
 • 不收集任何数据。没有账号、没有分析追踪、没有广告、没有服务器
