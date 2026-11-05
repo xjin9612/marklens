@@ -417,8 +417,10 @@ try {
     const tp = await openDoc(pathToFileURL(join(root, 'docs/demo.md')).href)
     try {
       const xs = () => tp.$$eval('.ml-toolbar .ml-tool', els => els.filter(el => !el.classList.contains('ml-tool-top')).map(el => Math.round(el.getBoundingClientRect().left)))
+      // 同一份文件會還原上次的捲動位置（其他檢查可能捲過），先回到頂端
+      await tp.evaluate(() => scrollTo(0, 0))
+      await tp.waitForFunction(() => getComputedStyle(document.querySelector('.ml-tool-top')).visibility === 'hidden')
       const before = await xs()
-      assert.equal(await tp.locator('.ml-tool-top').isVisible(), false, '頂端時看不見')
       await tp.evaluate(() => scrollTo(0, 1200))
       await tp.waitForFunction(() => getComputedStyle(document.querySelector('.ml-tool-top')).visibility === 'visible')
       assert.deepEqual(await xs(), before, '其他按鈕的位置不變')
