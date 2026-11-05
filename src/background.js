@@ -82,7 +82,9 @@ const HANDLERS = {
 
   /**
    * 側邊欄「檔案」分頁：列出資料夾的 Markdown 與子資料夾（讀取 Chrome 對 file:// 資料夾產生的清單頁）
-   * root：樹的起點（本機資料夾網址，預設為頁面所在資料夾）；只有 MarkLens 自己的程式能發出這個請求，文件內容無法觸發
+   * root：樹的起點（本機資料夾網址，預設為頁面所在資料夾），由檔案分頁保存在分頁的 sessionStorage。
+   *   同一分頁中的其他 file:// 頁面理論上能改寫它，所以這裡只接受本機路徑：不接受網路位置（UNC，
+   *   file://主機/… 或 file:////主機/…），避免被誘導去連線其他電腦
    * path：從起點往下的資料夾名稱陣列，不接受 .. 等跳脫
    */
   async 'list-dir'(msg, sender) {
@@ -90,7 +92,7 @@ const HANDLERS = {
     if (!url.startsWith('file:')) return { status: 'unsupported' }
     const pageDir = url.slice(0, url.lastIndexOf('/') + 1)
     const root = msg.root ?? pageDir
-    if (typeof root !== 'string' || !root.startsWith('file:///') || !root.endsWith('/') || /\/\.\.?\//.test(root)) {
+    if (!isLocalFolder(root)) {
       return { status: 'error', error: 'invalid root' }
     }
     const segs = Array.isArray(msg.path) ? msg.path : []
@@ -154,6 +156,26 @@ const HANDLERS = {
     for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
     return { status: 'ok', base64: btoa(bin) }
   },
+}
+
+/** 本機資料夾網址：file:///X/…/，沒有主機名稱、不是 //主機 開頭的網路路徑、不含 . 或 .. 段落 */
+function isLocalFolder(root) {
+  if (typeof root !== 'string' || !root.startsWith('file:///') || !root.endsWith('/')) return false
+  let u
+  try {
+    u = new URL(root)
+  } catch {
+    return false
+  }
+  if (u.host !== '' || u.pathname.startsWith('//')) return false
+  // URL 會把 . 與 .. 正規化掉，所以檢查原始字串（含 %2e 這類編碼寫法）
+  let path
+  try {
+    path = decodeURIComponent(root.slice('file://'.length))
+  } catch {
+    return false
+  }
+  return !path.split('/').some(s => s === '.' || s === '..') && !path.includes('\\')
 }
 
 const MD_FILE_RE = /\.(md|markdown|mkd|mdx)$/i
