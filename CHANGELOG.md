@@ -38,6 +38,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Security
 - Mermaid labels are drawn as SVG text, so diagrams contain no HTML at all
 - Saving a checked task accepts only a valid line number and the two checkbox states
+- `SECURITY.md` explains how to report a vulnerability privately
 
 ## [1.5.0] - 2026-11-02
 

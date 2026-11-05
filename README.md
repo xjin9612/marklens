@@ -142,7 +142,7 @@ Open the MarkLens icon in the toolbar for all settings.
 
 ## Privacy and security
 
-MarkLens collects no data and sends none of it anywhere; its only network request is reloading the document you opened. It asks for a single permission, `storage`, for your settings, and runs no remote code: every library is packaged inside the extension. HTML inside documents is filtered, and a test suite of 60+ attack samples checks that none of them can run code. Details: [privacy policy](PRIVACY.md), [security design](docs/DEVELOPMENT.md#安全設計) (in Traditional Chinese).
+MarkLens collects no data and sends none of it anywhere; its only network request is reloading the document you opened. It asks for a single permission, `storage`, for your settings, and runs no remote code: every library is packaged inside the extension. HTML inside documents is filtered, and a test suite of 60+ attack samples checks that none of them can run code. Details: [privacy policy](PRIVACY.md), [security design](docs/DEVELOPMENT.md#安全設計) (in Traditional Chinese). Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
 
 ## FAQ
 
