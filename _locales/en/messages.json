@@ -140,6 +140,9 @@
   "taskReadonlyRemote": {
     "message": "Only tasks in local files can be saved"
   },
+  "taskReadonlyNetwork": {
+    "message": "Tasks in files on WSL or network paths can't be saved"
+  },
   "taskReadonlyOff": {
     "message": "Saving checkboxes is turned off — turn it on in the popup"
   },
@@ -253,6 +256,9 @@
   },
   "filesError": {
     "message": "Can't read this folder"
+  },
+  "filesNetwork": {
+    "message": "Folder lists, auto-reload and saving checked tasks don't work for files on WSL or network paths: Chrome doesn't let extensions read these paths."
   },
   "filesEmpty": {
     "message": "(no Markdown files)"

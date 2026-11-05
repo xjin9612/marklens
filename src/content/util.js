@@ -115,6 +115,12 @@ MarkLens.flash = function (btn, text, ms = 1000) {
 MarkLens.UNCHANGED = Symbol('unchanged')
 
 /**
+ * WSL（file://wsl.localhost/…）與網路共用（file://主機/…）上的檔案：Chrome 不讓擴充功能讀取帶主機名稱的 file:// 網址，
+ * 只能顯示頁面上已有的內容；檔案清單、自動更新與勾選寫回都無法使用
+ */
+MarkLens.networkFile = location.protocol === 'file:' && (location.host !== '' || location.pathname.startsWith('//'))
+
+/**
  * @param {{ifChanged?: boolean}} [opts] ifChanged：本機檔案若與上次讀取時相同，回傳 MarkLens.UNCHANGED，
  *   不必把整份內容傳回頁面（自動更新每秒檢查一次，大檔時可省下大量傳輸與比對）
  */

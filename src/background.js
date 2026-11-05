@@ -61,7 +61,7 @@ const HANDLERS = {
    */
   async 'read-self'(msg, sender) {
     const url = (sender.url || '').split('#')[0]
-    if (!url.startsWith('file:')) return { text: null }
+    if (!url.startsWith('file:') || !isLocalFile(url)) return { text: null }
     // 快取以分頁區分：同一個檔案開在兩個分頁時，各自都要拿到變更
     const cacheKey = `${sender.tab?.id}:${sender.frameId}:${url}`
     let bytes
@@ -167,6 +167,16 @@ const HANDLERS = {
     for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
     return { status: 'ok', base64: btoa(bin) }
   },
+}
+
+/** 沒有主機名稱的 file:// 網址。WSL（file://wsl.localhost/…）與網路共用的網址 Chrome 一律拒絕讀取，不必發出請求 */
+function isLocalFile(url) {
+  try {
+    const u = new URL(url)
+    return u.host === '' && !u.pathname.startsWith('//')
+  } catch {
+    return false
+  }
 }
 
 /** 本機資料夾網址：file:///X/…/，沒有主機名稱、不是 //主機 開頭的網路路徑、不含 . 或 .. 段落 */

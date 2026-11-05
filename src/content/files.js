@@ -111,6 +111,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
     /** 讀取起點，並依序還原展開的子資料夾 */
     async init() {
+      if (MarkLens.networkFile) return this.render()
       // 起點換了之後，舊的讀取結果全部作廢
       const gen = ++this.gen
       this.nodes.clear()
@@ -231,6 +232,11 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
     render() {
       this.list.textContent = ''
+      if (MarkLens.networkFile) {
+        this.upBtn.hidden = true
+        this.summary.textContent = this.folder
+        return this.list.append(this.note(t('filesNetwork'), -1))
+      }
       const parent = this.parent
       this.upBtn.disabled = !parent
       this.upBtn.title = parent ? t('filesUp', decodeName(parent.split('/').slice(-2, -1)[0] || '/')) : ''

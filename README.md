@@ -152,6 +152,9 @@ Turn on **Allow access to file URLs** on the extension's **Details** page, then 
 **Checking a box asks for folder access.**<br>
 The first time, pick a top-level folder such as `D:\Projects`. Every `.md` under it becomes writable. After a restart, Chrome asks again unless you chose **Allow on every visit**. Manage folders from the MarkLens icon → **Manage folders**. Files that aren't UTF-8 (such as Big5) display normally, but their checkboxes are read-only.
 
+**Files on WSL or a network share: the Files tab says it isn't supported.**<br>
+Chrome doesn't let extensions read files whose address has a host name, such as `file://wsl.localhost/…` or `file://server/share/…`. The document displays normally, but the Files tab, auto-reload and saving checked tasks don't work there. To use them, keep the file on a local drive, for example under `D:\`.
+
 **Text diagrams in code blocks don't line up perfectly.**<br>
 MarkLens scales the system font so Chinese, Japanese and Korean characters are exactly two columns wide. That makes them look slightly larger. For the best result, install [Sarasa Gothic](https://github.com/be5invis/Sarasa-Gothic):
 

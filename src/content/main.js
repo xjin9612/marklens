@@ -593,6 +593,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     /** 無法寫回的原因（訊息 key）；可以寫回時回傳 null */
     taskReadonlyReason() {
       if (location.protocol !== 'file:') return 'taskReadonlyRemote'
+      if (MarkLens.networkFile) return 'taskReadonlyNetwork'
       if (!this.settings.taskWrite) return 'taskReadonlyOff'
       if (!this.rawExact) return 'taskNotUtf8' // 不是 UTF-8：寫回可能損壞原檔的文字
       return null
@@ -703,7 +704,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     startRefresh() {
       clearTimeout(this.refreshTimer)
       const mode = this.settings.autoRefresh
-      if (mode === 'off' || (mode === 'local' && location.protocol !== 'file:')) return
+      if (mode === 'off' || (mode === 'local' && location.protocol !== 'file:') || MarkLens.networkFile) return
       const tick = async () => {
         if (!MarkLens.alive()) return this.onOrphaned()
         if (!document.hidden) {
@@ -738,7 +739,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
     let raw = pre.textContent
     let exact = false
-    if (location.protocol === 'file:') {
+    if (location.protocol === 'file:' && !MarkLens.networkFile) {
       // 以 UTF-8 重新讀取，修正瀏覽器猜錯編碼的情況
       const text = await MarkLens.fetchSource()
       if (text != null) {

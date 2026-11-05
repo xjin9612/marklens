@@ -140,6 +140,9 @@
   "taskReadonlyRemote": {
     "message": "只有本機檔案的任務可以勾選寫回"
   },
+  "taskReadonlyNetwork": {
+    "message": "WSL 與網路路徑上的檔案無法勾選寫回"
+  },
   "taskReadonlyOff": {
     "message": "勾選寫回已關閉，可在 popup 開啟"
   },
@@ -253,6 +256,9 @@
   },
   "filesError": {
     "message": "無法讀取此資料夾"
+  },
+  "filesNetwork": {
+    "message": "WSL 與網路路徑上的檔案不支援檔案清單、自動更新與勾選寫回：Chrome 不允許擴充功能讀取這類路徑。"
   },
   "filesEmpty": {
     "message": "（沒有 Markdown）"

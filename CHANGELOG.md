@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Box-drawing text in code blocks also uses Sarasa Mono SC (Simplified Chinese) when it is installed, not only Sarasa Mono TC
 
 ### Fixed
+- Files on WSL or a network share (`file://wsl.localhost/…`, `file://server/…`): the Files tab explains that folder lists, auto-reload and saving checked tasks aren't available there, instead of "Can't read this folder", and task checkboxes say why they can't be saved
 - On wide windows, display math blocks were laid out across the whole page instead of the text column, and a long Mermaid error message stretched its block past the text column; both now line up with the text
 - The toolbar buttons no longer jump sideways when **Top** appears: it keeps its place and only fades in after scrolling. It is also hidden when a document opens at the top, instead of showing until the first scroll
 - The outline highlighted an earlier section when the last, short sections couldn't scroll to the top of the window: after jumping to a heading from the outline or a `#link`, that heading stays highlighted, and at the end of the document the last heading on screen is highlighted

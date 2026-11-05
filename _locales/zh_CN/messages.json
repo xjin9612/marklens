@@ -140,6 +140,9 @@
   "taskReadonlyRemote": {
     "message": "只有本机文件的任务可以勾选写回"
   },
+  "taskReadonlyNetwork": {
+    "message": "WSL 与网络路径上的文件无法勾选写回"
+  },
   "taskReadonlyOff": {
     "message": "勾选写回已关闭，可在 popup 打开"
   },
@@ -253,6 +256,9 @@
   },
   "filesError": {
     "message": "无法读取此文件夹"
+  },
+  "filesNetwork": {
+    "message": "WSL 与网络路径上的文件不支持文件列表、自动更新与勾选写回：Chrome 不允许扩展程序读取这类路径。"
   },
   "filesEmpty": {
     "message": "（没有 Markdown）"
