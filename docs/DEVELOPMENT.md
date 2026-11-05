@@ -194,6 +194,7 @@ npm run test:visual -- --update      # 以目前畫面作為新的基準圖
   - 手動觸發要等 workflow 檔已在 main 上，這是 GitHub 對 `workflow_dispatch` 的限制。
   ```bash
   gh workflow run visual-baselines.yml --ref <分支>   # 手動觸發；開 PR 時不需要
+  rm test/visual/linux/*.png   # gh run download 不覆寫已存在的檔案
   gh run download --name visual-linux --dir test/visual/linux
   ```
 - 不同的像素超過 0.1% 才算失敗，以 `VISUAL_TOLERANCE` 調整。
