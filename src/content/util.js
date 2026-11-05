@@ -105,13 +105,6 @@ MarkLens.flash = function (btn, text, ms = 1000) {
   }, ms)
 }
 
-/**
- * 讀取目前頁面的原始內容
- * - file://：content script 無法直接讀（CORS），交給 background 讀 bytes 並以 UTF-8 嚴格解碼，
- *   同時修正 Chrome 對無 BOM 檔案猜錯編碼造成的中文亂碼
- * - http(s)：fetch（同源，不需額外權限）
- * 失敗回傳 null
- */
 MarkLens.UNCHANGED = Symbol('unchanged')
 
 /**
@@ -121,6 +114,10 @@ MarkLens.UNCHANGED = Symbol('unchanged')
 MarkLens.networkFile = location.protocol === 'file:' && (location.host !== '' || location.pathname.startsWith('//'))
 
 /**
+ * 讀取目前頁面的原始內容；失敗回傳 null
+ * - file://：content script 無法直接讀（CORS），交給 background 讀 bytes 並以 UTF-8 嚴格解碼，
+ *   同時修正 Chrome 對無 BOM 檔案猜錯編碼造成的中文亂碼
+ * - http(s)：fetch（同源，不需額外權限）
  * @param {{ifChanged?: boolean}} [opts] ifChanged：本機檔案若與上次讀取時相同，回傳 MarkLens.UNCHANGED，
  *   不必把整份內容傳回頁面（自動更新每秒檢查一次，大檔時可省下大量傳輸與比對）
  */

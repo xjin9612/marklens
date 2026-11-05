@@ -12,7 +12,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   const THEME_LABELS = { auto: ['auto', 'themeAuto'], light: ['sun', 'themeLight'], dark: ['moon', 'themeDark'] }
 
   /**
-   * 工具列按鈕的內容：圖示＋文字（窄螢幕時文字只在畫面上隱藏，螢幕閱讀器仍念得到）
+   * 工具列按鈕的內容：圖示＋文字（窄螢幕或放不下時文字只在畫面上隱藏，螢幕閱讀器仍念得到）
    * 會展開選單的按鈕（aria-haspopup）在最後加一個向下的小箭頭
    */
   function setTool(btn, icon, label) {
@@ -589,7 +589,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     onScroll() {
       const max = document.documentElement.scrollHeight - innerHeight
       this.progress.style.transform = `scaleX(${max > 0 ? Math.min(1, scrollY / max) : 0})`
-      // 不用 hidden：按鈕消失會讓整排靠右的按鈕位移；改為保留位置、只切換可見（見 content.css）
+      // 保留位置、只切換可見（見 content.css）：用 hidden 移除會讓整排靠右的按鈕位移
       this.topBtn.classList.toggle('ml-tool-away', scrollY < 600)
       this.toc.update()
       if (this.settings.rememberScroll && this.saveScroll) this.saveScroll()

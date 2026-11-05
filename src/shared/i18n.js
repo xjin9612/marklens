@@ -1,14 +1,14 @@
 'use strict'
 // 介面文字：來自 _locales/<語系>/messages.json
-// 預設跟隨瀏覽器語言（chrome.i18n，找不到時用 en）；設定中指定語言時改讀該語系檔，不必更改 Chrome 的語言
+// 預設跟隨瀏覽器語言（Chrome 選用的語系檔，找不到時用 en）；設定中指定語言時改用該語系檔，不必更改 Chrome 的語言
 var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
 ;(() => {
   MarkLens.UI_LANGS = ['en', 'zh_TW', 'zh_CN'] // 與 _locales/ 的資料夾一致
 
-  // 擴充功能更新或重新載入後，舊分頁的 chrome.* 會失效：開頁時就載入整份語系檔（dict），之後才用到的文字也能顯示
-  const cache = new Map()
-  let dict = null // 目前語系的訊息表 { key: { message } }
+  const cache = new Map() // 不帶參數的訊息
+  // 目前語系的整份訊息表 { key: { message } }。開頁時就載入：擴充功能更新或重新載入後舊分頁的 chrome.* 會失效，之後才用到的文字仍能顯示
+  let dict = null
   let lang = null // 使用者指定的語言；跟隨瀏覽器時為 null
 
   /** 依 Chrome 規則替換：$1…$9 為參數，$$ 為 $ 字元 */

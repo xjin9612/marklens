@@ -1,5 +1,5 @@
 'use strict'
-// Service worker：快捷鍵、代讀本機檔案、任務勾選寫回
+// Service worker：content script 無權或不該自己做的事（讀本機檔案與資料夾、寫回任務、讀擴充功能內的檔案），以及快捷鍵與設定同步
 importScripts('/src/shared/settings.js', '/src/shared/i18n.js', '/src/shared/roots.js')
 
 // 首次安裝：開啟引導頁（說明如何開啟「允許存取檔案網址」）；更新時不打擾
@@ -24,7 +24,6 @@ async function onCommand(command, tab) {
     await MarkLens.saveSettings({ theme: MarkLens.nextOf(MarkLens.THEME_ORDER, s.theme) })
     return
   }
-  // 其餘指令只作用於目前分頁
   if (tab?.id != null) await chrome.tabs.sendMessage(tab.id, { type: 'command', name: command }).catch(() => {})
 }
 chrome.commands.onCommand.addListener(onCommand)
@@ -145,7 +144,7 @@ const HANDLERS = {
     return { status: 'ok', dirs, files }
   },
 
-  /** 介面語言設定為指定語言時，content script 透過這裡取得語系檔（content script 無權直接讀取） */
+  /** content script 透過這裡取得整份語系檔（content script 無權直接讀取擴充功能內的檔案） */
   async 'read-messages'(msg) {
     if (!MarkLens.UI_LANGS.includes(msg.lang)) return { status: 'error', error: 'unknown language' }
     const res = await fetch(chrome.runtime.getURL(`_locales/${msg.lang}/messages.json`))
@@ -227,7 +226,8 @@ async function sha256(text) {
  * 切換原文第 line 行（0 起算）的勾選狀態
  * @param {{line:number, from:' '|'x', to:' '|'x', hash:string}} msg
  *   from：頁面認為目前的狀態；hash：頁面持有的原文 SHA-256，用來偵測檔案是否已被其他地方修改
- * @returns {{status:'ok'|'no-root'|'permission'|'conflict'|'not-utf8'|'unsupported'|'error', text?:string, root?:string}}
+ * @returns {{status:'ok'|'no-root'|'permission'|'ambiguous'|'conflict'|'not-utf8'|'unsupported'|'error', text?:string, root?:string, path?:string}}
+ *   ambiguous：多個授權資料夾都有這個路徑，且無法從內容判斷是哪一份；path：寫入的檔案（授權資料夾名稱起算）
  */
 async function toggleTask(msg, sender) {
   const url = (sender.url || '').split('#')[0]

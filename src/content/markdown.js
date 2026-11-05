@@ -1,5 +1,5 @@
 'use strict'
-// markdown-it 設定與自訂語法：==mark==、GitHub Alert、front matter
+// markdown-it 設定與自訂語法：==mark==、GitHub Alert、容器區塊、定義清單、數學公式、GitHub 式自動連結、任務清單行號、front matter
 var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
 ;(() => {

@@ -29,8 +29,8 @@ MarkLens.DEFAULTS = Object.freeze({
   editor: 'none', // 用編輯器開啟：none | vscode | custom
   editorUrl: '', // editor 為 custom 時的網址範本，{path} 為檔案路徑、{line} 為行號
   taskWrite: true, // 本機檔案的任務清單可直接勾選並存回原檔（需先授權資料夾）
-  mermaid: true, // 本機檔案的 mermaid 區塊繪製成圖表
-  math: true, // 本機檔案的 $…$ 數學公式以 KaTeX 繪製
+  mermaid: true, // mermaid 區塊繪製成圖表
+  math: true, // $…$ 數學公式以 KaTeX 繪製
 })
 
 // 會即時同步到所有已開分頁的設定

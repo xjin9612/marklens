@@ -1,5 +1,5 @@
 'use strict'
-// 下拉選單：工具列的寬度與主題（單選，目前的值打勾）、檔案分頁資料夾的右鍵選單共用
+// 下拉選單：工具列的寬度、字級與主題（單選，目前的值打勾）、檔案分頁資料夾的右鍵選單共用
 // 鍵盤：開啟時焦點落在目前選項（或第一項），↑↓／Home／End 移動，Enter／空白鍵選取，Esc 關閉並把焦點還給按鈕
 var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 

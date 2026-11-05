@@ -1,5 +1,5 @@
 # 每月檢查 GitHub Actions 與 npm 開發套件的新版，各自合成一個 PR
-# vendor/ 的程式庫不在 package.json，不由 Dependabot 追蹤，升級方式見 docs/DEVELOPMENT.md
+# vendor/ 的程式庫只依 scripts/vendor/package-lock.json 發漏洞警示，不開每月的版本更新 PR；升級方式見 docs/DEVELOPMENT.md
 version: 2
 updates:
   - package-ecosystem: github-actions

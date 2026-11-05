@@ -962,7 +962,7 @@ html.marklens .markdown-body .katex-error { color: var(--danger); }
 html.marklens.ml-export .ml-main { margin: 0; }
 html.marklens.ml-export .ml-body { padding-top: 32px; }
 
-/* 下拉選單（menu.js）：工具列的寬度與主題、檔案分頁的右鍵選單 */
+/* 下拉選單（menu.js）：工具列的寬度、字級與主題、檔案分頁的右鍵選單 */
 html.marklens .ml-menu {
   position: fixed;
   z-index: 60;

@@ -111,7 +111,7 @@ try {
       if (transform) writeFileSync(join(vendorDir, to), transform(readFileSync(join(out, 'package', from), 'utf8')))
       else copyFileSync(join(out, 'package', from), join(vendorDir, to))
     }
-    // 整個資料夾（不含 sourcemap）；先清空，避免殘留舊版的 chunk
+    // 整個資料夾（不含 sourcemap）；先清空，避免殘留舊版的檔案
     for (const [from, to, only] of pkg.dirs ?? []) {
       const dest = join(vendorDir, to)
       rmSync(dest, { recursive: true, force: true })
