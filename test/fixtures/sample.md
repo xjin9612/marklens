@@ -95,3 +95,5 @@ function hello(name) {
 ## 重複標題
 
 結尾。
+
+![示意圖](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==)

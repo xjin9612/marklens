@@ -645,6 +645,9 @@
   "imageOpen": {
     "message": "Enlarge image"
   },
+  "imageOpenNamed": {
+    "message": "Enlarge image: $1"
+  },
   "widthCustomItem": {
     "message": "Custom: $1 px"
   },

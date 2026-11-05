@@ -305,7 +305,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       // 鍵盤也能放大：Tab 移到圖片，Enter 或空白鍵
       img.tabIndex = 0
       img.setAttribute('role', 'button')
-      img.setAttribute('aria-label', img.alt ? `${MarkLens.t('imageOpen')}：${img.alt}` : MarkLens.t('imageOpen'))
+      img.setAttribute('aria-label', img.alt ? MarkLens.t('imageOpenNamed', img.alt) : MarkLens.t('imageOpen'))
       img.addEventListener('click', () => openViewer(img.currentSrc || img.src, img.alt))
       img.addEventListener('keydown', e => {
         if (e.key !== 'Enter' && e.key !== ' ') return

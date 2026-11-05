@@ -353,6 +353,7 @@ try {
     await page.keyboard.press('Escape')
     assert.equal(await visible(page, '.ml-viewer.open'), false)
     assert.equal(await page.evaluate(() => document.activeElement.classList.contains('ml-zoomable')), true)
+    assert.equal(await page.getAttribute('img[alt="示意圖"]', 'aria-label'), '放大圖片：示意圖')
   })
   await check('原始文字：快捷鍵 r 來回切換', async () => {
     await page.keyboard.press('r')
@@ -1996,6 +1997,7 @@ try {
       const tools = (await ep.locator('.ml-toolbar').innerText()).replace(/\s+/g, ' ')
       assert.ok(tools.includes('Fold all') && tools.includes('Unfold all') && tools.includes('Theme: Auto'), tools)
       assert.match(await ep.textContent('.ml-toc-stats'), /^About [\d,]+ words · \d+ min$/)
+      assert.equal(await ep.getAttribute('img[alt="示意圖"]', 'aria-label'), 'Enlarge image: 示意圖')
       const pp = await enCtx.newPage()
       await pp.goto(`chrome-extension://${enSw.url().split('/')[2]}/src/popup/popup.html`)
       await pp.waitForFunction(() => document.body.textContent.includes('Layout defaults'), null, { timeout: 3000 })

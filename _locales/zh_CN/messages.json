@@ -645,6 +645,9 @@
   "imageOpen": {
     "message": "放大图片"
   },
+  "imageOpenNamed": {
+    "message": "放大图片：$1"
+  },
   "widthCustomItem": {
     "message": "自定义：$1 px"
   },

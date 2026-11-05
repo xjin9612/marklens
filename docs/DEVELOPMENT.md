@@ -41,6 +41,7 @@ src/
   shared/settings.js     設定預設值與存取（三端共用）
   shared/i18n.js         介面文字（內容在 _locales/）
   shared/roots.js        已授權資料夾（僅擴充功能內部使用）
+  shared/hash.js         原文的 SHA-256（閱讀頁與 background 共用，勾選寫回時比對）
   shared/tokens.css      閱讀頁與擴充功能頁面共用的設計變數（色彩、字型、動態）
   shared/theme.js        讓 popup、引導頁、授權頁套用主題設定
   grant/                 資料夾授權頁

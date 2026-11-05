@@ -1,6 +1,6 @@
 'use strict'
 // Service worker：content script 無權或不該自己做的事（讀本機檔案與資料夾、寫回任務、讀擴充功能內的檔案），以及快捷鍵與設定同步
-importScripts('/src/shared/settings.js', '/src/shared/i18n.js', '/src/shared/roots.js')
+importScripts('/src/shared/settings.js', '/src/shared/i18n.js', '/src/shared/roots.js', '/src/shared/hash.js')
 
 // 首次安裝：開啟引導頁（說明如何開啟「允許存取檔案網址」）；更新時不打擾
 chrome.runtime.onInstalled.addListener(({ reason }) => {
@@ -217,11 +217,6 @@ const ASSET_RE = /^(?:src\/shared\/tokens\.css|src\/content\/content\.css|vendor
 // 任務清單行：可有引用前綴（>）、縮排，無序（- * +）或有序（1. 1)）清單，後接 [ ] / [x]
 const TASK_LINE_RE = /^((?:[ \t]*>[ \t]?)*[ \t]*(?:[-*+]|\d{1,9}[.)])[ \t]+\[)([ xX])(\])/
 
-async function sha256(text) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
-  return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('')
-}
-
 /**
  * 切換原文第 line 行（0 起算）的勾選狀態
  * @param {{line:number, from:' '|'x', to:' '|'x', hash:string}} msg
@@ -279,7 +274,7 @@ async function toggleTask(msg, sender) {
   }
 
   // 檔案已被其他地方修改（例如編輯器剛存檔）：不寫入，回傳最新內容讓頁面更新
-  if ((await sha256(text)) !== msg.hash) return { status: 'conflict', text }
+  if ((await MarkLens.sha256(text)) !== msg.hash) return { status: 'conflict', text }
 
   // 保留每行原本的換行字元（LF / CRLF）
   const lines = text.split(/(?<=\n)/)
@@ -290,7 +285,7 @@ async function toggleTask(msg, sender) {
   lines[msg.line] = m[1] + msg.to + m[3] + line.slice(m[0].length)
   const updated = lines.join('')
   const writable = await found.file.createWritable()
-  await writable.write((hasBom ? '﻿' : '') + updated)
+  await writable.write((hasBom ? '\uFEFF' : '') + updated)
   await writable.close()
   return { status: 'ok', text: updated, path: found.path }
 }
