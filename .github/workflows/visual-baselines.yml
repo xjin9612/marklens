@@ -36,10 +36,23 @@ jobs:
       - name: 安裝相依套件
         run: npm ci
 
+      # Chromium 與中日韓字型（52 MB）存進快取：Ubuntu 套件鏡像站常常很慢，命中時字型直接以 dpkg 安裝
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cache/ms-playwright
+            ~/apt-fonts
+          key: browser-deps-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       - name: 安裝 Chromium 與中日韓字型
+        timeout-minutes: 10 # 第一次建立快取時字型仍要從鏡像站下載
         run: |
           npx playwright install --with-deps chromium
-          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+          if ! ls ~/apt-fonts/*.deb >/dev/null 2>&1; then
+            mkdir -p ~/apt-fonts
+            (cd ~/apt-fonts && apt-get download fonts-noto-cjk)
+          fi
+          sudo dpkg -i ~/apt-fonts/*.deb
 
       - name: 產生基準圖
         run: node test/visual.mjs --update
