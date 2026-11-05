@@ -1,9 +1,18 @@
 # Linux 視覺基準圖：在 CI 的 Ubuntu 環境重新產生 test/visual/linux，以 artifact 下載後提交
-# 手動觸發：Actions → Visual baselines → Run workflow（或 gh workflow run visual-baselines.yml --ref <分支>）
+# PR 改到畫面相關的檔案時自動執行；手動觸發要等這個檔案已在預設分支上（GitHub 的限制）
 name: Visual baselines
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/**'
+      - '_locales/**'
+      - 'vendor/**'
+      - 'manifest.json'
+      - 'test/visual.mjs'
+      - 'test/fixtures/**'
+      - '.github/workflows/visual-baselines.yml'
 
 permissions:
   contents: read
