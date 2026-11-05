@@ -10,6 +10,8 @@ on:
       - '_locales/**'
       - 'vendor/**'
       - 'manifest.json'
+      - 'package.json' # Playwright 升版會換 Chromium，畫面可能不同
+      - 'package-lock.json'
       - 'test/visual.mjs'
       - 'test/fixtures/**'
       - '.github/workflows/visual-baselines.yml'
