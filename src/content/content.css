@@ -587,7 +587,9 @@ html.marklens .ml-table-bar {
   align-items: center;
   gap: 4px;
   padding: 3px;
-  border-radius: 8px 8px 0 0;
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: var(--ml-radius-md) var(--ml-radius-md) 0 0;
   background: var(--bg);
   font: 12px var(--ml-font);
   opacity: 0;
@@ -690,7 +692,7 @@ html.marklens .markdown-body > .ml-table.ml-table-full {
   background: var(--bg);
 }
 html.marklens .ml-table-full .ml-table-inner { display: flex; flex-direction: column; flex: 1; min-height: 0; width: auto; }
-html.marklens .ml-table-full .ml-table-bar { position: static; opacity: 1; pointer-events: auto; justify-content: flex-end; margin-bottom: 8px; }
+html.marklens .ml-table-full .ml-table-bar { position: static; opacity: 1; pointer-events: auto; justify-content: flex-end; margin-bottom: 8px; border: 0; }
 html.marklens .ml-table-full .ml-table-scroll { flex: 1; overflow: auto; }
 html.marklens .ml-table-full thead th { position: sticky; top: 0; z-index: 2; }
 
