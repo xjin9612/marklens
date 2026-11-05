@@ -232,6 +232,11 @@ async function sha256(text) {
 async function toggleTask(msg, sender) {
   const url = (sender.url || '').split('#')[0]
   if (!url.startsWith('file:')) return { status: 'unsupported' }
+  // to 會原樣寫進檔案：只接受勾選框的兩種狀態與非負整數行號
+  const STATES = [' ', 'x']
+  if (!Number.isInteger(msg.line) || msg.line < 0 || !STATES.includes(msg.from) || !STATES.includes(msg.to) || typeof msg.hash !== 'string') {
+    return { status: 'error', error: 'invalid message' }
+  }
 
   const candidates = await MarkLens.Roots.locate(url)
   if (!candidates.length) return { status: 'no-root' }

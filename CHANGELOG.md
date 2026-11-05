@@ -35,6 +35,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - The toolbar buttons no longer jump sideways when **Top** appears: it keeps its place and only fades in after scrolling. It is also hidden when a document opens at the top, instead of showing until the first scroll
 - The outline highlighted an earlier section when the last, short sections couldn't scroll to the top of the window: after jumping to a heading from the outline or a `#link`, that heading stays highlighted, and at the end of the document the last heading on screen is highlighted
 
+### Security
+- Saving a checked task accepts only a valid line number and the two checkbox states
+
 ## [1.5.0] - 2026-11-02
 
 ### Added

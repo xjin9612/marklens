@@ -1881,6 +1881,15 @@ try {
     await g.close()
   })
   await tp.close()
+  await check('勾選寫回：背景程式拒絕不合法的行號與勾選狀態，不會寫入檔案', async () => {
+    const base = { line: 0, from: ' ', to: 'x', hash: '' }
+    const bad = [{ to: '<script>' }, { from: 'y' }, { line: -1 }, { line: 1.5 }, { line: '0' }, { hash: 1 }]
+    const results = await sw.evaluate(
+      ([base, bad, url]) => Promise.all(bad.map(b => toggleTask({ ...base, ...b }, { url }))),
+      [base, bad, pathToFileURL(localMd).href],
+    )
+    for (const r of results) assert.deepEqual(r, { status: 'error', error: 'invalid message' })
+  })
   await check('勾選寫回過程沒有 JS 錯誤', async () => {
     assert.deepEqual(errors.filter(e => !e.includes('ERR_FILE_NOT_FOUND') && !e.includes('404')), [])
   })
