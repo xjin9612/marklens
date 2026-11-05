@@ -27,8 +27,17 @@ Inspired by [md-reader 2.x](https://github.com/md-reader/md-reader) (MIT); rewri
 | Code | highlight.js syntax highlighting (common languages), language label, copy button, per-block wrap toggle |
 | Images | Lazy loading, click to zoom (Esc to close) |
 | Theme | System / light / dark |
+| Check off tasks | Click a task-list checkbox in a local file to save `[ ]` / `[x]` straight back to the file — no editor needed. Works in nested lists, ordered lists and blockquotes; checkboxes inside code blocks are never touched. Undo from the toast; refuses to write if the file changed elsewhere; keeps CRLF and BOM. Requires authorizing a folder once (see below) |
 | Live reload | Local files are checked every second and re-rendered only when changed — scroll position, folds, and table sort / widths / filters are preserved |
 | Misc | Remembers reading position per file, print stylesheet, relative `.md` links open in the reader |
+
+### Checking off tasks in local files
+
+1. Click any checkbox in a local `.md` file. The first time, MarkLens asks you to authorize the folder: pick a top-level folder such as `D:\Projects` and every `.md` under it becomes writable.
+2. After that, a click saves the change immediately; use **Undo** on the toast to revert.
+3. After Chrome restarts, you may be asked to confirm access again. Choose **Allow on every visit** in Chrome's prompt to skip this.
+
+Folder access is held by the extension itself (in its own storage, under its own origin). Ordinary web pages — including local HTML files — cannot reach it. Manage folders from the popup → **管理授權資料夾** (Manage folders).
 
 ### Per-tab vs. global settings
 
@@ -61,6 +70,7 @@ Browser-level (change them at `chrome://extensions/shortcuts`):
 - **Allow-list HTML sanitizer** (`src/content/sanitize.js`): keeps common tags such as `<details>`, `<kbd>` and tables; drops `<script>`, `<iframe>`, `<svg>`, every event-handler attribute, `style` (except table alignment), and `javascript:` / non-image `data:` URLs.
 - **Minimal permissions**: only `storage`. Content scripts match Markdown file extensions only — no "read all sites" permission.
 - **Local file reads** go through the background worker, which only reads the URL of the page that asked.
+- **Writes** happen only when you click a task checkbox: the background worker changes that single line after checking that the file still matches what the page shows. Which lines are writable is decided by the Markdown parser with a per-render random nonce, so HTML inside a document cannot fake a writable checkbox.
 - **No remote code**: third-party libraries are pinned in `vendor/`; nothing is fetched or auto-updated at runtime.
 
 ## Project layout
@@ -70,6 +80,8 @@ manifest.json
 src/
   background.js          shortcuts, local file reads
   shared/settings.js     settings defaults and storage (shared by all contexts)
+  shared/roots.js        authorized folders (extension origin only)
+  grant/                 folder authorization page
   content/
     util.js              helpers, reading the page source
     fonts.js             CJK/ASCII width alignment for code blocks
@@ -78,7 +90,7 @@ src/
     enhance.js           heading anchors & folding, inline grouping, task lists, code blocks, images, stats
     table.js             column resize, sorting, filter, copy, fullscreen, state save/restore
     toc.js               sidebar outline
-    main.js              entry point: layout, toolbar, shortcuts, per-tab state, live reload
+    main.js              entry point: layout, toolbar, shortcuts, per-tab state, live reload, task write-back
     content.css          all styles (scoped under html.marklens)
   popup/                 settings popup
 vendor/                  third-party libraries (versions in VERSIONS.md, licenses in licenses/)
@@ -129,13 +141,13 @@ The suite loads the extension into Chromium and opens local and http fixtures (`
 - Tables: sorting (numbers / bytes / dates), column resize, filter, state kept across live reload
 - Folding: fold / unfold all, Ctrl+F reveal, outline markers
 - Tabs: outline and width stay per tab, appearance syncs live, new tabs use updated defaults
+- Task write-back: correct line (with front matter), blockquote and ordered lists, undo, conflict detection, CRLF and BOM preserved, unauthorized folder, feature off. Folder access is simulated with the browser's private file system (OPFS); the folder picker itself has to be tested by hand
 - Popup settings
 
 Screenshots go to the directory in the `SHOT_DIR` environment variable (system temp by default).
 
 ## Roadmap
 
-- **Check off tasks in place**: toggle task-list checkboxes on the reading page and save back to the file (validated: folder access is held by the extension itself, out of reach of local web pages)
 - **Mermaid**, loaded only when a document contains a mermaid block
 - **Large files**: defer off-screen rendering and highlight code lazily for documents over 1 MB
 

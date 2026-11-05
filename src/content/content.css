@@ -566,3 +566,42 @@ html.marklens .ml-viewer img { max-width: 95vw; max-height: 95vh; object-fit: co
   html.marklens .ml-table-scroll { overflow: visible; }
   html.marklens .markdown-body pre { white-space: pre-wrap; word-break: break-all; }
 }
+
+/* ---------- 任務勾選寫回 ---------- */
+html.marklens .markdown-body input.ml-task-box:not(:disabled) { cursor: pointer; }
+html.marklens .markdown-body input.ml-task-box.ml-busy { opacity: .4; cursor: progress; }
+
+/* ---------- 提示 ---------- */
+html.marklens .ml-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(90vw, 640px);
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--fg);
+  color: var(--bg);
+  font: 13px/1.4 var(--ml-font);
+  box-shadow: var(--shadow);
+  transform: translate(-50%, 20px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s, transform .15s;
+}
+html.marklens .ml-toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+html.marklens .ml-toast-btn {
+  padding: 2px 8px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+@media print { html.marklens .ml-toast { display: none !important; } }

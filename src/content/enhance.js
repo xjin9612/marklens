@@ -171,7 +171,11 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     return n
   }
 
-  MarkLens.processTaskLists = function (article) {
+  /**
+   * @param {string} nonce markdown-it 建立時產生的 nonce；帶有對應 class 的項目才知道原文行號，才可能寫回
+   */
+  MarkLens.processTaskLists = function (article, nonce) {
+    const lineRe = nonce ? new RegExp(`(?:^|\\s)ml-task-${nonce}-(\\d+)(?:\\s|$)`) : null
     for (const li of article.querySelectorAll('li')) {
       // 標記可能直接在 li 開頭（緊湊清單），或在 li > p 開頭（鬆散清單）
       let first = firstMeaningful(li)
@@ -180,10 +184,22 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       const m = TASK_RE.exec(first.textContent.replace(/^\s+/, ''))
       if (!m) continue
       first.textContent = first.textContent.replace(/^\s+/, '').slice(m[0].length)
-      const box = h('input', { type: 'checkbox', disabled: true, checked: m[1] !== ' ' })
+      const box = h('input', { type: 'checkbox', class: 'ml-task-box', disabled: true, checked: m[1] !== ' ' })
+      const lm = lineRe && lineRe.exec(li.className)
+      if (lm) {
+        box.dataset.mlLine = lm[1]
+        box.dataset.mlState = m[1] === ' ' ? ' ' : 'x'
+      }
       first.before(box, ' ')
       li.classList.add('task-list-item')
       li.parentElement.classList.add('contains-task-list')
+    }
+    // 行號只需記在勾選框上，移除清單項目上的暫用 class
+    if (nonce) {
+      for (const li of article.querySelectorAll(`li[class*="ml-task-${nonce}-"]`)) {
+        li.className = li.className.replace(new RegExp(`\\s*ml-task-${nonce}-\\d+`), '').trim()
+        if (!li.className) li.removeAttribute('class')
+      }
     }
   }
 

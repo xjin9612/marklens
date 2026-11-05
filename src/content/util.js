@@ -107,3 +107,42 @@ MarkLens.fetchSource = async function () {
     .then(r => (r.ok ? r.text() : null))
     .catch(() => null)
 }
+
+/** 文字的 SHA-256（十六進位），用來與背景程式比對原文是否一致 */
+MarkLens.sha256 = async function (text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
+  return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('')
+}
+
+/**
+ * 頁面底部的短暫提示，可附操作按鈕；同時只顯示一則
+ * @param {string} text
+ * @param {Array<{label:string, fn:Function}>} [actions]
+ * @param {number} [ms]
+ */
+MarkLens.toast = function (text, actions = [], ms = 5000) {
+  let el = document.querySelector('.ml-toast')
+  if (!el) {
+    el = MarkLens.h('div', { class: 'ml-toast', attrs: { role: 'status' } })
+    document.body.append(el)
+  }
+  el.textContent = ''
+  el.append(MarkLens.h('span', { text }))
+  for (const a of actions) {
+    el.append(
+      MarkLens.h('button', {
+        class: 'ml-toast-btn',
+        text: a.label,
+        on: {
+          click: () => {
+            el.classList.remove('show')
+            a.fn()
+          },
+        },
+      }),
+    )
+  }
+  el.classList.add('show')
+  clearTimeout(MarkLens.toast.timer)
+  MarkLens.toast.timer = setTimeout(() => el.classList.remove('show'), ms)
+}

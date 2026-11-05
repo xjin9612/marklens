@@ -64,6 +64,9 @@
   $('#open-details').addEventListener('click', () => {
     chrome.tabs.create({ url: `chrome://extensions/?id=${chrome.runtime.id}` })
   })
+  $('#manage-roots').addEventListener('click', () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('src/grant/grant.html') })
+  })
   $('#shortcuts').addEventListener('click', () => {
     chrome.tabs.create({ url: 'chrome://extensions/shortcuts' })
   })
