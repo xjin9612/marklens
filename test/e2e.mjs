@@ -1993,6 +1993,11 @@ try {
     await page.waitForSelector('.ml-orphan', { timeout: 8000 })
     await page.waitForTimeout(800)
     assert.deepEqual(errors.slice(before), [])
+    const wrap = page.locator('.ml-table').first()
+    await wrap.hover()
+    await wrap.locator('.ml-table-bar button').last().click()
+    assert.equal(await wrap.locator('.ml-table-bar button').last().textContent(), '離開全螢幕', '失聯後才用到的文字應是翻譯而不是 key')
+    assert.match(await wrap.locator('.ml-table-title').textContent(), / · \d+ 列$/, '失聯後才用到的文字應是翻譯而不是 key')
   })
 } finally {
   console.log(results.join('\n'))

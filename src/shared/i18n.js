@@ -6,10 +6,10 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 ;(() => {
   MarkLens.UI_LANGS = ['en', 'zh_TW', 'zh_CN'] // 與 _locales/ 的資料夾一致
 
-  // 不帶參數的訊息會快取：擴充功能被重新載入後，舊分頁的 chrome.* 會失效，快取讓已用過的文字仍可顯示
+  // 擴充功能更新或重新載入後，舊分頁的 chrome.* 會失效：開頁時就載入整份語系檔（dict），之後才用到的文字也能顯示
   const cache = new Map()
-  let dict = null // 指定語言時的訊息表 { key: { message } }
-  let lang = null
+  let dict = null // 目前語系的訊息表 { key: { message } }
+  let lang = null // 使用者指定的語言；跟隨瀏覽器時為 null
 
   /** 依 Chrome 規則替換：$1…$9 為參數，$$ 為 $ 字元 */
   function format(message, subs) {
@@ -39,10 +39,20 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     cache.clear()
     dict = null
     lang = null
-    if (!MarkLens.UI_LANGS.includes(setting)) return
+    const chosen = MarkLens.UI_LANGS.includes(setting)
+    let code = setting
+    if (!chosen) {
+      // 跟隨瀏覽器：localeCode 是各語系檔自己的資料夾名稱，可知道 Chrome 選了哪一個
+      try {
+        code = chrome.i18n.getMessage('localeCode')
+      } catch {
+        return
+      }
+      if (!MarkLens.UI_LANGS.includes(code)) return
+    }
     try {
-      dict = await readMessages(setting)
-      lang = setting
+      dict = await readMessages(code)
+      if (chosen) lang = code
     } catch {
       // 讀不到就退回瀏覽器語言
     }

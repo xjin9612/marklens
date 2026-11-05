@@ -1,4 +1,8 @@
 {
+  "localeCode": {
+    "message": "zh_CN",
+    "description": "Name of this locale folder, read by the extension to load the whole file. Do not translate."
+  },
   "extName": {
     "message": "MarkLens – Markdown 阅读器"
   },
