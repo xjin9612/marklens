@@ -7,7 +7,8 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
   if (reason === 'install') chrome.tabs.create({ url: chrome.runtime.getURL('src/welcome/welcome.html') })
 })
 
-chrome.commands.onCommand.addListener(async (command, tab) => {
+/** 瀏覽器快捷鍵（manifest 的 commands）；具名函式方便測試直接呼叫 */
+async function onCommand(command, tab) {
   if (command === 'cycle-theme') {
     // 主題是全域設定，所有分頁同步
     const s = await MarkLens.loadSettings()
@@ -15,8 +16,9 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
     return
   }
   // 其餘指令只作用於目前分頁
-  if (tab?.id != null) chrome.tabs.sendMessage(tab.id, { type: 'command', name: command }).catch(() => {})
-})
+  if (tab?.id != null) await chrome.tabs.sendMessage(tab.id, { type: 'command', name: command }).catch(() => {})
+}
+chrome.commands.onCommand.addListener(onCommand)
 
 chrome.runtime.onMessage.addListener((msg, sender, reply) => {
   if (sender.id !== chrome.runtime.id) return

@@ -233,7 +233,6 @@ html.marklens .ml-side-search {
   background: var(--bg);
   color: var(--muted);
 }
-html.marklens .ml-side-search[hidden] { display: none; }
 html.marklens .ml-toc-search {
   flex: 1;
   min-width: 0;
@@ -276,7 +275,6 @@ html.marklens .ml-files-up {
 html.marklens .ml-files-up:hover:not(:disabled) { background: var(--hover); color: var(--fg); }
 html.marklens .ml-files-up:disabled { opacity: .35; cursor: default; }
 html.marklens .ml-files-summary { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-html.marklens .ml-files[hidden], html.marklens .ml-toc-nav[hidden] { display: none; }
 html.marklens .ml-files-list { list-style: none; margin: 0; padding: 0; }
 html.marklens .ml-files-list li { --indent: calc(var(--depth, 0) * 14px + 8px); }
 html.marklens .ml-files-dir,
