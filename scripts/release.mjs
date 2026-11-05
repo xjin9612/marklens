@@ -30,7 +30,7 @@ function parseTag(tag) {
 /** 取出 CHANGELOG 中 ## [version] 到下一個 ## [ 之間的內容 */
 function changelogSection(version) {
   const text = readFileSync(join(root, 'CHANGELOG.md'), 'utf8').replace(/\r\n/g, '\n')
-  const escaped = version.replace(/\./g, '\\.')
+  const escaped = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const m = new RegExp(`^## \\[${escaped}\\][^\\n]*\\n([\\s\\S]*?)(?=^## \\[|(?![\\s\\S]))`, 'm').exec(text)
   if (!m) return null
   // 最後一個版本段落之後是檔案底部的連結定義（[1.0.0]: https://…），不屬於說明內容
