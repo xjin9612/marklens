@@ -77,7 +77,8 @@ docs/
   demo.md、demo.zh-TW.md 截圖用的示範文件
   screenshots/           README 用的示範動畫（*.gif）與截圖（<語系>/）
   store/                 商店截圖、宣傳圖、示範表格與送審資料（listing.md）
-.github/workflows/       自動測試（ci.yml）與自動發布（release.yml）
+.github/workflows/       自動測試（ci.yml）、自動發布（release.yml）、Linux 視覺基準圖（visual-baselines.yml）
+.github/dependabot.yml   每月更新 Actions 與 npm 開發套件
 test/
   e2e.mjs                端對端測試
   visual.mjs             視覺回歸測試
@@ -131,6 +132,23 @@ flowchart LR
 ## 升級第三方程式庫
 
 修改 `scripts/vendor.mjs` 的版本表，再執行 `npm run vendor`。版本記錄在 `vendor/VERSIONS.md`，授權檔在 `vendor/licenses/`。
+
+## 供應鏈
+
+| 檢查 | 位置 | 內容 |
+|---|---|---|
+| 重現 vendor | `ci.yml` 的 `vendor` job | 重新執行 `vendor.mjs`，`vendor/` 有任何差異就失敗 |
+| 套件簽章 | `ci.yml` 的 `e2e` job | `npm audit signatures` 驗證開發套件的 registry 簽章 |
+| Actions 釘選 | 所有 workflow | 以 commit SHA 引用，註解標示版本 |
+| 自動更新 | `.github/dependabot.yml` | 每月為 Actions 與 npm 開 PR，新版滿 7 天才提議 |
+| 建置來源證明 | `release.yml` | Release 的 zip 附 GitHub 的 build provenance |
+
+- 重現 vendor 證明 repo 中的檔案等於 npm 上的官方套件，加上 `vendor.mjs` 寫明的轉換。`npm pack` 下載時會比對 registry 的雜湊。
+- Dependabot 不追蹤 `vendor/` 的程式庫，它們不在 `package.json`。升級照上一節手動執行。
+- 驗證 Release 的 zip：
+  ```bash
+  gh attestation verify marklens-vX.Y.Z-store.zip --repo xjin9612/marklens
+  ```
 
 ## 測試
 
@@ -253,7 +271,8 @@ chrome.exe --remote-debugging-port=9222 --user-data-dir="$env:TEMP\marklens-cdp"
 1. 確認標籤、`manifest.json`、`package.json`、`CHANGELOG.md` 的版本一致。
 2. 確認名稱與說明符合商店的長度上限。
 3. 跑測試，打包擴充功能的檔案。
-4. 以該版 CHANGELOG 段落為說明，發布 GitHub Release，附兩個 zip：
+4. 為兩個 zip 產生建置來源證明。
+5. 以該版 CHANGELOG 段落為說明，發布 GitHub Release，附兩個 zip：
    - `marklens-vX.Y.Z.zip`：內含 `marklens-vX.Y.Z/` 資料夾，供「載入未封裝項目」使用
    - `marklens-vX.Y.Z-store.zip`：`manifest.json` 位於根目錄，上傳 Chrome Web Store 與 Edge Add-ons 用
 

@@ -31,6 +31,10 @@ jobs:
       - name: 安裝相依套件
         run: npm ci
 
+      # 相依套件都要有 npm registry 的簽章，有來源證明的一併驗證
+      - name: 驗證相依套件簽章
+        run: npm audit signatures
+
       # 框線字元表格對齊的測試需要中日韓字型，GitHub 的 Linux 機器預設沒有
       - name: 安裝 Chromium 與中日韓字型
         run: |
@@ -51,3 +55,26 @@ jobs:
           name: screenshots
           path: ${{ runner.temp }}/shots
           if-no-files-found: ignore
+
+  # vendor/ 的每個檔案都要能由 npm 上的官方套件加上 vendor.mjs 的轉換重現（npm pack 會比對 registry 的雜湊）
+  vendor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: 重現第三方程式庫
+        run: |
+          node scripts/vendor.mjs
+          changed=$(git status --porcelain -- vendor)
+          if [ -n "$changed" ]; then
+            echo "::error::vendor/ 與官方套件重新產生的結果不同"
+            echo "$changed"
+            exit 1
+          fi
