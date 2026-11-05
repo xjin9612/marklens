@@ -1370,6 +1370,28 @@ try {
     }
   })
 
+  await check('擴充語法：容器區塊套用提示框樣式、details 可摺疊、定義清單', async () => {
+    const ep = await openDoc(pathToFileURL(join(root, 'test/fixtures/extended.md')).href)
+    try {
+      const alerts = await ep.$$eval('.markdown-body blockquote.markdown-alert', els =>
+        els.map(el => [el.className.replace('markdown-alert ', ''), el.querySelector('.markdown-alert-title')?.textContent]),
+      )
+      assert.deepEqual(alerts, [
+        ['markdown-alert-tip', 'Tip'],
+        ['markdown-alert-warning', '自訂標題'],
+        ['markdown-alert-caution', 'Caution'],
+        ['markdown-alert-note', '方括號標題'],
+      ])
+      assert.equal(await ep.locator('blockquote.markdown-alert-warning li').count(), 1, '容器內的 Markdown 照常解析')
+      assert.equal(await ep.textContent('.markdown-body details > summary'), '點我展開')
+      assert.equal(await ep.locator('.markdown-body details[open]').count(), 0, 'details 預設收合')
+      assert.ok((await ep.textContent('.markdown-body')).includes('::: unknown'), '未知的容器保留原文')
+      assert.deepEqual(await ep.$$eval('.markdown-body dl > *', els => els.map(el => el.tagName)), ['DT', 'DD', 'DT', 'DD', 'DD'])
+    } finally {
+      await ep.close()
+    }
+  })
+
   await check('複製 Markdown：整份文件的原文，以及單一章節（到下一個同級標題為止）', async () => {
     await ctx.grantPermissions(['clipboard-read', 'clipboard-write'])
     const cp = await openDoc()

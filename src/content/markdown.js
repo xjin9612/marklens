@@ -95,6 +95,34 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     })
   }
 
+  /* ---------- 容器區塊：::: tip 標題（VitePress、VuePress），:::note 或 :::tip[標題]（Docusaurus） ---------- */
+  // 提示類容器沿用 GitHub Alert 的樣式；::: details 轉成可摺疊的 <details>
+  const CONTAINER_KIND = { note: 'note', info: 'note', tip: 'tip', important: 'important', warning: 'warning', caution: 'caution', danger: 'caution' }
+  const CONTAINER_RE = /^([a-z]+)(?:\[([^\]]*)\])?(?:\s+(.*))?$/i
+
+  function parseContainer(info) {
+    const m = CONTAINER_RE.exec(info.trim())
+    return m && { name: m[1].toLowerCase(), title: (m[2] ?? m[3] ?? '').trim() }
+  }
+
+  function containerPlugin(md) {
+    if (!globalThis.markdownitContainer) return
+    const esc = md.utils.escapeHtml
+    for (const name of [...Object.keys(CONTAINER_KIND), 'details']) {
+      md.use(globalThis.markdownitContainer, name, {
+        validate: info => parseContainer(info)?.name === name,
+        render(tokens, i) {
+          const close = name === 'details' ? '</details>\n' : '</blockquote>\n'
+          if (tokens[i].nesting === -1) return close
+          const { title } = parseContainer(tokens[i].info)
+          if (name === 'details') return `<details><summary>${esc(title || 'Details')}</summary>\n`
+          const head = title ? `<p class="markdown-alert-title">${esc(title)}</p>\n` : ''
+          return `<blockquote class="markdown-alert markdown-alert-${CONTAINER_KIND[name]}">\n${head}`
+        },
+      })
+    }
+  }
+
   /* ---------- highlight.js ---------- */
   function highlight(md) {
     return (code, info) => {
@@ -286,6 +314,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     if (globalThis.markdownitFootnote) md.use(globalThis.markdownitFootnote)
     // GitHub 短碼（:tada: → 🎉）；關閉 :) 之類的表情符號自動轉換，技術文件常有冒號與括號連用
     if (globalThis.markdownitEmoji) md.use(globalThis.markdownitEmoji, { shortcuts: {} })
+    if (globalThis.markdownitDeflist) md.use(globalThis.markdownitDeflist)
+    md.use(containerPlugin)
     md.use(markPlugin)
     md.use(alertPlugin)
     md.use(gfmAutolinkPlugin)

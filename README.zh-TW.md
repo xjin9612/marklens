@@ -83,6 +83,7 @@
 **Markdown**
 - CommonMark 與 GitHub Flavored Markdown：表格、任務清單、腳註、自動連結
 - GitHub 提示框（`> [!NOTE]`）、`==螢光標記==`、Emoji 短碼（`:tada:`）、可收合的 front matter
+- 文件網站的容器區塊（`::: tip`、`::: warning`、`::: details`、Docusaurus 的 `:::note`）與定義清單
 - 程式碼語法高亮，附語言標籤、複製按鈕與換行切換
 - KaTeX 數學公式（`$…$`、`$$…$$`、`` $`…`$ ``、` ```math `），網頁上也能繪製
 - Mermaid 圖表；圖表跟隨主題，也能切回原始碼

@@ -321,6 +321,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     for (const bq of article.querySelectorAll('blockquote.markdown-alert')) {
       const kind = (bq.className.match(/markdown-alert-(\w+)/) || [])[1]
       if (!kind || !ALERT_TITLE[kind]) continue
+      if (bq.firstElementChild?.classList.contains('markdown-alert-title')) continue // 容器區塊自訂的標題
       bq.prepend(h('p', { class: 'markdown-alert-title', text: ALERT_TITLE[kind] }))
     }
   }

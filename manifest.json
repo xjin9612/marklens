@@ -113,6 +113,8 @@
         "vendor/markdown-it.min.js",
         "vendor/markdown-it-footnote.min.js",
         "vendor/markdown-it-emoji.min.js",
+        "vendor/markdown-it-container.min.js",
+        "vendor/markdown-it-deflist.min.js",
         "vendor/highlight.min.js",
         "src/shared/settings.js",
         "src/shared/i18n.js",

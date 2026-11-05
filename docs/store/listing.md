@@ -53,6 +53,7 @@ READ AND NAVIGATE
 
 MARKDOWN SUPPORT
 • CommonMark and GitHub Flavored Markdown: tables, task lists, footnotes, GitHub alerts (> [!NOTE]), emoji shortcodes, ==highlight==
+• Containers from docs sites (::: tip, ::: details, Docusaurus :::note) and definition lists
 • Syntax highlighting with a copy button for code blocks
 • KaTeX math and Mermaid diagrams, in local files and on web pages
 • Box-drawing tables in code blocks stay aligned with Chinese, Japanese and Korean text
@@ -99,6 +100,7 @@ MarkLens 把你在瀏覽器中開啟的 Markdown 檔案變成清楚好讀的頁�
 
 Markdown 支援
 • CommonMark 與 GitHub Flavored Markdown：表格、任務清單、腳註、GitHub 提示框（> [!NOTE]）、Emoji 短碼、==螢光標記==
+• 文件網站的容器區塊（::: tip、::: details、Docusaurus 的 :::note）與定義清單
 • 程式碼語法高亮，附複製按鈕
 • KaTeX 數學公式與 Mermaid 圖表，本機檔案與網頁上都能繪製
 • 程式碼區塊中的框線字元表格，中日韓文字也能對齊
@@ -147,6 +149,7 @@ MarkLens 把你在浏览器中打开的 Markdown 文件变成清晰易读的页�
 
 Markdown 支持
 • CommonMark 与 GitHub Flavored Markdown：表格、任务清单、脚注、GitHub 提示框（> [!NOTE]）、Emoji 短码、==高亮标记==
+• 文档网站的容器块（::: tip、::: details、Docusaurus 的 :::note）与定义列表
 • 代码语法高亮，附复制按钮
 • KaTeX 数学公式与 Mermaid 图表，本机文件与网页上都能绘制
 • 代码块中的框线字符表格，中日韩文字也能对齐

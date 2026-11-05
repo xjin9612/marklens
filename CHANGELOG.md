@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Custom CSS** (popup → **Custom CSS**): your own styles on reading pages, applied live and kept in exported HTML
 - **Settings sync**: settings follow you to your other computers through your browser account; turn it off in the popup. Folder access, reading positions, the editor URL and the sidebar width stay on each computer
 - **Fullscreen** button on Mermaid diagrams: scroll to zoom around the pointer, drag to move, double-click or **Reset** to go back; **+** / **−** buttons for the keyboard; Esc to exit
+- Containers used by documentation sites: `::: tip`, `::: warning`, `::: danger` and the rest look like GitHub alerts (with an optional title), `::: details Title` folds, and Docusaurus `:::note` / `:::tip[Title]` work too. Definition lists (a term followed by `: description`) are supported
 - **Copy Markdown** in the toolbar copies the document's source, ready to paste into an AI chat; the copy button that appears next to a heading copies just that section, up to the next heading of the same or higher level
 - Toolbar buttons switch to icons only, least-used first, when their labels don't fit the window
 - Simplified Chinese interface. It follows the browser language, or pick **简体中文** in the popup → **Language**

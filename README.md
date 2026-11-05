@@ -83,6 +83,7 @@ The sidebar outline highlights the section you're reading. Fold any section, or 
 **Markdown**
 - CommonMark and GitHub Flavored Markdown: tables, task lists, footnotes, autolinks
 - GitHub alerts (`> [!NOTE]`), `==highlight==`, emoji shortcodes (`:tada:`), collapsible front matter
+- Docs-site containers (`::: tip`, `::: warning`, `::: details`, Docusaurus `:::note`) and definition lists
 - Syntax highlighting with a language label, copy button and wrap toggle
 - KaTeX math (`$…$`, `$$…$$`, `` $`…`$ ``, ` ```math `), on web pages too
 - Mermaid diagrams; they follow the theme and can be switched back to source

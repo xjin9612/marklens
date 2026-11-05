@@ -30,6 +30,20 @@ const PACKAGES = [
     files: [['dist/markdown-it-footnote.min.js', 'markdown-it-footnote.min.js']],
   },
   {
+    // 容器區塊：::: tip、::: details 等（VitePress、VuePress、Docusaurus）
+    name: 'markdown-it-container',
+    version: '4.0.0',
+    integrity: 'sha512-HaNccxUH0l7BNGYbFbjmGpf5aLHAMTinqRZQAEQbMr2cdD3z91Q6kIo1oUn1CQndkT03jat6ckrdRYuwwqLlQw==',
+    files: [['dist/markdown-it-container.min.js', 'markdown-it-container.min.js']],
+  },
+  {
+    // 定義清單：術語換行接「: 說明」
+    name: 'markdown-it-deflist',
+    version: '3.0.0',
+    integrity: 'sha512-OxPmQ/keJZwbubjiQWOvKLHwpV2wZ5I3Smc81OjhwbfJsjdRrvD5aLTQxmZzzePeO0kbGzAo3Krk4QLgA8PWLg==',
+    files: [['dist/markdown-it-deflist.min.js', 'markdown-it-deflist.min.js']],
+  },
+  {
     // GitHub 的 emoji 短碼表（:tada: → 🎉）
     name: 'markdown-it-emoji',
     version: '3.1.0',

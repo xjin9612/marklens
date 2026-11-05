@@ -4,6 +4,8 @@
 |---|---|---|
 | markdown-it | 14.3.3 | markdown-it.min.js |
 | markdown-it-footnote | 4.0.0 | markdown-it-footnote.min.js |
+| markdown-it-container | 4.0.0 | markdown-it-container.min.js |
+| markdown-it-deflist | 3.0.0 | markdown-it-deflist.min.js |
 | markdown-it-emoji | 3.1.0 | markdown-it-emoji.min.js |
 | @highlightjs/cdn-assets | 11.11.1 | highlight.min.js |
 | katex | 0.19.1 | katex/katex.mjs, katex/katex.min.css, katex/fonts |
