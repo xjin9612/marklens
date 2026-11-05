@@ -353,6 +353,36 @@
   "localOnlyTitle": {
     "message": "只在本機檔案繪製"
   },
+  "secEditor": {
+    "message": "編輯器"
+  },
+  "secEditorNote": {
+    "message": "工具列 ✎ 開啟原檔"
+  },
+  "editor": {
+    "message": "用編輯器開啟"
+  },
+  "editorNone": {
+    "message": "不使用"
+  },
+  "editorCustom": {
+    "message": "自訂網址…"
+  },
+  "editorUrl": {
+    "message": "網址範本（{path} 路徑、{line} 行號）"
+  },
+  "editorHint": {
+    "message": "瀏覽器只能開啟有註冊網址協定的編輯器；記事本、Notepad++ 沒有，因此無法支援。"
+  },
+  "editorInvalid": {
+    "message": "編輯器網址需以編輯器自己的協定開頭（例如 vscode://），並包含 {path}"
+  },
+  "toolEdit": {
+    "message": " 編輯"
+  },
+  "toolEditTitle": {
+    "message": "用編輯器開啟本檔，並跳到目前閱讀的章節"
+  },
   "secTaskWrite": {
     "message": "勾選寫回"
   },

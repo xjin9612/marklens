@@ -29,6 +29,7 @@ To upgrade, replace the folder with the new release and click the reload icon on
 | Pages | Renders `.md` `.markdown` `.mkd` `.mdx` over `http(s)://` and `file://`; only takes over when the browser shows the file as plain text |
 | Files | Local files: a **Files** tab lists the Markdown files and subfolders next to the document (folders first, natural sort); subfolders load when opened. Skipped names are configurable |
 | Toolbar | Sticky top bar: sidebar (☰), fold all, unfold all, text width, export HTML, theme, raw source / back to reading, back to top |
+| Editor | Optional ✎ button opens the local file in VS Code at the section you're reading, or in any editor that has a URL scheme (custom template with `{path}` and `{line}`). Notepad and Notepad++ can't be opened from a browser |
 | Export | Save the current view as one self-contained HTML file (styles, diagrams and math fonts embedded, sections expanded, no JavaScript) to share with people who don't have MarkLens |
 | Layout | Text column width: full / 1600 / 1200 / 960 / custom. Tables and code blocks can grow past the text column up to the page edge. Adjustable font size and line height; reading progress bar |
 | Sidebar | ☰ or `t` to show / hide. **Outline** tab: active-section highlight, heading search (`/`), depth filter, resizable width, two-line titles, folded-section markers, word count and reading time |

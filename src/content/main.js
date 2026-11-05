@@ -137,6 +137,10 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       // 窄螢幕只顯示圖示（文字部分由 CSS 隱藏）
       this.exportBtn.append('⤓', h('span', { class: 'ml-tool-label', text: t('toolExport') }))
       this.rawBtn = btn('ml-tool-raw', t('toolRaw'), t('toolRawTitle'), () => this.toggleRaw())
+      // 用編輯器開啟：設定中選了編輯器且為本機檔案才顯示
+      this.editBtn = btn('ml-tool-edit', '', t('toolEditTitle'), () => this.openInEditor())
+      this.editBtn.append('✎', h('span', { class: 'ml-tool-label', text: t('toolEdit') }))
+      this.editBtn.hidden = !(location.protocol === 'file:' && MarkLens.editorTemplate(this.settings))
       this.topBtn = btn('ml-tool-top', t('toolTop'), t('toolTopTitle'), () => scrollTo({ top: 0 }))
       return h('div', { class: 'ml-toolbar', attrs: { role: 'toolbar' } }, [
         this.tocBtn,
@@ -148,6 +152,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           this.exportBtn,
         ]),
         this.themeBtn,
+        this.editBtn,
         this.rawBtn,
         this.topBtn,
       ])
@@ -205,6 +210,13 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       MarkLens.groupInline(this.article)
       MarkLens.setFoldMode(this.article)
 
+      // 標題的原文行號（0 起算）改存到 data 屬性
+      for (const el of this.article.querySelectorAll(`[class*="ml-line-${this.md.marklensNonce}-"]`)) {
+        const cls = [...el.classList].find(c => c.startsWith('ml-line-'))
+        el.dataset.mlLine = cls.split('-').pop()
+        el.classList.remove(cls)
+        if (!el.classList.length) el.removeAttribute('class')
+      }
       const headings = MarkLens.processHeadings(this.article)
       MarkLens.processTaskLists(this.article, this.md.marklensNonce)
       this.enableTaskBoxes()
@@ -283,6 +295,18 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     cycleTheme() {
       if (!MarkLens.alive()) return
       MarkLens.saveSettings({ theme: MarkLens.nextOf(MarkLens.THEME_ORDER, this.settings.theme) }).catch(() => {})
+    }
+
+    /** 以設定的編輯器開啟目前檔案；正在閱讀某個章節時跳到該標題所在行 */
+    openInEditor() {
+      const heading = this.toc.items[this.toc.activeIndex]?.heading
+      const line = heading?.dataset.mlLine != null ? Number(heading.dataset.mlLine) + 1 : 1
+      const url = MarkLens.editorUrl(this.settings, location.href, line)
+      if (!url) return MarkLens.toast(t('editorInvalid'))
+      this.editBtn.dataset.mlHref = url // 供測試確認
+      // 自訂協定由瀏覽器詢問是否開啟外部程式，不會離開目前頁面
+      const a = h('a', { href: url })
+      a.click()
     }
 
     async exportHtml() {

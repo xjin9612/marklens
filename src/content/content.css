@@ -353,7 +353,7 @@ html.marklens.ml-wide-blocks .markdown-body > :is(.ml-table, .ml-code) {
   html.marklens .ml-body { padding: 16px 16px 80px 36px; }
   html.marklens .ml-toc-resizer { display: none; }
   html.marklens .ml-tool-width { display: none; }
-  html.marklens :is(.ml-tool-theme, .ml-tool-export) .ml-tool-label { display: none; }
+  html.marklens :is(.ml-tool-theme, .ml-tool-export, .ml-tool-edit) .ml-tool-label { display: none; }
   html.marklens .ml-toolbar { overflow-x: auto; padding: 0 4px; }
   html.marklens .ml-tool { padding: 6px 7px; }
 }

@@ -24,6 +24,8 @@ MarkLens.DEFAULTS = Object.freeze({
   rememberScroll: true,
   linkNewTab: true, // 外部 http(s) 連結在新分頁開啟
   fileIgnore: '.*, node_modules, target, dist, build', // 側邊欄檔案列表略過的名稱（逗號分隔，* 為萬用字元）
+  editor: 'none', // 用編輯器開啟：none | vscode | custom
+  editorUrl: '', // editor 為 custom 時的網址範本，{path} 為檔案路徑、{line} 為行號
   taskWrite: true, // 本機檔案的任務清單可直接勾選並存回原檔（需先授權資料夾）
   mermaid: true, // 本機檔案的 mermaid 區塊繪製成圖表
   math: true, // 本機檔案的 $…$ 數學公式以 KaTeX 繪製
@@ -59,4 +61,39 @@ MarkLens.nextOf = function (list, current) {
 
 MarkLens.widthLabel = function (w) {
   return w ? `${w}` : MarkLens.t('widthFull')
+}
+
+/* ---------- 用編輯器開啟 ---------- */
+// 只有註冊了網址協定的編輯器能從瀏覽器開啟；記事本、Notepad++ 沒有，無法支援
+MarkLens.EDITORS = {
+  vscode: 'vscode://file/{path}:{line}', // VS Code 官方文件：vscode://file/完整路徑:行:欄
+}
+
+/** 目前設定的網址範本；未設定或不合法時回傳空字串 */
+MarkLens.editorTemplate = function (settings) {
+  const tpl = settings.editor === 'custom' ? String(settings.editorUrl || '').trim() : MarkLens.EDITORS[settings.editor] || ''
+  if (!tpl.includes('{path}')) return ''
+  // 只允許編輯器自己的協定，不能是網頁、檔案或指令碼網址
+  const scheme = (/^([a-z][a-z0-9+.-]*):/i.exec(tpl) || [])[1]?.toLowerCase()
+  if (!scheme || ['http', 'https', 'file', 'javascript', 'data', 'blob', 'about', 'chrome', 'chrome-extension'].includes(scheme)) return ''
+  return tpl
+}
+
+/**
+ * 組出開啟檔案的網址
+ * @param {string} fileUrl 目前頁面的 file:// 網址
+ * @param {number} line 1 起算的行號
+ */
+MarkLens.editorUrl = function (settings, fileUrl, line = 1) {
+  const tpl = MarkLens.editorTemplate(settings)
+  if (!tpl) return ''
+  let path = new URL(fileUrl).pathname
+  try {
+    path = decodeURIComponent(path)
+  } catch {
+    // 不合法的 % 編碼：沿用原字串
+  }
+  // file:///D:/a.md 的路徑是 /D:/a.md；Windows 拿掉開頭的 /，其他系統保留在範本的 / 之後
+  path = path.replace(/^\/+/, '')
+  return tpl.replaceAll('{path}', encodeURI(path)).replaceAll('{line}', String(line))
 }
