@@ -70,6 +70,7 @@ src/
   shared/settings.js     設定預設值與存取（三端共用）
   content/
     util.js              小工具、讀取原始內容
+    fonts.js             程式碼區塊中英字寬對齊
     sanitize.js          HTML 白名單過濾
     markdown.js          markdown-it 設定、==mark==、Alert、front matter
     enhance.js           標題錨點與摺疊、行內內容歸組、任務清單、程式碼區塊、圖片、字數
@@ -83,6 +84,24 @@ scripts/vendor.mjs       升級 vendor 用的腳本
 test/                    端對端測試與測試文件
 package.json             僅供開發工具使用（測試、更新 vendor），擴充功能本身不需建置
 ```
+
+### 程式碼區塊中的罫線表格
+
+`┌─┬─┐` 這類文字圖表，要在中文剛好是英數兩倍寬時才會對齊。系統等寬字型（Consolas、Menlo…）沒有中文字，瀏覽器會改用寬度不同的中文字型，於是錯位。MarkLens 會量測實際字寬，只針對中文字元把系統中文字型等比例縮放（`@font-face` 的 `size-adjust`），不必安裝任何字型就能對齊；代價是程式碼中的中文看起來略大。想要最好看的效果，可安裝[更紗黑體（Sarasa Gothic）](https://github.com/be5invis/Sarasa-Gothic)，MarkLens 偵測到 **Sarasa Mono TC** 會自動使用。
+
+完整下載有數百 MB，但只需要其中幾個檔案：
+
+1. 到 [Releases 頁面](https://github.com/be5invis/Sarasa-Gothic/releases)，下載 **Single Family TTF Package → Mono → zip**（選 *Download*；*Unhinted* 適合高解析度螢幕與 macOS）。
+2. 解壓縮後只安裝 TC（繁體中文）的檔案：
+
+   | 檔案 | 用途 |
+   |---|---|
+   | `SarasaMonoTC-Regular.ttf` | 一般文字（必裝） |
+   | `SarasaMonoTC-Bold.ttf` | 粗體（必裝） |
+   | `SarasaMonoTC-Italic.ttf` | 程式碼註解以斜體顯示；未安裝時瀏覽器會把正體字直接斜推 |
+   | `SarasaMonoTC-BoldItalic.ttf` | 可不裝，很少用到 |
+
+3. 選取檔案 → 右鍵 →「為所有使用者安裝」，再完全重啟 Chrome。Chrome 關閉視窗後仍會在背景執行，請在網址列開啟 `chrome://restart`，而不是只關掉視窗。
 
 ## 升級第三方程式庫
 

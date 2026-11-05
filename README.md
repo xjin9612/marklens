@@ -72,6 +72,7 @@ src/
   shared/settings.js     settings defaults and storage (shared by all contexts)
   content/
     util.js              helpers, reading the page source
+    fonts.js             CJK/ASCII width alignment for code blocks
     sanitize.js          allow-list HTML sanitizer
     markdown.js          markdown-it setup, ==mark==, alerts, front matter
     enhance.js           heading anchors & folding, inline grouping, task lists, code blocks, images, stats
@@ -85,6 +86,24 @@ scripts/vendor.mjs       script for upgrading vendor/
 test/                    end-to-end tests and fixtures
 package.json             dev tooling only (tests, vendor updates); the extension itself needs no build
 ```
+
+### Box-drawing tables in code blocks
+
+Text diagrams such as `┌─┬─┐` only line up when CJK characters are exactly twice as wide as ASCII. System monospace fonts (Consolas, Menlo…) have no CJK glyphs, so the browser falls back to a CJK font of a different width. MarkLens measures the actual widths and scales the system CJK font for code blocks (`@font-face` `size-adjust`, CJK ranges only) so mixed tables align without installing anything; CJK characters in code look slightly larger as a result. For the best-looking result, install [Sarasa Gothic](https://github.com/be5invis/Sarasa-Gothic); MarkLens uses **Sarasa Mono TC** automatically when present.
+
+The full release is several hundred MB, but only a few files are needed:
+
+1. On the [releases page](https://github.com/be5invis/Sarasa-Gothic/releases), download **Single Family TTF Package → Mono → zip** (the hinted *Download* link; *Unhinted* is meant for high-DPI screens and macOS).
+2. From the archive, install only the TC (Traditional Chinese) files:
+
+   | File | Purpose |
+   |---|---|
+   | `SarasaMonoTC-Regular.ttf` | Regular text (required) |
+   | `SarasaMonoTC-Bold.ttf` | Bold (required) |
+   | `SarasaMonoTC-Italic.ttf` | Code comments are italic; without it the browser slants the regular glyphs |
+   | `SarasaMonoTC-BoldItalic.ttf` | Optional, rarely used |
+
+3. Select the files → right-click → **Install for all users**, then fully restart Chrome — Chrome keeps running in the background after its windows close, so open `chrome://restart` instead of just closing the window.
 
 ## Upgrading third-party libraries
 

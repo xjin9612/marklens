@@ -94,6 +94,25 @@ try {
     assert.ok((await page.locator('.ml-code .hljs-keyword').count()) > 0)
     assert.equal(await page.textContent('.ml-code-lang'), 'js')
   })
+  await check('程式碼區塊中英對齊（罫線表格每列等寬）', async () => {
+    await page.waitForFunction(() => document.documentElement.dataset.mlCodeFont)
+    const info = JSON.parse(await page.evaluate(() => document.documentElement.dataset.mlCodeFont))
+    const widths = await page.$eval('.ml-code code.language-text', code => {
+      const node = code.firstChild
+      const lines = node.textContent.split('\n').filter(Boolean)
+      let pos = 0
+      return lines.map(line => {
+        const start = node.textContent.indexOf(line, pos)
+        pos = start + line.length
+        const r = document.createRange()
+        r.setStart(node, start)
+        r.setEnd(node, pos)
+        return r.getBoundingClientRect().width
+      })
+    })
+    const spread = Math.max(...widths) - Math.min(...widths)
+    assert.ok(spread < 0.5, `各列寬度差 ${spread.toFixed(2)}px：${widths.map(w => w.toFixed(1)).join(', ')}；${JSON.stringify(info)}`)
+  })
   await check('腳註', async () => {
     assert.equal(await page.locator('.footnotes li').count(), 1)
   })

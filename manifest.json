@@ -72,6 +72,7 @@
         "src/content/util.js",
         "src/content/sanitize.js",
         "src/content/markdown.js",
+        "src/content/fonts.js",
         "src/content/enhance.js",
         "src/content/table.js",
         "src/content/toc.js",
