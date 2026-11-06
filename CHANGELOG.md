@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Line numbers in **Source** view; click one to copy that line's location
 
 ### Changed
+- MarkLens no longer asks for access to all websites when installed; it works on local files out of the box. To read `.md` files on websites, turn on **Also open .md files on websites** in the popup or on the welcome page. After updating, turn it on if you read Markdown on websites
 - The toolbar's **Copy Markdown** button is now **Copy** and opens the copy menu
 
 ### Fixed

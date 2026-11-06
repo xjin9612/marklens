@@ -63,14 +63,14 @@ MARKDOWN SUPPORT
 
 PRIVATE AND AUDITABLE
 • Collects no data. No account, no analytics, no ads, no server
-• Only one permission: storage, for your settings. Optional settings sync goes through your browser account, never to us
+• No access to websites at install: local files only. Turn on .md files on websites yourself if you need them. Optional settings sync goes through your browser account, never to us
 • No remote code: every library is packaged inside the extension
 • Open source under the MIT license; the test suite includes 60+ attack samples that must not run any code
 • Privacy policy: https://github.com/xjin9612/marklens/blob/main/PRIVACY.md
 
 GOOD TO KNOW
 • For local files, turn on "Allow access to file URLs" on the extension's Details page. A welcome page walks you through it after installing.
-• When you install it, Chrome warns that MarkLens can read and change your data on all websites, because its permission prompt ignores the part of the address after the site name. MarkLens only runs on addresses that end in .md, .markdown, .mkd or .mdx. You can limit it further under Site access on the extension's Details page.
+• To read .md files on websites, turn on "Also open .md files on websites" in the popup. Chrome then asks for access to all websites, because its permission prompt ignores the part of the address after the site name. MarkLens only runs on addresses that end in .md, .markdown, .mkd or .mdx.
 
 Source code, changelog and issues: https://github.com/xjin9612/marklens
 ```
@@ -111,14 +111,14 @@ Markdown 支援
 
 注重隱私、可以稽核
 • 不收集任何資料。沒有帳號、沒有分析追蹤、沒有廣告、沒有伺服器
-• 只要求一項權限：storage，用來保存你的設定。可選的設定同步透過瀏覽器帳號進行，不經過我們
+• 安裝時不要求網站存取權，只處理本機檔案；需要閱讀網頁上的 .md 時再自行開啟。可選的設定同步透過瀏覽器帳號進行，不經過我們
 • 沒有遠端程式碼：所有程式庫都打包在擴充功能內
 • 以 MIT 授權開源；測試包含 60 多個攻擊樣本，確保它們都無法執行任何程式碼
 • 隱私權政策：https://github.com/xjin9612/marklens/blob/main/PRIVACY.zh-TW.md
 
 使用須知
 • 要開啟本機檔案，請在擴充功能的「詳細資料」頁面開啟「允許存取檔案網址」。安裝後的歡迎頁會帶你完成設定。
-• 安裝時 Chrome 會警告 MarkLens 可以讀取及變更所有網站上的資料，因為它的權限提示忽略網址中網站名稱之後的部分。MarkLens 只在網址以 .md、.markdown、.mkd 或 .mdx 結尾時執行；你也可以在擴充功能「詳細資料」頁面的「網站存取權」進一步限制。
+• 要閱讀網頁上的 .md，請在設定中開啟「也在網頁上的 .md 檔案啟用」。Chrome 會詢問是否允許存取所有網站，因為它的權限提示忽略網址中網站名稱之後的部分。MarkLens 只在網址以 .md、.markdown、.mkd 或 .mdx 結尾時執行。
 
 原始碼、更新紀錄與問題回報：https://github.com/xjin9612/marklens
 ```
@@ -161,14 +161,14 @@ Markdown 支持
 
 注重隐私、可以审计
 • 不收集任何数据。没有账号、没有分析追踪、没有广告、没有服务器
-• 只要求一项权限：storage，用来保存你的设置。可选的设置同步通过浏览器账号进行，不经过我们
+• 安装时不要求网站访问权限，只处理本机文件；需要阅读网页上的 .md 时再自行开启。可选的设置同步通过浏览器账号进行，不经过我们
 • 没有远程代码：所有程序库都打包在扩展程序内
 • 以 MIT 许可证开源；测试包含 60 多个攻击样本，确保它们都无法运行任何代码
 • 隐私政策：https://github.com/xjin9612/marklens/blob/main/PRIVACY.zh-TW.md
 
 使用须知
 • 要打开本机文件，请在扩展程序的“详情”页面打开“允许访问文件网址”。安装后的欢迎页会带你完成设置。
-• 安装时 Chrome 会警告 MarkLens 可以读取及变更所有网站上的数据，因为它的权限提示忽略网址中网站名称之后的部分。MarkLens 只在网址以 .md、.markdown、.mkd 或 .mdx 结尾时运行；你也可以在扩展程序“详情”页面的“网站访问权限”进一步限制。
+• 要阅读网页上的 .md，请在设置中开启“也在网页上的 .md 文件启用”。Chrome 会询问是否允许访问所有网站，因为它的权限提示忽略网址中网站名称之后的部分。MarkLens 只在网址以 .md、.markdown、.mkd 或 .mdx 结尾时运行。
 
 源代码、更新日志与问题反馈：https://github.com/xjin9612/marklens
 ```
@@ -206,13 +206,17 @@ Display Markdown files (.md, .markdown, .mkd, .mdx) opened in the browser as for
 Saves the user's reading settings (theme, font size, text width, language, editor and similar options) and the reading position of recently opened Markdown files, so they apply the next time a document is opened. Data stays in chrome.storage.local. If the user keeps settings sync on, the settings (not reading positions or folder access) are also saved to chrome.storage.sync, which the browser syncs through the user's own account. MarkLens never transmits any data itself.
 ```
 
-**主機權限（content scripts 的比對網址）**
+**scripting**
 
 ```text
-The content scripts match only URLs whose path ends in a Markdown extension (.md, .markdown, .mkd, .mdx, in http, https and file URLs), so that MarkLens can render the Markdown file the user opened. They never run on other pages. The broad host part (*://*/) is needed because Markdown files can be hosted on any site; Chrome's warning ignores the path restriction.
+Registers MarkLens's own packaged content scripts for Markdown URLs on websites (paths ending in .md, .markdown, .mkd, .mdx), only after the user turns on "Also open .md files on websites" and grants the optional host permission. The scripts are the same files the manifest already runs on local Markdown files; no code is fetched or generated. They are unregistered when the permission is removed.
 ```
 
-> Chrome 把 `content_scripts.matches` 視同主機存取，變更時會觸發權限警告（[宣告權限](https://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions)）。後台是否另列這個欄位，官方文件沒有寫明；出現就填上面這段，沒有就略過。
+**主機權限（optional_host_permissions：`*://*/*`）**
+
+```text
+Optional, not requested at install. The user grants it from the popup or the welcome page to render Markdown files hosted on websites. The registered scripts match only URLs whose path ends in a Markdown extension and never run on other pages. The host part is broad because Markdown files can be hosted on any site, and Chrome's host permissions cannot be limited by path.
+```
 
 ### 遠端程式碼（Remote code）
 

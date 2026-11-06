@@ -12,7 +12,11 @@
     "128": "icons/icon128.png"
   },
   "permissions": [
-    "storage"
+    "storage",
+    "scripting"
+  ],
+  "optional_host_permissions": [
+    "*://*/*"
   ],
   "background": {
     "service_worker": "src/background.js"
@@ -28,24 +32,6 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*/*.md",
-        "*://*/*.md?*",
-        "*://*/*.markdown",
-        "*://*/*.markdown?*",
-        "*://*/*.mkd",
-        "*://*/*.mkd?*",
-        "*://*/*.mdx",
-        "*://*/*.mdx?*",
-        "*://*/*.MD",
-        "*://*/*.MD?*",
-        "*://*/*.Markdown",
-        "*://*/*.Markdown?*",
-        "*://*/*.MARKDOWN",
-        "*://*/*.MARKDOWN?*",
-        "*://*/*.MKD",
-        "*://*/*.MKD?*",
-        "*://*/*.MDX",
-        "*://*/*.MDX?*",
         "file:///*.md",
         "file:///*.md?*",
         "file:///*.markdown",
@@ -72,24 +58,6 @@
     },
     {
       "matches": [
-        "*://*/*.md",
-        "*://*/*.md?*",
-        "*://*/*.markdown",
-        "*://*/*.markdown?*",
-        "*://*/*.mkd",
-        "*://*/*.mkd?*",
-        "*://*/*.mdx",
-        "*://*/*.mdx?*",
-        "*://*/*.MD",
-        "*://*/*.MD?*",
-        "*://*/*.Markdown",
-        "*://*/*.Markdown?*",
-        "*://*/*.MARKDOWN",
-        "*://*/*.MARKDOWN?*",
-        "*://*/*.MKD",
-        "*://*/*.MKD?*",
-        "*://*/*.MDX",
-        "*://*/*.MDX?*",
         "file:///*.md",
         "file:///*.md?*",
         "file:///*.markdown",

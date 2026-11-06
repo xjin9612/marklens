@@ -43,6 +43,7 @@ src/
   shared/roots.js        已授權資料夾（僅擴充功能內部使用）
   shared/hash.js         原文的 SHA-256（閱讀頁與 background 共用，勾選寫回時比對）
   shared/lines.js        原文切行（閱讀頁與 background 共用，行號與 markdown-it 一致）
+  shared/web-access.js   網頁上 .md 的選用網站權限（popup、引導頁、background 共用）
   shared/tokens.css      閱讀頁與擴充功能頁面共用的設計變數（色彩、字型、動態）
   shared/theme.js        讓 popup、引導頁、授權頁套用主題設定
   grant/                 資料夾授權頁
@@ -117,7 +118,9 @@ flowchart LR
   - 動態網址下，模組內的相對路徑 import 會被解析成固定 ID 的網址而被擋，所以程式庫必須是單一檔案。Mermaid 官方的 ESM 版拆成多個 chunk，`scripts/vendor.mjs` 改取單檔版，把結尾掛上 `globalThis` 的那一行改成 `export default`。
   - KaTeX 樣式表裡字型的相對路徑會被解析成固定 ID 的網址而被擋，`math.js` 讀取樣式表後改寫成動態網址，再以 constructable stylesheet 套用。
 - **匯出的 HTML**：不含 JavaScript，並以 CSP 禁止執行腳本。文件中的遠端圖片在開啟時仍會載入。
-- **最小權限**：只要求 `storage`。content script 只在 Markdown 副檔名結尾的網址上執行。Chrome 計算權限時不看網址路徑，所以仍顯示為可存取所有網站。
+- **最小權限**：安裝時只要求 `storage` 與 `scripting`，manifest 的 content script 只處理本機檔案，安裝時沒有網站權限警告。
+  - 網頁上的 `.md` 是選用的 `optional_host_permissions`（`*://*/*`）。使用者在 popup 或引導頁開啟後，background 以 manifest 中同樣的兩組腳本註冊到網頁網址（`syncWebScripts`），撤銷權限時移除。
+  - 腳本只比對 Markdown 副檔名結尾的網址。Chrome 的主機權限不能限制路徑，所以權限對話框仍顯示為所有網站。
 - **讀取本機檔案**：background 只讀取發出請求的頁面自己的網址。
 - **不載入其他電腦的檔案**：文件中指向其他主機的 `file://` 網址（`file://主機/…`、`file:////主機/…`）會被移除，不會載入網路共用上的檔案。
 - **資料夾清單**：background 只接受 `file://` 本機資料夾，不含網路共用與 `.`、`..`。只回傳 Markdown 檔名與子資料夾名稱，不讀內容。
@@ -189,6 +192,7 @@ npm test
 - 無障礙：每個按鈕都有可念的名稱、鍵盤焦點外框、點擊範圍至少 24×24、用鍵盤排序表格與放大圖片
 - 勾選寫回：寫入正確的行（含 front matter、單獨的 `\r` 換行）、引用區塊與有序清單、復原、衝突偵測、保留 CRLF 與 BOM、未授權、只授權了別處的同名檔案、關閉功能、非 UTF-8 檔案（含手動測試的真實 Big5 文件）。資料夾授權以瀏覽器私有檔案系統（OPFS）模擬，資料夾選擇視窗需手動測試
 - 複製：工具列與章節的選單、附 HTML 格式、位置的路徑與行號、引用中的標題與章節範圍、選取文字、原始文字的行號
+- 網站權限：manifest 只固定注入本機檔案、安裝時沒有權限警告、授予後註冊的腳本與 manifest 相同、popup 開關反映權限。Chrome 的權限對話框無法自動化，測試載入一份把網站權限改成安裝時授予的副本
 - Mermaid（`test/fixtures/mermaid.md`）：沒有圖表時不載入、繪製、語法錯誤、標籤注入與點擊事件、切換原始碼、全螢幕縮放與平移、主題切換重繪、自動更新不閃爍、http 不繪製並說明原因、關閉設定
 - 數學公式（`test/fixtures/math.md`）：行內、獨立、` ```math `、表格內，金額與跳脫不轉換、語法錯誤、自動更新、http 不繪製並說明原因、關閉設定
 - 匯出與列印：單一檔案不含程式碼、段落展開、樣式與勾選狀態保留、公式字型內嵌；列印樣式展開摺疊、深色主題改用淺色、圖表以淺色重繪後還原

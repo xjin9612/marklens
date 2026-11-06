@@ -610,7 +610,7 @@
     "message": "打开一份 Markdown"
   },
   "step2Text": {
-    "message": "把任一 <code>.md</code> 文件拖进 Chrome 窗口，或在地址栏输入它的路径（例如 <code>D:\\Projects\\README.md</code>）。网络上的 <code>.md</code> 纯文本页面也会自动接管。"
+    "message": "把任一 <code>.md</code> 文件拖进 Chrome 窗口，或在地址栏输入它的路径（例如 <code>D:\\Projects\\README.md</code>）。要阅读网络上的 <code>.md</code>，请开启下方选项。"
   },
   "step2Tip": {
     "message": "建议把 MarkLens 固定在工具栏：按右上角拼图图标 → MarkLens 旁的图钉。点图标可以调整主题、字体与默认布局。"
@@ -719,6 +719,12 @@
   },
   "paletteContrast": {
     "message": "高对比"
+  },
+  "optWebAccess": {
+    "message": "也在网页上的 .md 文件启用"
+  },
+  "optWebAccessNote": {
+    "message": "Chrome 会询问是否允许读取和更改所有网站上的数据。MarkLens 仍只在网址以 .md、.markdown、.mkd 或 .mdx 结尾时运行。已打开的标签页需要刷新。"
   },
   "optSync": {
     "message": "同步设置到我的其他电脑"

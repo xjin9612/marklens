@@ -610,7 +610,7 @@
     "message": "打開一份 Markdown"
   },
   "step2Text": {
-    "message": "把任一 <code>.md</code> 檔拖進 Chrome 視窗，或在網址列輸入它的路徑（例如 <code>D:\\Projects\\README.md</code>）。網路上的 <code>.md</code> 純文字頁面也會自動接管。"
+    "message": "把任一 <code>.md</code> 檔拖進 Chrome 視窗，或在網址列輸入它的路徑（例如 <code>D:\\Projects\\README.md</code>）。要閱讀網路上的 <code>.md</code>，請開啟下方選項。"
   },
   "step2Tip": {
     "message": "建議把 MarkLens 釘選在工具列：按右上角拼圖圖示 → MarkLens 旁的圖釘。點圖示可以調整主題、字體與預設版面。"
@@ -719,6 +719,12 @@
   },
   "paletteContrast": {
     "message": "高對比"
+  },
+  "optWebAccess": {
+    "message": "也在網頁上的 .md 檔案啟用"
+  },
+  "optWebAccessNote": {
+    "message": "Chrome 會詢問是否允許讀取及變更所有網站上的資料。MarkLens 仍只在網址以 .md、.markdown、.mkd 或 .mdx 結尾時執行。已開啟的分頁要重新整理。"
   },
   "optSync": {
     "message": "同步設定到我的其他電腦"

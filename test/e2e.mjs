@@ -2,7 +2,7 @@
 // 用法：node test/e2e.mjs（需要 playwright；截圖輸出到 SHOT_DIR，預設為系統暫存目錄）
 import { createRequire } from 'node:module'
 import { createServer } from 'node:http'
-import { readFileSync, mkdtempSync, writeFileSync, copyFileSync, mkdirSync, readdirSync } from 'node:fs'
+import { readFileSync, mkdtempSync, writeFileSync, copyFileSync, mkdirSync, readdirSync, cpSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -35,12 +35,21 @@ const server = createServer((req, res) => {
 }).listen(0)
 const port = server.address().port
 
+// 網站權限是選用權限，測試無法按下 Chrome 的權限對話框：載入一份改成安裝時就授予的副本，其餘檔案與 repo 相同
+const extDir = mkdtempSync(join(tmpdir(), 'ml-ext-'))
+for (const d of ['src', 'vendor', '_locales', 'icons']) cpSync(join(root, d), join(extDir, d), { recursive: true })
+const realManifest = JSON.parse(readFileSync(join(root, 'manifest.json'), 'utf8'))
+writeFileSync(
+  join(extDir, 'manifest.json'),
+  JSON.stringify({ ...realManifest, host_permissions: realManifest.optional_host_permissions, optional_host_permissions: undefined }),
+)
+
 const ctx = await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), 'ml-prof-')), {
   headless: true,
   channel: 'chromium', // 新版 headless 才支援擴充功能
   args: [
-    `--disable-extensions-except=${root}`,
-    `--load-extension=${root}`,
+    `--disable-extensions-except=${extDir}`,
+    `--load-extension=${extDir}`,
     '--disable-extensions-file-access-check', // 等同使用者開啟「允許存取檔案網址」
     '--lang=zh-TW', // 介面語言；以下檢查以繁體中文文字為準，英文另有一組檢查
   ],
@@ -98,6 +107,30 @@ try {
     await wp.setViewportSize({ width: 1000, height: 1400 })
     await wp.screenshot({ path: join(shotDir, 'ml-welcome.png'), fullPage: true })
     await wp.close()
+  })
+  await check('網頁上的 .md：manifest 只處理本機檔案、網站權限為選用；授予後以相同腳本註冊到網頁網址', async () => {
+    assert.ok(realManifest.content_scripts.every(c => c.matches.every(m => m.startsWith('file:///'))), '固定注入只限本機檔案')
+    assert.deepEqual(realManifest.optional_host_permissions, ['*://*/*'])
+    assert.equal(realManifest.host_permissions, undefined, '安裝時不要求網站權限')
+    const warnings = await sw.evaluate(m => chrome.management.getPermissionWarningsByManifest(m), JSON.stringify(realManifest))
+    assert.deepEqual(warnings, [], '安裝時沒有權限警告')
+    const regs = () => sw.evaluate(async () => (await chrome.scripting.getRegisteredContentScripts()).sort((a, b) => a.id.localeCompare(b.id)))
+    await until(async () => (await regs()).length === 2)
+    // 同時觸發多次同步（例如安裝與授權事件一起發生）也不會重複註冊或失敗
+    await sw.evaluate(() => Promise.all([syncWebScripts(), syncWebScripts(), syncWebScripts()]))
+    const r = await regs()
+    assert.equal(r.length, 2)
+    realManifest.content_scripts.forEach((c, i) => {
+      assert.deepEqual(r[i].js, c.js)
+      assert.deepEqual(r[i].css || [], c.css || [])
+      assert.equal(r[i].runAt, c.run_at)
+      // Chrome 回傳的比對網址順序與註冊時不同
+      assert.deepEqual([...r[i].matches].sort(), c.matches.map(m => m.replace('file:///', '*://*/')).sort())
+    })
+    const pp = await ctx.newPage()
+    await pp.goto(`chrome-extension://${sw.url().split('/')[2]}/src/popup/popup.html`)
+    await pp.waitForFunction(() => document.querySelector('#web-access').checked)
+    await pp.close()
   })
 
   /* ---------- 渲染 ---------- */
@@ -2154,7 +2187,7 @@ try {
     const enCtx = await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), 'ml-prof-en-')), {
       headless: true,
       channel: 'chromium',
-      args: [`--disable-extensions-except=${root}`, `--load-extension=${root}`, '--disable-extensions-file-access-check', '--lang=en-US'],
+      args: [`--disable-extensions-except=${extDir}`, `--load-extension=${extDir}`, '--disable-extensions-file-access-check', '--lang=en-US'],
     })
     try {
       const enSw = enCtx.serviceWorkers()[0] || (await enCtx.waitForEvent('serviceworker'))

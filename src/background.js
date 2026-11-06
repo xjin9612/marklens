@@ -1,11 +1,44 @@
 'use strict'
 // Service worker：content script 無權或不該自己做的事（讀本機檔案與資料夾、寫回任務、讀擴充功能內的檔案），以及快捷鍵與設定同步
-importScripts('/src/shared/settings.js', '/src/shared/i18n.js', '/src/shared/roots.js', '/src/shared/hash.js', '/src/shared/lines.js')
+importScripts('/src/shared/settings.js', '/src/shared/i18n.js', '/src/shared/roots.js', '/src/shared/hash.js', '/src/shared/lines.js', '/src/shared/web-access.js')
 
 // 首次安裝：開啟引導頁（說明如何開啟「允許存取檔案網址」）；更新時不打擾
 chrome.runtime.onInstalled.addListener(({ reason }) => {
   if (reason === 'install') chrome.tabs.create({ url: chrome.runtime.getURL('src/welcome/welcome.html') })
+  syncWebScripts()
 })
+
+/*
+ * ---------- 網頁上的 .md ----------
+ * manifest 的 content script 只處理本機檔案，安裝時不必要求「所有網站」的權限。
+ * 使用者授予網站權限後，以 manifest 中同樣的兩組腳本動態註冊到網頁網址；撤銷權限時移除。
+ * 擴充功能更新後腳本清單可能改變，所以 onInstalled 也重新註冊。
+ */
+let webSync = Promise.resolve()
+/** 依目前的網站權限註冊或移除網頁用的 content script；依序執行，避免同時註冊同一個 id */
+function syncWebScripts() {
+  const run = async () => {
+    const granted = await chrome.permissions.contains({ origins: MarkLens.WEB_ORIGINS })
+    const groups = chrome.runtime.getManifest().content_scripts
+    const ids = groups.map((_, i) => `web-${i}`)
+    const existing = (await chrome.scripting.getRegisteredContentScripts({ ids })).map(s => s.id)
+    if (existing.length) await chrome.scripting.unregisterContentScripts({ ids: existing })
+    if (!granted) return
+    await chrome.scripting.registerContentScripts(
+      groups.map((g, i) => ({
+        id: ids[i],
+        matches: g.matches.map(m => m.replace(/^file:\/\/\//, '*://*/')),
+        js: g.js,
+        css: g.css,
+        runAt: g.run_at,
+      })),
+    )
+  }
+  webSync = webSync.then(run, run)
+  return webSync
+}
+chrome.permissions.onAdded.addListener(syncWebScripts)
+chrome.permissions.onRemoved.addListener(syncWebScripts)
 
 // 跨裝置同步：其他電腦改了設定，寫回這台的 storage.local，已開的分頁照常由 storage.onChanged 套用
 chrome.storage.onChanged.addListener(async (changes, area) => {
