@@ -63,12 +63,20 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
     for (const th of clone.querySelectorAll('th.ml-sortable')) th.removeAttribute('tabindex')
     // 相對路徑改成絕對路徑，檔案搬到別處後圖片與連結仍有效；頁內錨點維持原樣
+    // 原文的網址可能不合法（例如主機名稱含控制字元），轉換失敗就維持原樣，不中斷匯出
+    const absolute = url => {
+      try {
+        return new URL(url, location.href).href
+      } catch {
+        return url
+      }
+    }
     for (const img of clone.querySelectorAll('img[src], source[src], video[src], audio[src]')) {
-      img.setAttribute('src', new URL(img.getAttribute('src'), location.href).href)
+      img.setAttribute('src', absolute(img.getAttribute('src')))
     }
     for (const a of clone.querySelectorAll('a[href]')) {
       const href = a.getAttribute('href')
-      if (!href.startsWith('#')) a.setAttribute('href', new URL(href, location.href).href)
+      if (!href.startsWith('#')) a.setAttribute('href', absolute(href))
     }
     return clone
   }

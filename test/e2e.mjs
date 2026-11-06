@@ -1548,6 +1548,11 @@ try {
     assert.equal(await src('unc-slashes'), null)
     assert.equal(await src('same-host-file'), 'file:///marklens-not-exist/x.png')
   })
+  await check('匯出 HTML：原文有不合法的網址時仍能匯出，該網址維持原樣', async () => {
+    const { html } = await exportFrom(sp)
+    assert.ok(html.includes('src="http://a\u0001b/x.png"'), '不合法的網址維持原樣')
+    assert.ok(html.includes('本段應正常顯示'), '匯出完整內容')
+  })
   await check('安全性：name 屬性無法覆蓋 document 的方法（DOM clobbering）', async () => {
     const r = await inSec(() => [typeof document.getElementById, typeof document.querySelector, typeof document.createElement, String(document.documentElement)])
     assert.deepEqual(r, ['function', 'function', 'function', '[object HTMLHtmlElement]'])
