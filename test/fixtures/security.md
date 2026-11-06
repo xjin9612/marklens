@@ -177,6 +177,12 @@ $$
 
 自動連結：檔名 README.md、裸網域 example.com 不連結；www.example.com、https://example.com/a 與 a@example.com 連結。
 
+## 16. 指向其他主機的本機檔案網址
+
+<img id="unc-host" src="file://attacker.invalid/share/x.png" alt="其他主機">
+<img id="unc-slashes" src="file:////attacker.invalid/share/x.png" alt="UNC 寫法">
+<img id="same-host-file" src="file:///marklens-not-exist/x.png" alt="同主機的本機檔案">
+
 ## 結尾
 
 本段應正常顯示。

@@ -42,7 +42,12 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     const p = url.protocol
     if (p === 'http:' || p === 'https:') return v
     if (p === 'mailto:' && attr === 'href') return v
-    if (p === 'file:' && location.protocol === 'file:') return v
+    // 只放行與頁面同主機的本機檔案。file://主機/… 與 file:////主機/… 是網路共用路徑（RFC 8089 附錄 E.3）；
+    // Linux 版 Chrome 把後者解析成本機路徑，所以另以原字串判斷
+    if (p === 'file:' && location.protocol === 'file:') {
+      const unc = /^(?:file:)?[\\/]{4,}/i.test(compact) || url.pathname.startsWith('//')
+      return url.host === location.host && !unc ? v : null
+    }
     return null
   }
 
