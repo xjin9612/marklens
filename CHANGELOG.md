@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Checking a task saved it to the wrong line in files that use a lone carriage return (CR) as the line break
 - Images and links in local documents that point to a share on another computer (`file://server/…` or `file:////server/…`) are removed, so they are not loaded
 - Export HTML no longer fails when the document contains an address the browser can't parse
+- The **Open in editor** link was cut off at a `#` or `?` in the file name
 
 ## [1.6.0] - 2026-11-05
 

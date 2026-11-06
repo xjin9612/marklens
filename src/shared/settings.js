@@ -194,6 +194,11 @@ MarkLens.editorUrl = function (settings, fileUrl, line = 1) {
     // 不合法的 % 編碼：沿用原字串
   }
   // file:///D:/a.md 的路徑是 /D:/a.md；Windows 拿掉開頭的 /，其他系統保留在範本的 / 之後
-  path = path.replace(/^\/+/, '')
-  return tpl.replaceAll('{path}', encodeURI(path)).replaceAll('{line}', String(line))
+  // 逐段編碼：檔名中的 # ? & 不能被當成網址的片段或參數；磁碟代號的冒號保留
+  const encoded = path
+    .replace(/^\/+/, '')
+    .split('/')
+    .map((seg, i) => (i === 0 && /^[a-z]:$/i.test(seg) ? seg : encodeURIComponent(seg)))
+    .join('/')
+  return tpl.replaceAll('{path}', encoded).replaceAll('{line}', String(line))
 }
