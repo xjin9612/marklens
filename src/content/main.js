@@ -98,15 +98,17 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.toc = new MarkLens.Toc(this)
       this.progress = h('div', { class: 'ml-progress' })
       this.toolbar = this.buildToolbar()
-      // 原始文字的 <pre> 移進主區塊，切換時工具列仍在，隨時可以回來
+      // 原始文字的 <pre> 移進主區塊，切換時工具列仍在，隨時可以回來；畫面上顯示的是帶行號的 rawView
       this.pre.classList.add('ml-source')
-      this.main = h('main', { class: 'ml-main' }, [this.toolbar, this.article, this.pre])
+      this.rawView = h('div', { class: 'ml-source-view', on: { click: e => this.onRawClick(e) } })
+      this.main = h('main', { class: 'ml-main' }, [this.toolbar, this.article, this.pre, this.rawView])
       this.backdrop = h('div', { class: 'ml-backdrop', on: { click: () => this.setTocOpen(false) } })
       this.appRoot = h('div', { id: 'ml-root' }, [this.progress, this.toc.el, this.backdrop, this.main])
       document.body.append(this.appRoot)
 
       MarkLens.bindFoldSearch(this.article)
       this.bindTaskClicks()
+      this.bindSelection()
       this.article.addEventListener('marklens:fold', () => {
         this.toc.syncFold()
         this.onScroll()
@@ -168,11 +170,12 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.widthBtn = btn('ml-tool-width', 'width', '', t('toolWidthTitle'), () => this.toggleMenu(this.widthBtn, () => this.widthMenu()))
       this.themeBtn = btn('ml-tool-theme', 'auto', '', t('toolThemeTitle'), () => this.toggleMenu(this.themeBtn, () => this.themeMenu()))
       this.fontBtn = btn('ml-tool-font', 'text-size', '', t('toolFontSizeTitle'), () => this.toggleMenu(this.fontBtn, () => this.fontMenu()))
-      for (const b of [this.widthBtn, this.themeBtn, this.fontBtn]) {
+      this.copyMdBtn = btn('ml-tool-copy', 'copy', t('toolCopyMd'), t('toolCopyMdTitle'), () => this.toggleMenu(this.copyMdBtn, () => this.copyMenu(this.copyMdBtn)))
+      for (const b of [this.widthBtn, this.themeBtn, this.fontBtn, this.copyMdBtn]) {
         b.setAttribute('aria-haspopup', 'menu')
         b.setAttribute('aria-expanded', 'false')
       }
-      this.copyMdBtn = btn('ml-tool-copy', 'copy', t('toolCopyMd'), t('toolCopyMdTitle'), () => this.copyMarkdown())
+      setTool(this.copyMdBtn, 'copy', t('toolCopyMd')) // 加上選單的小箭頭
       this.exportBtn = btn('ml-tool-export', 'download', t('toolExport'), t('toolExportTitle'), () => this.exportHtml())
       this.printBtn = btn('ml-tool-print', 'print', t('toolPrint'), t('toolPrintTitle'), () => this.print())
       this.rawBtn = btn('ml-tool-raw', 'code', t('toolRaw'), t('toolRawTitle'), () => this.toggleRaw())
@@ -339,24 +342,17 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       MarkLens.groupInline(this.article)
       MarkLens.setFoldMode(this.article)
 
-      // 標題的原文行號（0 起算）改存到 data 屬性
-      for (const el of this.article.querySelectorAll(`[class*="ml-line-${this.md.marklensNonce}-"]`)) {
-        const cls = [...el.classList].find(c => c.startsWith('ml-line-'))
-        el.dataset.mlLine = cls.split('-').pop()
-        el.classList.remove(cls)
-        if (!el.classList.length) el.removeAttribute('class')
-      }
+      MarkLens.applyLineRanges(this.article, this.md.marklensNonce)
       const headings = MarkLens.processHeadings(this.article)
       for (const el of headings) {
         if (el.dataset.mlLine == null) continue // 原文中以 HTML 寫的標題沒有行號，無法切出章節
-        el.querySelector('.ml-anchor').after(
-          h('button', {
-            class: 'ml-heading-copy',
-            title: t('headingCopy'),
-            attrs: { 'aria-label': t('headingCopy') },
-            on: { click: e => (e.preventDefault(), this.copyMarkdown(el)) },
-          }, [MarkLens.icon('copy')]),
-        )
+        const copyBtn = h('button', {
+          class: 'ml-heading-copy',
+          title: t('headingCopy'),
+          attrs: { 'aria-label': t('headingCopy'), 'aria-haspopup': 'menu', 'aria-expanded': 'false' },
+          on: { click: e => (e.preventDefault(), this.toggleMenu(copyBtn, () => this.copyMenu(copyBtn, el))) },
+        }, [MarkLens.icon('copy')])
+        el.querySelector('.ml-anchor').after(copyBtn)
       }
       MarkLens.processTaskLists(this.article, this.md.marklensNonce)
       this.enableTaskBoxes()
@@ -385,6 +381,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.rawExact = location.protocol === 'file:' // 自動更新與衝突重載都是以 UTF-8 精確讀取
       this.pre.textContent = src
       this.render(src)
+      this.syncRawView()
       this.tables.forEach((t, i) => t.setState(tableStates[i]))
       for (const id of folded) {
         const el = document.getElementById(id)
@@ -472,24 +469,100 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.setFontSize(MarkLens.stepFontSize(this.settings.fontSize, dir))
     }
 
-    /** 複製 Markdown 原文：整份文件，或 heading 那一節（到下一個同級或更高的標題為止） */
-    async copyMarkdown(heading) {
-      let text = this.raw
-      if (heading) {
-        const lines = this.raw.split('\n')
-        const start = Number(heading.dataset.mlLine)
-        const level = Number(heading.dataset.mlLevel)
-        let end = lines.length
-        for (const el of this.article.querySelectorAll('[data-ml-level][data-ml-line]')) {
-          const line = Number(el.dataset.mlLine)
-          if (line > start && Number(el.dataset.mlLevel) <= level) {
-            end = line
-            break
-          }
-        }
-        text = lines.slice(start, end).join('\n').trimEnd() + '\n'
+    /** 原文切行（MarkLens.splitLines），與 markdown-it 的行號一致 */
+    lines() {
+      if (this.linesFor !== this.raw) {
+        this.linesCache = MarkLens.splitLines(this.raw)
+        this.linesFor = this.raw
       }
-      MarkLens.toast(t((await MarkLens.copyText(text)) ? 'mdCopied' : 'mdCopyFailed'))
+      return this.linesCache
+    }
+
+    /**
+     * 複製選單：內容（分享，Markdown 原文並附上 HTML 格式）或位置（給 AI，路徑與行號）
+     * @param {HTMLElement} [heading] 只複製這一節；省略時為整份文件
+     */
+    copyMenu(anchor, heading) {
+      MarkLens.openMenu({
+        anchor,
+        label: t('copyMenu'),
+        items: [
+          { label: t('copyContent'), icon: 'copy', fn: () => this.copyContent(heading) },
+          { label: t('copyLocation'), icon: 'file', fn: () => this.copyLocation(heading) },
+        ],
+      })
+    }
+
+    /** 標題那一節的節點：標題與其後同一層的兄弟節點，到下一個同級或更高的標題為止 */
+    sectionNodes(heading) {
+      const level = +heading.dataset.mlLevel
+      const nodes = [heading]
+      for (let n = heading.nextElementSibling; n; n = n.nextElementSibling) {
+        if (/^H[1-6]$/.test(n.tagName) && +n.dataset.mlLevel <= level) break
+        nodes.push(n)
+      }
+      return nodes
+    }
+
+    async copyContent(heading) {
+      let text = this.raw
+      let nodes = Array.from(this.article.childNodes)
+      if (heading) {
+        const range = MarkLens.sectionRange(this.article, heading, this.lines())
+        text = this.lines().slice(range[0], range[1]).join('').trimEnd() + '\n'
+        nodes = this.sectionNodes(heading)
+      }
+      const ok = await MarkLens.copyRich(text, MarkLens.staticHtml(nodes))
+      MarkLens.toast(t(ok ? 'mdCopied' : 'mdCopyFailed'))
+    }
+
+    async copyLocation(heading) {
+      const text = heading
+        ? MarkLens.formatLocation(MarkLens.sectionRange(this.article, heading, this.lines()), heading.dataset.mlText)
+        : MarkLens.formatLocation()
+      MarkLens.toast((await MarkLens.copyText(text)) ? t('locationCopied', text) : t('mdCopyFailed'))
+    }
+
+    /* ---------- 選取文字：複製對應的原文或位置 ---------- */
+    bindSelection() {
+      const btn = (key, kind) => h('button', { class: 'ml-select-btn', type: 'button', text: t(key), on: { click: () => this.copySelection(kind) } })
+      this.sourceBtn = btn('selectCopySource', 'source')
+      const bar = h('div', { class: 'ml-select-bar', attrs: { role: 'toolbar', 'aria-label': t('selectBar') } }, [this.sourceBtn, btn('selectCopyLocation', 'location')])
+      bar.hidden = true
+      // 按下按鈕不能清掉選取
+      bar.addEventListener('mousedown', e => e.preventDefault())
+      document.body.append(bar)
+      this.selectBar = bar
+      const show = () => {
+        const sel = getSelection()
+        const range = sel.rangeCount && !sel.isCollapsed ? sel.getRangeAt(0) : null
+        const raw = document.documentElement.classList.contains('ml-raw')
+        const host = raw ? this.rawView : this.article
+        if (!range || !host?.contains(range.commonAncestorContainer) || !sel.toString().trim()) return (bar.hidden = true)
+        this.selRange = range.cloneRange()
+        this.sourceBtn.hidden = raw // 原始文字模式選到的就是原文
+        bar.hidden = false
+        const rects = range.getClientRects()
+        const r = rects[rects.length - 1] || range.getBoundingClientRect()
+        const left = Math.max(8, Math.min(r.right - bar.offsetWidth, innerWidth - bar.offsetWidth - 8))
+        bar.style.left = `${left + scrollX}px`
+        bar.style.top = `${r.bottom + scrollY + 6}px`
+      }
+      document.addEventListener('mouseup', e => bar.contains(e.target) || setTimeout(show))
+      document.addEventListener('keyup', e => (e.shiftKey || e.key === 'Shift') && show())
+      document.addEventListener('selectionchange', () => getSelection().isCollapsed && (bar.hidden = true))
+    }
+
+    async copySelection(kind) {
+      this.selectBar.hidden = true
+      const range = this.selRange
+      if (!range) return
+      const r = document.documentElement.classList.contains('ml-raw') ? this.rawSelectionRange(range) : MarkLens.selectionRange(this.article, range, this.lines())
+      if (!r) return MarkLens.toast(t('locationUnknown'))
+      const text = kind === 'location' ? MarkLens.formatLocation(r) : this.lines().slice(r[0], r[1]).join('').trimEnd() + '\n'
+      const ok = await MarkLens.copyText(text)
+      if (!ok) return MarkLens.toast(t('mdCopyFailed'))
+      MarkLens.toast(kind === 'location' ? t('locationCopied', text) : t('mdCopied'))
     }
 
     /** 以設定的編輯器開啟目前檔案；正在閱讀某個章節時跳到該標題所在行 */
@@ -582,7 +655,46 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       const on = document.documentElement.classList.toggle('ml-raw')
       setTool(this.rawBtn, on ? 'arrow-left' : 'code', t(on ? 'toolBack' : 'toolRaw'))
       this.rawBtn.classList.toggle('active', on)
+      this.syncRawView()
       scrollTo(0, 0)
+    }
+
+    /** 原始文字模式才建立逐行的畫面（大檔有數萬行）；原文變了就重建 */
+    syncRawView() {
+      if (!document.documentElement.classList.contains('ml-raw') || this.rawViewFor === this.raw) return
+      const lines = this.lines()
+      const frag = document.createDocumentFragment()
+      lines.forEach((line, i) => {
+        // 換行字元統一為 \n：單獨的 \r 在畫面上不會換行
+        const el = h('div', { class: 'ml-src-line', text: line.replace(/\r\n?$/, '\n') })
+        el.dataset.n = i + 1
+        frag.append(el)
+      })
+      this.rawView.replaceChildren(frag)
+      this.rawView.style.setProperty('--ml-gutter', `${String(lines.length).length}ch`)
+      this.rawView.title = t('rawLineTitle')
+      this.rawViewFor = this.raw
+    }
+
+    /** 點行號（每行左側的留白）複製該行的位置 */
+    async onRawClick(e) {
+      const line = e.target.closest?.('.ml-src-line')
+      if (!line || !getSelection().isCollapsed) return
+      if (e.clientX - line.getBoundingClientRect().left > parseFloat(getComputedStyle(line).paddingLeft)) return
+      const n = +line.dataset.n - 1
+      const text = MarkLens.formatLocation([n, n + 1])
+      MarkLens.toast((await MarkLens.copyText(text)) ? t('locationCopied', text) : t('mdCopyFailed'))
+    }
+
+    rawSelectionRange(range) {
+      const lineOf = node => (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement)?.closest('.ml-src-line')
+      const { startContainer: sc, startOffset: so, endContainer: ec, endOffset: eo } = range
+      const a = sc === this.rawView ? this.rawView.children[so] : lineOf(sc)
+      let b = ec === this.rawView ? this.rawView.children[eo - 1] : lineOf(ec)
+      // 選到下一行的開頭時，那一行不算
+      if (b && b !== a && ec !== this.rawView && eo === 0) b = b.previousElementSibling
+      if (!a || !b) return null
+      return [+a.dataset.n - 1, +b.dataset.n]
     }
 
     /* ---------- 捲動 ---------- */
@@ -707,6 +819,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           // 頁面原文同步為寫入後的內容，自動更新就不會重新渲染
           this.raw = res.text
           this.pre.textContent = res.text
+          this.syncRawView()
           box.checked = to === 'x'
           box.dataset.mlState = to
           MarkLens.toast(t(to === 'x' ? 'taskChecked' : 'taskUnchecked'), [{ label: t('undo'), fn: () => this.toggleTask(line) }])

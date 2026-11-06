@@ -33,6 +33,10 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   function staticArticle(article) {
     const clone = article.cloneNode(true)
     for (const el of clone.querySelectorAll(REMOVE)) el.remove()
+    for (const el of clone.querySelectorAll('[data-ml-line]')) {
+      delete el.dataset.mlLine
+      delete el.dataset.mlEnd
+    }
     // 全部展開、顯示被篩選掉的表格列
     for (const el of clone.querySelectorAll('[data-ml-fold]')) {
       el.removeAttribute('hidden')
@@ -83,6 +87,13 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
   function escapeHtml(s) {
     return s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
+  }
+
+  /** 部分內容（例如一個章節）整理成靜態 HTML，供複製到剪貼簿 */
+  MarkLens.staticHtml = function (nodes) {
+    const box = document.createElement('article')
+    for (const n of nodes) box.append(n.cloneNode(true))
+    return staticArticle(box).innerHTML
   }
 
   /** 產生匯出用的完整 HTML 字串 */

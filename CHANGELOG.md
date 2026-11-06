@@ -5,12 +5,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- **Copy** menus in the toolbar and next to each heading, with two modes. **Copy content** copies the Markdown source and also puts formatted HTML on the clipboard, so apps that accept formatted text keep the formatting. **Copy location** copies the file path and line range, such as `D:\notes\report.md:142-168 (Causes)`, to point an AI tool at the exact lines; on websites it copies the address with `#L142-L168`
+- Select text in a document to copy its Markdown source or its location
+- Line numbers in **Source** view; click one to copy that line's location
+
+### Changed
+- The toolbar's **Copy Markdown** button is now **Copy** and opens the copy menu
+
 ### Fixed
 - Checking a task could save it to a different file with the same path inside an authorized folder, for example `D:\notes\todo.md` while you were reading `E:\backup\notes\todo.md`. MarkLens now saves only to a file whose content matches the page you're reading
 - Checking a task saved it to the wrong line in files that use a lone carriage return (CR) as the line break
 - Images and links in local documents that point to a share on another computer (`file://server/…` or `file:////server/…`) are removed, so they are not loaded
 - Export HTML no longer fails when the document contains an address the browser can't parse
 - The **Open in editor** link was cut off at a `#` or `?` in the file name
+- Copying a section no longer stops at a heading inside a quote or list; copying a heading inside a quote copies only to the end of the quote, and a section keeps link definitions written at its end
 
 ## [1.6.0] - 2026-11-05
 
