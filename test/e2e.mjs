@@ -811,6 +811,9 @@ try {
     const path = encodeURI(decodeURIComponent(new URL(localUrl).pathname).replace(/^\/+/, ''))
     assert.equal(href, `vscode://file/${path}:${line}`)
     await ep.close()
+    // 檔名中的 # ? 要編碼，磁碟代號的冒號保留
+    const special = await sw.evaluate(() => MarkLens.editorUrl({ editor: 'vscode' }, 'file:///D:/a%20b/c%23d%3F.md', 3))
+    assert.equal(special, 'vscode://file/D:/a%20b/c%23d%3F.md:3')
     await sw.evaluate(() => MarkLens.saveSettings({ editor: 'custom', editorUrl: 'javascript:alert("{path}")' }))
     const bp = await openDoc()
     assert.equal(await bp.locator('.ml-tool-edit').isVisible(), false, '不合法的網址不顯示按鈕')
