@@ -1542,6 +1542,12 @@ try {
     assert.ok((await inSec(() => Document.prototype.querySelectorAll.call(document, '.ml-folded').length)) > 0)
     await sp.click('.ml-toolbar button:has-text("全部展開")', { timeout: 2000 })
   })
+  await check('安全性：指向其他主機的 file:// 網址移除，同主機的保留', async () => {
+    const src = id => sp.evaluate(i => Document.prototype.getElementById.call(document, i)?.getAttribute('src'), id)
+    assert.equal(await src('unc-host'), null)
+    assert.equal(await src('unc-slashes'), null)
+    assert.equal(await src('same-host-file'), 'file:///marklens-not-exist/x.png')
+  })
   await check('安全性：name 屬性無法覆蓋 document 的方法（DOM clobbering）', async () => {
     const r = await inSec(() => [typeof document.getElementById, typeof document.querySelector, typeof document.createElement, String(document.documentElement)])
     assert.deepEqual(r, ['function', 'function', 'function', '[object HTMLHtmlElement]'])

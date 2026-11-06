@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Fixed
 - Checking a task could save it to a different file with the same path inside an authorized folder, for example `D:\notes\todo.md` while you were reading `E:\backup\notes\todo.md`. MarkLens now saves only to a file whose content matches the page you're reading
 - Checking a task saved it to the wrong line in files that use a lone carriage return (CR) as the line break
+- Images and links in local documents that point to a share on another computer (`file://server/…` or `file:////server/…`) are removed, so they are not loaded
 
 ## [1.6.0] - 2026-11-05
 
