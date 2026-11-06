@@ -36,7 +36,9 @@ MarkLens never sends your data anywhere. The only network request it makes on it
 
 ## Permissions
 
-MarkLens asks for one permission, `storage`, to keep the settings above. Its content scripts run only on addresses that end in a Markdown extension (`.md`, `.markdown`, `.mkd`, `.mdx`). Chrome describes this as access to all websites because its prompt ignores the part of the address after the site name; you can limit it on the extension's **Details** page under **Site access**.
+MarkLens asks for two permissions when installed: `storage`, to keep the settings above, and `scripting`, to register its scripts for websites once you allow it. Its content scripts run only on addresses that end in a Markdown extension (`.md`, `.markdown`, `.mkd`, `.mdx`).
+
+Reading `.md` files on websites is optional. When you turn on **Also open .md files on websites**, Chrome asks for access to all websites, because its prompt ignores the part of the address after the site name. MarkLens still runs only on the addresses above. You can turn the option off in the popup at any time, or limit it on the extension's **Details** page under **Site access**.
 
 ## Changes
 

@@ -99,6 +99,8 @@
     })
   }
 
+  MarkLens.bindWebAccess($('#web-access'))
+
   // 本機檔案存取權限提示
   chrome.extension.isAllowedFileSchemeAccess(allowed => {
     $('#file-warning').hidden = allowed

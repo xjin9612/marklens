@@ -610,7 +610,7 @@
     "message": "Open a Markdown file"
   },
   "step2Text": {
-    "message": "Drag any <code>.md</code> file into a Chrome window, or type its path in the address bar (for example <code>D:\\Projects\\README.md</code>). Plain-text <code>.md</code> pages on the web are picked up too."
+    "message": "Drag any <code>.md</code> file into a Chrome window, or type its path in the address bar (for example <code>D:\\Projects\\README.md</code>). To read <code>.md</code> files on websites, turn on the option below."
   },
   "step2Tip": {
     "message": "Tip: pin MarkLens to the toolbar (puzzle icon → pin). Its button opens theme, font and layout settings."
@@ -719,6 +719,12 @@
   },
   "paletteContrast": {
     "message": "High contrast"
+  },
+  "optWebAccess": {
+    "message": "Also open .md files on websites"
+  },
+  "optWebAccessNote": {
+    "message": "Chrome will ask to read and change your data on all websites. MarkLens still runs only on addresses that end in .md, .markdown, .mkd or .mdx. Reload tabs that are already open."
   },
   "optSync": {
     "message": "Sync settings to my other computers"

@@ -20,6 +20,7 @@
   })
   $('#version').textContent = `MarkLens ${chrome.runtime.getManifest().version_name || chrome.runtime.getManifest().version}`
 
+  MarkLens.bindWebAccess($('#web-access'))
   refreshFileAccess()
   // 使用者切到設定頁開啟後再回來：分頁重新可見時重新檢查
   document.addEventListener('visibilitychange', () => {

@@ -28,6 +28,7 @@ code { font-family: var(--ml-mono); font-size: 90%; background: var(--subtle); p
 kbd { font: 12px var(--ml-mono); border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; padding: 1px 6px; background: var(--subtle); }
 a { color: var(--accent); }
 .tip { color: var(--muted); font-size: 14px; }
+.web-access { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .status { font-weight: 600; }
 .status[data-state="ok"] { color: var(--ok); }
 .status[data-state="off"] { color: var(--warn); }

@@ -25,6 +25,7 @@ Open any `.md` file, on your computer or on the web. Read it with an outline and
 2. Open `chrome://extensions` (Edge: `edge://extensions`) and turn on **Developer mode**.
 3. Click **Load unpacked** and select the unzipped `marklens-vX.Y.Z` folder.
 4. A welcome page opens. For files on your computer, follow it to turn on **Allow access to file URLs**.
+5. To read `.md` files on websites, turn on **Also open .md files on websites** on the welcome page or in the popup.
 
 Then drag any `.md` file into the browser, or open a `.md` link on the web. To upgrade, replace the folder with the new release. Then click the reload icon on the extensions page. See the [changelog](CHANGELOG.md) for what's new.
 
@@ -144,11 +145,14 @@ Open the MarkLens icon in the toolbar for all settings.
 
 ## Privacy and security
 
-MarkLens collects no data and sends none of it anywhere; its only network request is reloading the document you opened. It asks for a single permission, `storage`, for your settings, and runs no remote code: every library is packaged inside the extension. HTML inside documents is filtered, and a test suite of 60+ attack samples checks that none of them can run code. Details: [privacy policy](PRIVACY.md), [security design](docs/DEVELOPMENT.md#安全設計) (in Traditional Chinese). Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
+MarkLens collects no data and sends none of it anywhere; its only network request is reloading the document you opened. At install it asks only for `storage` (your settings) and `scripting` (to register its scripts for websites); access to websites is up to you. It runs no remote code: every library is packaged inside the extension. HTML inside documents is filtered, and a test suite of 60+ attack samples checks that none of them can run code. Details: [privacy policy](PRIVACY.md), [security design](docs/DEVELOPMENT.md#安全設計) (in Traditional Chinese). Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
 
 ## FAQ
 
-**Chrome says MarkLens can "read and change your data on all websites". Why?**<br>
+**A `.md` file on a website shows as plain text.**<br>
+MarkLens doesn't ask for access to websites when installed. Turn on **Also open .md files on websites** in the popup, then reload the page.
+
+**When I turn on the website option, Chrome says MarkLens can "read and change your data on all websites". Why?**<br>
 MarkLens only runs on addresses that end in `.md`, `.markdown`, `.mkd` or `.mdx`. Chrome's permission prompt ignores the part of the address after the site name, so it shows all websites. To limit it, open the extension's **Details** page and set **Site access** to *On specific sites*. Local files are not affected.
 
 **A local `.md` file shows as plain text.**<br>
