@@ -182,6 +182,7 @@ $$
 <img id="unc-host" src="file://attacker.invalid/share/x.png" alt="其他主機">
 <img id="unc-slashes" src="file:////attacker.invalid/share/x.png" alt="UNC 寫法">
 <img id="same-host-file" src="file:///marklens-not-exist/x.png" alt="同主機的本機檔案">
+<img id="bad-host" src="http://a&#1;b/x.png" alt="主機名稱含控制字元的網址">
 
 ## 結尾
 
