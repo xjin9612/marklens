@@ -119,6 +119,7 @@
         "src/shared/settings.js",
         "src/shared/i18n.js",
         "src/shared/hash.js",
+        "src/shared/lines.js",
         "src/content/util.js",
         "src/content/icons.js",
         "src/content/menu.js",
