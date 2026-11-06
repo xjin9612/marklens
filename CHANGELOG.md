@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+- Checking a task could save it to a different file with the same path inside an authorized folder, for example `D:\notes\todo.md` while you were reading `E:\backup\notes\todo.md`. MarkLens now saves only to a file whose content matches the page you're reading
+
 ## [1.6.0] - 2026-11-05
 
 ### Added

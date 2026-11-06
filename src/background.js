@@ -223,7 +223,8 @@ const TASK_LINE_RE = /^((?:[ \t]*>)*[ \t]*(?:[-*+]|\d{1,9}[.)])[ \t]+\[)([ xX])(
  * @param {{line:number, from:' '|'x', to:' '|'x', hash:string}} msg
  *   from：頁面認為目前的狀態；hash：頁面持有的原文 SHA-256，用來偵測檔案是否已被其他地方修改
  * @returns {{status:'ok'|'no-root'|'permission'|'ambiguous'|'conflict'|'not-utf8'|'unsupported'|'error', text?:string, root?:string, path?:string}}
- *   ambiguous：多個授權資料夾都有這個路徑，且無法從內容判斷是哪一份；path：寫入的檔案（授權資料夾名稱起算）
+ *   no-root：授權資料夾中沒有這個路徑，或同路徑的檔案內容與頁面不同（是別處的同名檔案）
+ *   ambiguous：多個授權資料夾都有內容相同的這個檔案，無法判斷是哪一份；path：寫入的檔案（授權資料夾名稱起算）
  */
 async function toggleTask(msg, sender) {
   const url = (sender.url || '').split('#')[0]
@@ -246,26 +247,24 @@ async function toggleTask(msg, sender) {
   }
   if (!granted.length) return { status: 'permission', root: candidates[0].root.handle.name }
 
-  // 同名的授權資料夾可能不只一個：與頁面實際所在的檔案內容一致的才是同一個檔案
+  // 授權資料夾只以名稱對應到網址路徑，可能對到別處的同名檔案（例如授權 D:\notes，開的是 E:\backup\notes\todo.md）：
+  // 與頁面實際所在的檔案內容一致的才是同一個檔案
   const read = async c => new Uint8Array(await (await c.file.getFile()).arrayBuffer())
-  let found = granted[0]
-  let bytes = await read(found)
-  if (granted.length > 1) {
-    let pageBytes
-    try {
-      pageBytes = new Uint8Array(await (await fetch(url, { cache: 'no-store' })).arrayBuffer())
-    } catch {
-      return { status: 'ambiguous' }
-    }
-    const same = []
-    for (const c of granted) {
-      const b = await read(c)
-      if (sameBytes(b, pageBytes)) same.push([c, b])
-    }
-    // 找不到或有兩份內容完全相同的副本：無法確定是哪一個檔案，不寫入
-    if (same.length !== 1) return { status: 'ambiguous' }
-    ;[found, bytes] = same[0]
+  let pageBytes
+  try {
+    pageBytes = new Uint8Array(await (await fetch(url, { cache: 'no-store' })).arrayBuffer())
+  } catch (err) {
+    return { status: 'error', error: `${err.name}: ${err.message}` }
   }
+  const same = []
+  for (const c of granted) {
+    const b = await read(c)
+    if (sameBytes(b, pageBytes)) same.push([c, b])
+  }
+  if (!same.length) return { status: 'no-root' }
+  // 兩份內容完全相同的副本：無法確定是哪一個檔案，不寫入
+  if (same.length > 1) return { status: 'ambiguous' }
+  const [found, bytes] = same[0]
   const hasBom = bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf
   let text
   try {
