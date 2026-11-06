@@ -280,7 +280,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
   }
 
-  /* ---------- 任務清單行號（供勾選寫回） ---------- */
+  /* ---------- 原文行號：任務清單（供勾選寫回）與區塊範圍 ---------- */
   // 在清單項目上標記「原文第幾行」：class 帶入每次建立時隨機產生的 nonce，
   // 文件作者寫的 HTML 無法猜到 nonce，因此無法偽造可寫回的勾選框
   const TASK_MARK_RE = /^\[([ xX])\][ \u00a0]/
@@ -296,12 +296,27 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         if (!TASK_MARK_RE.test(tokens[i + 2].content)) continue
         t.attrJoin('class', `ml-task-${nonce}-${t.map[0] + offset}`)
       }
-      // 標題的原文行號：「用編輯器開啟」時跳到目前閱讀的章節
+      // 區塊的原文行號範圍（0 起算，結尾不含）：複製章節、複製位置、用編輯器開啟時對應回原文
       for (const t of tokens) {
-        if (t.type === 'heading_open' && t.map) t.attrJoin('class', `ml-line-${nonce}-${t.map[0] + offset}`)
+        if (t.map && t.nesting >= 0 && t.block && LINE_TOKENS.has(t.type)) {
+          t.attrJoin('class', `ml-line-${nonce}-${t.map[0] + offset}-${t.map[1] + offset}`)
+        }
       }
     })
+    // fence 的 highlight 回傳完整的 <pre>，markdown-it 不會套用 token 的屬性：自行補上行號 class
+    const fence = md.renderer.rules.fence
+    md.renderer.rules.fence = (tokens, i, options, env, self) => {
+      const html = fence(tokens, i, options, env, self)
+      const cls = (tokens[i].attrGet('class') || '').split(' ').find(c => c.startsWith(`ml-line-${nonce}-`))
+      return cls && html.startsWith('<pre>') ? `<pre class="${cls}">${html.slice(5)}` : html
+    }
   }
+
+  // 會帶行號的區塊；自訂渲染、不輸出 token 屬性的區塊（容器、數學公式、HTML 區塊）不在其中，以前後區塊的行號推算
+  const LINE_TOKENS = new Set([
+    'heading_open', 'paragraph_open', 'blockquote_open', 'bullet_list_open', 'ordered_list_open', 'list_item_open',
+    'table_open', 'fence', 'code_block', 'hr', 'dl_open',
+  ])
 
   MarkLens.createMarkdown = function () {
     const md = globalThis.markdownit({

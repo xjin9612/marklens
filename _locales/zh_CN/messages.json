@@ -75,6 +75,9 @@
   "toolRawTitle": {
     "message": "切换原始文本（r）"
   },
+  "rawLineTitle": {
+    "message": "点击行号复制该行的位置"
+  },
   "toolBack": {
     "message": "返回阅读"
   },
@@ -97,13 +100,37 @@
     "message": "全部展开（]）"
   },
   "toolCopyMd": {
-    "message": "复制 Markdown"
+    "message": "复制"
   },
   "toolCopyMdTitle": {
-    "message": "复制整份文档的 Markdown 原文，可直接粘贴给 AI"
+    "message": "复制整份文档的内容，或文件位置"
   },
   "headingCopy": {
-    "message": "复制这一节的 Markdown"
+    "message": "复制这一节"
+  },
+  "copyMenu": {
+    "message": "复制"
+  },
+  "copyContent": {
+    "message": "复制内容（Markdown）"
+  },
+  "copyLocation": {
+    "message": "复制位置（路径与行号）"
+  },
+  "locationCopied": {
+    "message": "已复制 $1"
+  },
+  "locationUnknown": {
+    "message": "选中的内容无法对应到原文的行号"
+  },
+  "selectBar": {
+    "message": "复制选中的内容"
+  },
+  "selectCopySource": {
+    "message": "复制原文"
+  },
+  "selectCopyLocation": {
+    "message": "复制位置"
   },
   "mdCopied": {
     "message": "已复制 Markdown"

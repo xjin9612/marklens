@@ -75,6 +75,9 @@
   "toolRawTitle": {
     "message": "Toggle source (r)"
   },
+  "rawLineTitle": {
+    "message": "Click a line number to copy its location"
+  },
   "toolBack": {
     "message": "Back to reading"
   },
@@ -97,13 +100,37 @@
     "message": "Unfold all (])"
   },
   "toolCopyMd": {
-    "message": "Copy Markdown"
+    "message": "Copy"
   },
   "toolCopyMdTitle": {
-    "message": "Copy the document's Markdown source, ready to paste into an AI chat"
+    "message": "Copy the whole document's content, or its file location"
   },
   "headingCopy": {
-    "message": "Copy this section's Markdown"
+    "message": "Copy this section"
+  },
+  "copyMenu": {
+    "message": "Copy"
+  },
+  "copyContent": {
+    "message": "Copy content (Markdown)"
+  },
+  "copyLocation": {
+    "message": "Copy location (path and lines)"
+  },
+  "locationCopied": {
+    "message": "Copied $1"
+  },
+  "locationUnknown": {
+    "message": "Can't map the selection to lines in the source"
+  },
+  "selectBar": {
+    "message": "Copy the selection"
+  },
+  "selectCopySource": {
+    "message": "Copy source"
+  },
+  "selectCopyLocation": {
+    "message": "Copy location"
   },
   "mdCopied": {
     "message": "Markdown copied"

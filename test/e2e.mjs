@@ -299,12 +299,12 @@ try {
   /* ---------- 原始文字 ---------- */
   await check('原始文字：工具列可返回', async () => {
     await page.click('.ml-tool-raw')
-    assert.equal(await visible(page, 'pre.ml-source'), true)
+    assert.equal(await visible(page, '.ml-source-view'), true)
     assert.equal(await visible(page, '.ml-body'), false)
     assert.equal(await page.textContent('.ml-tool-raw'), '返回閱讀')
     await page.click('.ml-tool-raw')
     assert.equal(await visible(page, '.ml-body'), true)
-    assert.equal(await visible(page, 'pre.ml-source'), false)
+    assert.equal(await visible(page, '.ml-source-view'), false)
   })
   /* ---------- 無障礙 ---------- */
   await check('無障礙：按鈕都有可念的名稱，不宣告未實作方向鍵的 tree／tablist', async () => {
@@ -357,7 +357,7 @@ try {
   })
   await check('原始文字：快捷鍵 r 來回切換', async () => {
     await page.keyboard.press('r')
-    assert.equal(await visible(page, 'pre.ml-source'), true)
+    assert.equal(await visible(page, '.ml-source-view'), true)
     await page.keyboard.press('r')
     assert.equal(await visible(page, '.ml-body'), true)
   })
@@ -1428,26 +1428,133 @@ try {
     }
   })
 
-  await check('複製 Markdown：整份文件的原文，以及單一章節（到下一個同級標題為止）', async () => {
+  // Windows 的剪貼簿會把 \n 存成 \r\n，讀回時統一換行再比對
+  const clip = pg => pg.evaluate(() => navigator.clipboard.readText()).then(t => t.replace(/\r\n/g, '\n'))
+  async function copyVia(pg, button, item) {
+    await pg.evaluate(() => document.querySelector('.ml-toast')?.classList.remove('show'))
+    await button.click()
+    await pg.click(`.ml-menu-item:has-text("${item}")`)
+    await pg.waitForSelector('.ml-toast.show')
+  }
+  await check('複製：工具列與章節的選單，複製內容附 HTML 格式，複製位置為路徑與行號', async () => {
     await ctx.grantPermissions(['clipboard-read', 'clipboard-write'])
     const cp = await openDoc()
     try {
       await cp.bringToFront()
-      // Windows 的剪貼簿會把 \n 存成 \r\n，讀回時統一換行再比對
-      const read = async () => (await cp.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/g, '\n')
-      await cp.click('.ml-tool-copy')
-      await cp.waitForSelector('.ml-toast')
-      assert.equal(await read(), readFileSync(localMd, 'utf8'))
+      const src = readFileSync(localMd, 'utf8')
+      await copyVia(cp, cp.locator('.ml-tool-copy'), '複製內容')
+      assert.equal(await clip(cp), src)
+      const html = await cp.evaluate(async () => {
+        const [item] = await navigator.clipboard.read()
+        return (await item.getType('text/html')).text()
+      })
+      assert.ok(html.includes('<h1') && html.includes('任務清單'), 'HTML 含渲染後的內容')
+      assert.ok(!/ml-(fold|anchor|heading-copy|code-bar)|data-ml-line/.test(html), 'HTML 不含閱讀介面元件與行號屬性')
+
+      await copyVia(cp, cp.locator('.ml-tool-copy'), '複製位置')
+      assert.equal(await clip(cp), localMd, '整份文件的位置是檔案路徑')
+
       const heading = cp.locator('.markdown-body h2', { hasText: /^任務清單/ }).first()
       await heading.hover()
-      await heading.locator('.ml-heading-copy').click()
-      await cp.waitForFunction(() => document.querySelector('.ml-toast')?.textContent.includes('Markdown'))
-      const section = await read()
+      await copyVia(cp, heading.locator('.ml-heading-copy'), '複製內容')
+      const section = await clip(cp)
       assert.ok(section.startsWith('## 任務清單\n'), JSON.stringify(section.slice(0, 40)))
       assert.ok(!section.includes('## 寬表格'), '不應包含下一節')
       assert.ok(section.includes('- [ ]'), '應包含任務清單內容')
+
+      const lines = src.split('\n')
+      const from = lines.indexOf('## 任務清單')
+      let to = lines.indexOf('## 寬表格')
+      while (!lines[to - 1].trim()) to--
+      await heading.hover()
+      await copyVia(cp, heading.locator('.ml-heading-copy'), '複製位置')
+      assert.equal(await clip(cp), `${localMd}:${from + 1}-${to} (任務清單)`)
     } finally {
       await cp.close()
+    }
+  })
+  const nestedMd = join(work, 'nested.md')
+  writeFileSync(
+    nestedMd,
+    ['# 巢狀', '', '## A', '', '> ## 引用中的標題', '> 引用內容', '', 'A 的後續段落', '', '[ref]: https://example.com', '', '## B', '', 'B 的內容', ''].join('\n'),
+  )
+  await check('複製：引用中的標題只複製到引用結尾；章節不會被引用中的同級標題截斷，並含連結定義', async () => {
+    const np = await openDoc(pathToFileURL(nestedMd).href)
+    try {
+      await np.bringToFront()
+      const a = np.locator('.markdown-body > h2', { hasText: /^A/ })
+      await a.hover()
+      await copyVia(np, a.locator('.ml-heading-copy'), '複製內容')
+      assert.equal(await clip(np), '## A\n\n> ## 引用中的標題\n> 引用內容\n\nA 的後續段落\n\n[ref]: https://example.com\n')
+      const q = np.locator('blockquote h2')
+      await q.hover()
+      await copyVia(np, q.locator('.ml-heading-copy'), '複製內容')
+      assert.equal(await clip(np), '> ## 引用中的標題\n> 引用內容\n')
+      await q.hover()
+      await copyVia(np, q.locator('.ml-heading-copy'), '複製位置')
+      assert.equal(await clip(np), `${nestedMd}:5-6 (引用中的標題)`)
+    } finally {
+      await np.close()
+    }
+  })
+  await check('複製：選取文字後可複製對應的原文與位置', async () => {
+    const np = await openDoc(pathToFileURL(nestedMd).href)
+    try {
+      await np.bringToFront()
+      // 從引用內容選到「A 的後續段落」，跨兩個區塊
+      const select = (fromSel, toSel, from = 1, to = 2) =>
+        np.evaluate(([f, t, a, b]) => {
+          const r = document.createRange()
+          r.setStart(document.querySelector(f).firstChild, a)
+          r.setEnd(document.querySelector(t).firstChild, b)
+          getSelection().removeAllRanges()
+          getSelection().addRange(r)
+          document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+        }, [fromSel, toSel, from, to])
+      await select('.markdown-body blockquote p', '.markdown-body > p')
+      await np.waitForSelector('.ml-select-bar:not([hidden])')
+      await np.click('.ml-select-btn:has-text("複製位置")')
+      await np.waitForSelector('.ml-toast.show')
+      assert.equal(await clip(np), `${nestedMd}:6-8`)
+      await select('.markdown-body > p', '.markdown-body > p', 0, 3)
+      await np.waitForSelector('.ml-select-bar:not([hidden])')
+      await np.click('.ml-select-btn:has-text("複製原文")')
+      await np.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent.includes('Markdown'))
+      assert.equal(await clip(np), 'A 的後續段落\n')
+      await np.evaluate(() => getSelection().removeAllRanges())
+      await np.waitForSelector('.ml-select-bar[hidden]', { state: 'attached' })
+    } finally {
+      await np.close()
+    }
+  })
+  await check('原始文字：顯示行號，點行號複製該行位置，選取時只能複製位置', async () => {
+    const np = await openDoc(pathToFileURL(nestedMd).href)
+    try {
+      await np.bringToFront()
+      await np.keyboard.press('r')
+      const view = np.locator('.ml-source-view')
+      assert.equal(await view.locator('.ml-src-line').count(), 14)
+      assert.equal(await view.textContent(), readFileSync(nestedMd, 'utf8'), '畫面上的文字與原文相同，不含行號')
+      await view.locator('.ml-src-line').nth(2).click({ position: { x: 4, y: 4 } })
+      await np.waitForSelector('.ml-toast.show')
+      assert.equal(await clip(np), `${nestedMd}:3`)
+      await np.evaluate(() => {
+        const ls = document.querySelectorAll('.ml-src-line')
+        const r = document.createRange()
+        r.setStart(ls[4].firstChild, 0)
+        r.setEnd(ls[7].firstChild, 3)
+        getSelection().removeAllRanges()
+        getSelection().addRange(r)
+        document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+      })
+      await np.waitForSelector('.ml-select-bar:not([hidden])')
+      assert.equal(await np.locator('.ml-select-btn:has-text("複製原文")').isVisible(), false)
+      await np.evaluate(() => document.querySelector('.ml-toast')?.classList.remove('show'))
+      await np.click('.ml-select-btn:has-text("複製位置")')
+      await np.waitForSelector('.ml-toast.show')
+      assert.equal(await clip(np), `${nestedMd}:5-8`)
+    } finally {
+      await np.close()
     }
   })
 

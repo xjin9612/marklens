@@ -51,7 +51,7 @@ html.marklens, html.marklens body {
 }
 
 /* ---------- 基本 ---------- */
-html.marklens pre.ml-source { display: none; }
+html.marklens pre.ml-source, html.marklens .ml-source-view { display: none; }
 html.marklens.ml-noscroll, html.marklens.ml-noscroll body { overflow: hidden; }
 html.marklens.ml-dragging, html.marklens.ml-dragging * { cursor: col-resize !important; user-select: none !important; }
 html.marklens [hidden]:not([hidden="until-found"]) { display: none !important; }
@@ -161,15 +161,32 @@ html.marklens .ml-orphan .ml-tool { color: var(--accent); padding: 0 6px; }
 /* ---------- 原始文字模式：工具列保留，可隨時返回 ---------- */
 html.marklens.ml-raw :is(.ml-body, .ml-toc, .ml-reading-only, .ml-tool-toc, .ml-backdrop) { display: none !important; }
 html.marklens.ml-raw .ml-main { margin-left: 0 !important; }
-html.marklens.ml-raw pre.ml-source {
+html.marklens.ml-raw .ml-source-view {
   display: block;
-  margin: 0;
-  padding: 24px 32px;
+  padding: 24px 32px 24px 0;
   font: 14px/1.6 var(--ml-mono);
   white-space: pre-wrap;
   word-break: break-word;
-  background: none;
+  tab-size: 4;
 }
+/* 行號：左側留白中的偽元素，不會被選取、複製或被 Ctrl+F 找到；點它複製該行的位置（main.js onRawClick） */
+html.marklens .ml-src-line {
+  position: relative;
+  min-height: 1.6em;
+  padding-left: calc(var(--ml-gutter, 3ch) + 32px);
+}
+html.marklens .ml-src-line::before {
+  content: attr(data-n) / "";
+  position: absolute;
+  left: 0;
+  width: calc(var(--ml-gutter, 3ch) + 16px);
+  text-align: right;
+  color: var(--muted);
+  opacity: .6;
+  cursor: pointer;
+  user-select: none;
+}
+html.marklens .ml-src-line:hover::before { opacity: 1; color: var(--accent); }
 html.marklens.ml-raw .ml-tool-raw { border-color: var(--accent); }
 
 /* ---------- 側邊目錄 ---------- */
@@ -995,6 +1012,31 @@ html.marklens .ml-menu-item > .ml-icon { color: var(--muted); }
 /* 勾號欄固定寬度，有勾與沒勾的項目文字對齊 */
 html.marklens .ml-menu-check { display: grid; place-items: center; width: 16px; flex: none; color: var(--accent); }
 html.marklens .ml-menu-item.checked { font-weight: 600; }
+/* 選取文字後出現的複製列（main.js bindSelection） */
+html.marklens .ml-select-bar {
+  position: absolute;
+  z-index: 55;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--ml-radius-md);
+  box-shadow: var(--shadow);
+  font: 12px/1.4 var(--ml-font);
+}
+html.marklens .ml-select-btn {
+  padding: 3px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--fg);
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+html.marklens .ml-select-btn:is(:hover, :focus-visible) { background: var(--hover); }
+@media print { html.marklens .ml-select-bar { display: none !important; } }
 /* 會展開選單的工具列按鈕：最後的小箭頭 */
 html.marklens .ml-tool-caret { display: grid; margin-left: -2px; }
 html.marklens .ml-tool-caret .ml-icon { width: 12px; height: 12px; }

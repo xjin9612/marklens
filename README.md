@@ -73,7 +73,7 @@ The sidebar outline highlights the section you're reading. Fold any section, or 
 - Live reload for local files that keeps your scroll position, folds and table state
 - Remembers where you stopped reading each file
 - Relative `.md` links open in the reader; external links open in a new tab (can be turned off)
-- Raw source view, one key away
+- Raw source view, one key away, with line numbers; click one to copy that line's location
 
 **Tables**
 - Drag to resize columns (double-click the handle to fit), click headers to sort (a third click restores the original order)
@@ -107,7 +107,9 @@ The sidebar outline highlights the section you're reading. Fold any section, or 
 **Sharing**
 - Print or save as PDF, with sections expanded and only page numbers in the margins
 - Export as a single HTML file with styles, diagrams and math fonts embedded and no scripts
-- **Copy Markdown** copies the whole source, ready to paste into an AI chat; the copy button next to a heading copies just that section
+- The **Copy** menu has two modes. **Copy content** copies the Markdown source with HTML formatting attached, so apps that accept formatted text keep the formatting. **Copy location** copies the path and line range, such as `D:\notes\report.md:142-168 (Causes)`, so you can point an AI tool at the exact lines
+- **Copy** in the toolbar works on the whole document; the copy button next to a heading works on that section
+- Select text to copy its Markdown source or its location
 
 ## Keyboard shortcuts
 

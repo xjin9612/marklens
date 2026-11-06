@@ -94,6 +94,34 @@ MarkLens.copyText = async function (text) {
   }
 }
 
+/**
+ * 複製純文字並附上 HTML：支援格式的程式貼上時取 HTML，純文字輸入框取純文字
+ * 一般 http 網頁沒有 Clipboard API，改在 copy 事件裡寫入兩種格式
+ */
+MarkLens.copyRich = async function (text, html) {
+  try {
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        'text/plain': new Blob([text], { type: 'text/plain' }),
+        'text/html': new Blob([html], { type: 'text/html' }),
+      }),
+    ])
+    return true
+  } catch {
+    const onCopy = e => {
+      e.clipboardData.setData('text/plain', text)
+      e.clipboardData.setData('text/html', html)
+      e.preventDefault()
+    }
+    document.addEventListener('copy', onCopy, true)
+    try {
+      return document.execCommand('copy')
+    } finally {
+      document.removeEventListener('copy', onCopy, true)
+    }
+  }
+}
+
 /** 按鈕短暫顯示回饋文字 */
 MarkLens.flash = function (btn, text, ms = 1000) {
   const old = btn.textContent
