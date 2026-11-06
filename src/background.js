@@ -1,6 +1,6 @@
 'use strict'
 // Service worker：content script 無權或不該自己做的事（讀本機檔案與資料夾、寫回任務、讀擴充功能內的檔案），以及快捷鍵與設定同步
-importScripts('/src/shared/settings.js', '/src/shared/i18n.js', '/src/shared/roots.js', '/src/shared/hash.js')
+importScripts('/src/shared/settings.js', '/src/shared/i18n.js', '/src/shared/roots.js', '/src/shared/hash.js', '/src/shared/lines.js')
 
 // 首次安裝：開啟引導頁（說明如何開啟「允許存取檔案網址」）；更新時不打擾
 chrome.runtime.onInstalled.addListener(({ reason }) => {
@@ -276,8 +276,8 @@ async function toggleTask(msg, sender) {
   // 檔案已被其他地方修改（例如編輯器剛存檔）：不寫入，回傳最新內容讓頁面更新
   if ((await MarkLens.sha256(text)) !== msg.hash) return { status: 'conflict', text }
 
-  // 保留每行原本的換行字元（LF / CRLF）
-  const lines = text.split(/(?<=\n)/)
+  // 保留每行原本的換行字元（LF / CRLF / CR）
+  const lines = MarkLens.splitLines(text)
   const line = lines[msg.line]
   const m = line != null && TASK_LINE_RE.exec(line)
   if (!m || m[2].toLowerCase() !== msg.from) return { status: 'conflict', text }

@@ -1667,13 +1667,16 @@ try {
   await sw.evaluate(() => MarkLens.saveSettings({ autoRefresh: 'off' })) // 避免自動更新以實體檔覆蓋 OPFS 的寫回結果
   const tasksSrc = readFileSync(join(root, 'test/fixtures/tasks.md'), 'utf8')
   const crlfSrc = tasksSrc.replace(/\n/g, '\r\n')
+  // 單獨的 \r 也是換行（markdown-it 與舊版 Mac 的換行）：「一」在第 2 行
+  const crSrc = '# CR\r\r- [ ] 一\n- [ ] 二\n'
   const taskDir = join(work, 'work')
   mkdirSync(taskDir)
   writeFileSync(join(taskDir, 'tasks.md'), tasksSrc)
   writeFileSync(join(taskDir, 'tasks-crlf.md'), Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), Buffer.from(crlfSrc)]))
+  writeFileSync(join(taskDir, 'cr.md'), crSrc)
   const opfs = {
     async setup() {
-      await sw.evaluate(async ([a, b]) => {
+      await sw.evaluate(async ([a, b, c]) => {
         const rootDir = await navigator.storage.getDirectory()
         await rootDir.removeEntry('work', { recursive: true }).catch(() => {})
         const dir = await rootDir.getDirectoryHandle('work', { create: true })
@@ -1684,9 +1687,10 @@ try {
         }
         await put('tasks.md', a)
         await put('tasks-crlf.md', new Uint8Array([0xef, 0xbb, 0xbf, ...new TextEncoder().encode(b)]))
+        await put('cr.md', c)
         for (const r of await MarkLens.Roots.list()) await MarkLens.Roots.remove(r.id)
         await MarkLens.Roots.add(dir)
-      }, [tasksSrc, crlfSrc])
+      }, [tasksSrc, crlfSrc, crSrc])
     },
     /** 把 OPFS 的檔案內容寫回實體檔（模擬寫回的是頁面所在的那個檔案） */
     async mirror(name = 'tasks.md') {
@@ -1777,6 +1781,13 @@ try {
     const r = await opfs.read('tasks-crlf.md')
     assert.equal(r.bom, true)
     assert.equal(r.text.replace(/^\ufeff/, ''), crlfSrc.replace('1. [ ] 有序清單任務', '1. [x] 有序清單任務'))
+    await cp.close()
+  })
+  await check('勾選寫回：單獨的 \\r 換行，寫入點的那一行', async () => {
+    const cp = await openDoc(pathToFileURL(join(taskDir, 'cr.md')).href)
+    await cp.locator('.task-list-item', { hasText: '一' }).locator('input').click()
+    await cp.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent.startsWith('已勾選'))
+    assert.equal((await opfs.read('cr.md')).text, crSrc.replace('- [ ] 一', '- [x] 一'))
     await cp.close()
   })
   await check('勾選寫回：未授權時提示授權', async () => {
