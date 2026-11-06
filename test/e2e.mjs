@@ -1663,6 +1663,7 @@ try {
   /* ---------- 任務勾選寫回 ---------- */
   // 資料夾選擇視窗無法自動化：改用 OPFS（瀏覽器私有檔案系統）裡同名的「work」資料夾當作已授權資料夾，
   // 網址路徑中的 work/ 會對應到它，寫回的結果從 OPFS 讀出驗證。授權視窗本身需手動測試。
+  // 背景程式只寫入內容與頁面所在檔案相同的那一份：每次寫回後以 opfs.mirror() 把 OPFS 的內容同步到實體檔，兩者才會一致
   await sw.evaluate(() => MarkLens.saveSettings({ autoRefresh: 'off' })) // 避免自動更新以實體檔覆蓋 OPFS 的寫回結果
   const tasksSrc = readFileSync(join(root, 'test/fixtures/tasks.md'), 'utf8')
   const crlfSrc = tasksSrc.replace(/\n/g, '\r\n')
@@ -1686,6 +1687,14 @@ try {
         for (const r of await MarkLens.Roots.list()) await MarkLens.Roots.remove(r.id)
         await MarkLens.Roots.add(dir)
       }, [tasksSrc, crlfSrc])
+    },
+    /** 把 OPFS 的檔案內容寫回實體檔（模擬寫回的是頁面所在的那個檔案） */
+    async mirror(name = 'tasks.md') {
+      const bytes = await sw.evaluate(async n => {
+        const dir = await (await navigator.storage.getDirectory()).getDirectoryHandle('work')
+        return Array.from(new Uint8Array(await (await (await dir.getFileHandle(n)).getFile()).arrayBuffer()))
+      }, name)
+      writeFileSync(join(taskDir, name), Buffer.from(bytes))
     },
     read(name) {
       return sw.evaluate(async n => {
@@ -1718,6 +1727,7 @@ try {
   await check('勾選寫回：寫入正確的行（含 front matter 偏移）', async () => {
     await box('第一項').click()
     await tp.waitForSelector('.ml-toast.show')
+    await opfs.mirror()
     assert.equal(await toast(), '已勾選並存檔復原')
     assert.equal(await box('第一項').isChecked(), true)
     assert.equal((await opfs.read('tasks.md')).text, tasksSrc.replace('- [ ] 第一項', '- [x] 第一項'))
@@ -1725,10 +1735,13 @@ try {
   await check('勾選寫回：引用區塊、有序清單、巢狀清單', async () => {
     await box('引用中的任務').click()
     await tp.waitForFunction(() => document.querySelectorAll('input.ml-task-box:checked').length === 3)
+    await opfs.mirror()
     await box('有序清單任務').click()
     await tp.waitForFunction(() => document.querySelectorAll('input.ml-task-box:checked').length === 4)
+    await opfs.mirror()
     await tp.locator('li li', { hasText: '巢狀任務' }).locator('input').click()
     await tp.waitForFunction(() => document.querySelectorAll('input.ml-task-box:checked').length === 5)
+    await opfs.mirror()
     const t = (await opfs.read('tasks.md')).text
     assert.ok(t.includes('> - [x] 引用中的任務') && t.includes('1. [x] 有序清單任務') && t.includes('  - [x] 巢狀任務'), t)
     assert.ok(t.includes('- [x] 第二項\n'), '巢狀項目不應改到父項目')
@@ -1737,13 +1750,16 @@ try {
   await check('勾選寫回：取消勾選與復原', async () => {
     await box('第二項').click()
     await tp.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent.startsWith('已取消勾選'))
+    await opfs.mirror()
     assert.ok((await opfs.read('tasks.md')).text.includes('- [ ] 第二項'))
     await tp.click('.ml-toast-btn:text("復原")')
     await tp.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent.startsWith('已勾選'))
+    await opfs.mirror()
     assert.ok((await opfs.read('tasks.md')).text.includes('- [x] 第二項'))
   })
   await check('勾選寫回：檔案被其他地方修改時不寫入並重新載入', async () => {
     await opfs.append('tasks.md', '\n- [ ] 編輯器新增的項目\n')
+    await opfs.mirror()
     const before = (await opfs.read('tasks.md')).text
     await box('第一項').click()
     await tp.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent.includes('其他地方修改'))
@@ -1751,6 +1767,7 @@ try {
     assert.equal(await box('編輯器新增的項目').count(), 1)
     await box('編輯器新增的項目').click()
     await tp.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent.startsWith('已勾選'))
+    await opfs.mirror()
     assert.ok((await opfs.read('tasks.md')).text.includes('- [x] 編輯器新增的項目'))
   })
   await check('勾選寫回：保留 CRLF 與 BOM', async () => {
@@ -1831,13 +1848,14 @@ try {
       await p4.close()
     }
   })
-  await check('勾選寫回：多個授權資料夾都有這個路徑時，寫入內容與頁面相同的那一份；分不出來就不寫', async () => {
+  await check('勾選寫回：多個授權資料夾都有這個路徑時，寫入內容與頁面相同的那一份；分不出來或只有別處的同名檔案就不寫', async () => {
     // OPFS：<暫存目錄名>/work/tasks.md（與頁面相同）、copy/work/tasks.md（另一份同名檔案）
     // 授權 <暫存目錄名>、<暫存目錄名>/work（巢狀，指向同一個檔案）與 copy/work
     const base = work.split(/[\\/]/).pop()
-    const setup = copySrc =>
+    writeFileSync(join(taskDir, 'tasks.md'), tasksSrc) // 前面的檢查已把勾選結果同步到實體檔
+    const setup = (copySrc, onlyCopy = false) =>
       sw.evaluate(
-        async ([b, a, c]) => {
+        async ([b, a, c, only]) => {
           const top = await navigator.storage.getDirectory()
           for (const n of [b, 'copy']) await top.removeEntry(n, { recursive: true }).catch(() => {})
           const put = async (dir, text) => {
@@ -1851,9 +1869,9 @@ try {
           await put(mine, a)
           await put(other, c)
           for (const r of await MarkLens.Roots.list()) await MarkLens.Roots.remove(r.id)
-          for (const d of [baseDir, mine, other]) await MarkLens.Roots.add(d)
+          for (const d of only ? [other] : [baseDir, mine, other]) await MarkLens.Roots.add(d)
         },
-        [base, tasksSrc, copySrc],
+        [base, tasksSrc, copySrc, onlyCopy],
       )
     const readOpfs = path =>
       sw.evaluate(async p => {
@@ -1880,6 +1898,13 @@ try {
       await p6.close()
       assert.equal(await readOpfs([base, 'work', 'tasks.md']), tasksSrc)
       assert.equal(await readOpfs(['copy', 'work', 'tasks.md']), tasksSrc)
+      // 只授權了別處的同名檔案（copy/work），內容與頁面不同：不寫入，頁面也不換成那份的內容
+      await setup(other, true)
+      const p7 = await openDoc(pathToFileURL(join(taskDir, 'tasks.md')).href)
+      await click(p7, '此檔案所在的資料夾尚未授權')
+      assert.equal(await p7.locator('.task-list-item', { hasText: '另一份檔案' }).count(), 0, '頁面維持原內容')
+      await p7.close()
+      assert.equal(await readOpfs(['copy', 'work', 'tasks.md']), other, '別處的同名檔案不動')
     } finally {
       // 回到前一項檢查之後的狀態：沒有授權資料夾
       await sw.evaluate(async () => {
@@ -1919,7 +1944,8 @@ try {
     assert.ok(ms < 100, `比對花了 ${Math.round(ms)}ms`)
   })
   await check('勾選寫回過程沒有 JS 錯誤', async () => {
-    assert.deepEqual(errors.filter(e => !e.includes('ERR_FILE_NOT_FOUND') && !e.includes('404')), [])
+    const left = errors.filter(e => !e.includes('ERR_FILE_NOT_FOUND') && !e.includes('404'))
+    assert.deepEqual(left, [], left.join(' | '))
   })
 
   /* ---------- 介面多語系 ---------- */
