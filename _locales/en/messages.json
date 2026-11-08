@@ -646,7 +646,7 @@
     "message": "<b>Check off tasks</b>: click <code>- [ ]</code> in a local file to save it (you'll authorize the folder the first time)"
   },
   "featDiagrams": {
-    "message": "<b>Diagrams and math</b>: <code>```mermaid</code> blocks and <code>$$…$$</code> formulas in local files are drawn automatically"
+    "message": "<b>Diagrams and math</b>: <code>```mermaid</code> blocks and <code>$$…$$</code> formulas are drawn automatically"
   },
   "featReload": {
     "message": "<b>Live reload</b>: save in your editor and the page updates within a second, keeping scroll position and folds"
