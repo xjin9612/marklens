@@ -646,7 +646,7 @@
     "message": "<b>勾选任务</b>：本机文件的 <code>- [ ]</code> 可直接点击存回原文件（第一次会请你授权文件夹）"
   },
   "featDiagrams": {
-    "message": "<b>图表与公式</b>：本机文件的 <code>```mermaid</code> 区块与 <code>$$…$$</code> 公式自动绘制"
+    "message": "<b>图表与公式</b>：<code>```mermaid</code> 区块与 <code>$$…$$</code> 公式自动绘制"
   },
   "featReload": {
     "message": "<b>自动更新</b>：用编辑器存盘后，画面约一秒内更新，保留滚动位置与折叠"

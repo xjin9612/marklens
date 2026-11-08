@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Export HTML no longer fails when the document contains an address the browser can't parse
 - The **Open in editor** link was cut off at a `#` or `?` in the file name
 - Copying a section no longer stops at a heading inside a quote or list; copying a heading inside a quote copies only to the end of the quote, and a section keeps link definitions written at its end
+- The welcome page said diagrams and math are drawn only in local files; they are drawn on websites too
 
 ## [1.6.0] - 2026-11-05
 
