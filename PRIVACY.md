@@ -2,7 +2,7 @@
 
 English | [繁體中文](PRIVACY.zh-TW.md)
 
-*Last updated: 2026-11-05*
+*Last updated: 2026-11-09*
 
 MarkLens is a browser extension that displays Markdown files. **It does not collect, sell or send your data to anyone.** It has no account, no analytics, no ads and no server of its own. Everything described below stays in your browser on your computer.
 
