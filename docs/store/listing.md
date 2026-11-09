@@ -70,7 +70,7 @@ PRIVATE AND AUDITABLE
 
 GOOD TO KNOW
 • For local files, turn on "Allow access to file URLs" on the extension's Details page. A welcome page walks you through it after installing.
-• To read .md files on websites, turn on "Also open .md files on websites" in the popup. Chrome then asks for access to all websites, because its permission prompt ignores the part of the address after the site name. MarkLens only runs on addresses that end in .md, .markdown, .mkd or .mdx.
+• To read .md files on websites, turn on "Also open .md files on websites" in the popup. The browser then asks for access to all websites, because its permission prompt ignores the part of the address after the site name. MarkLens only runs on addresses that end in .md, .markdown, .mkd or .mdx.
 
 Source code, changelog and issues: https://github.com/xjin9612/marklens
 ```
@@ -118,7 +118,7 @@ Markdown 支援
 
 使用須知
 • 要開啟本機檔案，請在擴充功能的「詳細資料」頁面開啟「允許存取檔案網址」。安裝後的歡迎頁會帶你完成設定。
-• 要閱讀網頁上的 .md，請在設定中開啟「也在網頁上的 .md 檔案啟用」。Chrome 會詢問是否允許存取所有網站，因為它的權限提示忽略網址中網站名稱之後的部分。MarkLens 只在網址以 .md、.markdown、.mkd 或 .mdx 結尾時執行。
+• 要閱讀網頁上的 .md，請在設定中開啟「也在網頁上的 .md 檔案啟用」。瀏覽器會詢問是否允許存取所有網站，因為它的權限提示忽略網址中網站名稱之後的部分。MarkLens 只在網址以 .md、.markdown、.mkd 或 .mdx 結尾時執行。
 
 原始碼、更新紀錄與問題回報：https://github.com/xjin9612/marklens
 ```
@@ -168,7 +168,7 @@ Markdown 支持
 
 使用须知
 • 要打开本机文件，请在扩展程序的“详情”页面打开“允许访问文件网址”。安装后的欢迎页会带你完成设置。
-• 要阅读网页上的 .md，请在设置中开启“也在网页上的 .md 文件启用”。Chrome 会询问是否允许访问所有网站，因为它的权限提示忽略网址中网站名称之后的部分。MarkLens 只在网址以 .md、.markdown、.mkd 或 .mdx 结尾时运行。
+• 要阅读网页上的 .md，请在设置中开启“也在网页上的 .md 文件启用”。浏览器会询问是否允许访问所有网站，因为它的权限提示忽略网址中网站名称之后的部分。MarkLens 只在网址以 .md、.markdown、.mkd 或 .mdx 结尾时运行。
 
 源代码、更新日志与问题反馈：https://github.com/xjin9612/marklens
 ```
@@ -212,10 +212,11 @@ Saves the user's reading settings (theme, font size, text width, language, edito
 Registers MarkLens's own packaged content scripts for Markdown URLs on websites (paths ending in .md, .markdown, .mkd, .mdx), only after the user turns on "Also open .md files on websites" and grants the optional host permission. The scripts are the same files the manifest already runs on local Markdown files; no code is fetched or generated. They are unregistered when the permission is removed.
 ```
 
-**主機權限（optional_host_permissions：`*://*/*`）**
+**主機權限（content_scripts 的 `file:///*.md` 等網址，與 optional_host_permissions 的 `*://*/*`）**
 
 ```text
-Optional, not requested at install. The user grants it from the popup or the welcome page to render Markdown files hosted on websites. The registered scripts match only URLs whose path ends in a Markdown extension and never run on other pages. The host part is broad because Markdown files can be hosted on any site, and Chrome's host permissions cannot be limited by path.
+At install, the content scripts match only local Markdown files (file:/// URLs ending in .md, .markdown, .mkd or .mdx), to render the document the user opened. They take effect only after the user turns on "Allow access to file URLs".
+The website permission (*://*/*) is optional and not requested at install. The user grants it from the popup or the welcome page to render Markdown files hosted on websites. The registered scripts match only URLs whose path ends in a Markdown extension and never run on other pages. The host part is broad because Markdown files can be hosted on any site, and host permissions cannot be limited by path.
 ```
 
 ### 遠端程式碼（Remote code）
@@ -223,14 +224,14 @@ Optional, not requested at install. The user grants it from the popup or the wel
 選「**No, I am not using remote code**」。
 
 ```text
-All JavaScript, including third-party libraries (markdown-it, highlight.js, Mermaid, KaTeX), is packaged in the extension under vendor/ with pinned versions. Nothing is fetched or evaluated at runtime. vendor/mermaid/mermaid.mjs is the official dist/mermaid.min.js of mermaid 12.2.0 with one change: its last line, which assigns the library to globalThis, is replaced by `export default` so it loads as a module (scripts/vendor.mjs).
+All JavaScript, including third-party libraries (markdown-it and its plugins, highlight.js, Mermaid, KaTeX), is packaged in the extension under vendor/ with pinned versions. Nothing is fetched or evaluated at runtime. vendor/mermaid/mermaid.mjs is the official dist/mermaid.min.js of mermaid 12.2.0 with one change: its last line, which assigns the library to globalThis, is replaced by `export default` so it loads as a module (scripts/vendor.mjs).
 ```
 
 ### 資料使用（Data usage）
 
 **收集的資料類型：全部不勾。**
 
-理由：商店所說的「收集」是指資料離開使用者的裝置。MarkLens 存放的資料只有兩種，都只留在本機，不傳送給任何人，且在隱私權政策中逐項列出：
+理由：商店所說的「收集」是指資料離開使用者的裝置。MarkLens 除了閱讀設定之外，存放的資料只有兩種，都只留在本機，不傳送給任何人，且在隱私權政策中逐項列出：
 - 閱讀位置：最近 300 個檔案的網址與捲動位置，用於回到上次閱讀處
 - 已授權資料夾的存取權
 
@@ -244,8 +245,6 @@ All JavaScript, including third-party libraries (markdown-it, highlight.js, Merm
 ```text
 https://github.com/xjin9612/marklens/blob/main/PRIVACY.md
 ```
-
-（需要先 push，網址才有內容）
 
 ---
 
@@ -261,6 +260,13 @@ https://github.com/xjin9612/marklens/blob/main/PRIVACY.md
 
 使用同一個 `-store.zip`，文字與圖片沿用上面的內容。欄位規定見 [Edge 發布文件](https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/publish-extension)，差異如下：
 - 隱私權政策網址：必填，用同一個
-- 詳細說明：每個語言必填，250～10,000 字元。英文約 2,800 字元、繁中約 1,200 字元，都符合
+- 詳細說明：每個語言必填，250～10,000 字元。英文約 3,200 字元、繁中與簡中約 1,400 字元，都符合
+- 擴充功能標誌（Extension logo）：每個語言必填，1:1，最小 128×128。用 `icons/icon128.png`，上傳後按 Duplicate 套用到所有語言
+- 螢幕截圖：最多 6 張，1280×800 可用；沿用上面 5 張
 - 搜尋關鍵字（Search terms，選填，最多 7 個、每個 30 字元、合計 21 個字）：markdown, md, reader, viewer, table, mermaid, preview
-- 類別：Developer tools（[Edge 文件中的類別名稱](https://learn.microsoft.com/en-us/microsoft-edge/devtools/customize/extensions)）
+- 類別：Developer tools（[Edge Add-ons 的類別頁面](https://microsoftedge.microsoft.com/addons/category/Developer-Tools)）
+- 認證備註（Notes for certification，選填）：
+
+```text
+No account is needed. To test with local files: open edge://extensions, open MarkLens's Details and turn on "Allow access to file URLs", then drag any .md file into the browser. To test on websites: open the MarkLens popup, turn on "Also open .md files on websites" and allow the permission, then open https://raw.githubusercontent.com/xjin9612/marklens/main/docs/demo.md. Checking a task in a local file asks once for access to the folder that contains it.
+```
