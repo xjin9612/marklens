@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-11-09
+
 ### Added
 - **Copy** menus in the toolbar and next to each heading, with two modes. **Copy content** copies the Markdown source and also puts formatted HTML on the clipboard, so apps that accept formatted text keep the formatting. **Copy location** copies the file path and line range, such as `D:\notes\report.md:142-168 (Causes)`, to point an AI tool at the exact lines; on websites it copies the address with `#L142-L168`
 - Select text in a document to copy its Markdown source or its location
@@ -160,7 +162,8 @@ First public release.
 ### Security
 - Allow-list HTML sanitizer, minimal permissions (`storage` only), no remote code
 
-[Unreleased]: https://github.com/xjin9612/marklens/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/xjin9612/marklens/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/xjin9612/marklens/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/xjin9612/marklens/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/xjin9612/marklens/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/xjin9612/marklens/compare/v1.3.0...v1.4.0
