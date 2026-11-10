@@ -110,7 +110,7 @@ async function openDoc(url = localUrl, timeout = 5000) {
 }
 /**
  * 等到條件成立（從 Node 端輪詢）：用在背景程式的設定值、背景分頁與 sandbox CSP 的頁面。
- * 後兩者的 waitForFunction 不會輪詢：背景分頁暫停 requestAnimationFrame，sandbox CSP 的頁面不執行輪詢
+ * 後兩者不用 waitForFunction／waitForSelector：sandbox CSP 的頁面不執行輪詢；背景分頁在 macOS 的 CI 上曾等到逾時
  */
 async function until(fn, ms = 3000) {
   const end = Date.now() + ms
@@ -119,6 +119,12 @@ async function until(fn, ms = 3000) {
     if (Date.now() > end) throw new Error(`逾時：${fn}`)
     await new Promise(r => setTimeout(r, 50))
   }
+}
+/** 等頁面上的條件成立；用於長駐、可能在背景的分頁。頁面重新整理途中 evaluate 失敗，視為尚未成立 */
+async function pageUntil(p, fn, ms = 30000) {
+  await until(() => p.evaluate(fn).catch(() => false), ms).catch(() => {
+    throw new Error(`逾時 ${ms}ms：${fn}`)
+  })
 }
 const visible = (page, sel) => page.locator(sel).first().isVisible()
 
@@ -201,7 +207,7 @@ try {
     assert.equal(await page.textContent('.ml-code-lang'), 'js')
   })
   await check('程式碼區塊中英對齊（框線字元表格每列等寬）', async () => {
-    await page.waitForFunction(() => document.documentElement.dataset.mlCodeFont)
+    await pageUntil(page, () => document.documentElement.dataset.mlCodeFont)
     const info = JSON.parse(await page.evaluate(() => document.documentElement.dataset.mlCodeFont))
     const widths = await page.$eval('.ml-code code.language-text', code => {
       const node = code.firstChild
@@ -350,7 +356,7 @@ try {
   await check('自動更新後保留表格排序、欄寬、篩選', async () => {
     const width = (await th(4).boundingBox()).width
     writeFileSync(localMd, readFileSync(fixture, 'utf8').replace('# MarkLens 功能測試', '# 已更新的標題'))
-    await page.waitForFunction(() => document.title === '已更新的標題', null, { timeout: 4000 })
+    await pageUntil(page, () => document.title === '已更新的標題', 4000)
     assert.equal(await th(3).getAttribute('aria-sort'), 'ascending')
     assert.equal(await page.inputValue('.ml-table-filter'), '櫻')
     assert.equal(await page.locator('.ml-table').first().locator('tbody tr:not([hidden])').count(), 1)
@@ -379,7 +385,7 @@ try {
         new MutationObserver(() => window.mlTitles.push(document.title)).observe(document.head, { childList: true, characterData: true, subtree: true })
       })
       writeFileSync(localMd, readFileSync(fixture, 'utf8').replace('# MarkLens 功能測試', '# 寫入中途的標題'))
-      await page.waitForFunction(() => document.title === '寫入中途的標題', null, { timeout: 8000 })
+      await pageUntil(page, () => document.title === '寫入中途的標題', 8000)
       assert.equal(await sw.evaluate(() => self.mlEmptyReads), 3, '空內容應在寫入後被讀到')
       // 空白文件沒有 H1，標題會退回檔名
       const titles = await page.evaluate(() => window.mlTitles)
@@ -639,7 +645,7 @@ try {
   })
   await check('分頁狀態重新整理後保留', async () => {
     await page.reload()
-    await page.waitForSelector('#ml-root .markdown-body h1')
+    await pageUntil(page, () => !!document.querySelector('#ml-root .markdown-body h1')?.checkVisibility())
     assert.equal(await visible(page, '.ml-toc'), false)
     await page.keyboard.press('t')
     assert.equal(await visible(page, '.ml-toc'), true)
@@ -652,7 +658,7 @@ try {
     assert.equal((await sw.evaluate(() => MarkLens.loadSettings())).textWidth, 1200, '全域預設值不應改變')
     await page.keyboard.press('w')
     assert.equal(await page.textContent('.ml-tool-width'), '寬度：滿版')
-    await page.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent === '寬度：滿版')
+    await pageUntil(page, () => document.querySelector('.ml-toast.show')?.textContent === '寬度：滿版')
   })
   await check('寬度選單：列出全部選項、目前值打勾，鍵盤可操作，Esc 與點外面都會關閉', async () => {
     const btn = page.locator('.ml-tool-width')
@@ -697,8 +703,8 @@ try {
   })
   await check('主題即時同步所有分頁；版面設定不推送', async () => {
     await sw.evaluate(() => MarkLens.saveSettings({ theme: 'dark', textWidth: 960, tocHidden: true }))
-    await until(() => page2.evaluate(() => document.documentElement.dataset.mlTheme === 'dark'))
-    await page.waitForFunction(() => document.documentElement.dataset.mlTheme === 'dark')
+    await pageUntil(page2, () => document.documentElement.dataset.mlTheme === 'dark', 3000)
+    await pageUntil(page, () => document.documentElement.dataset.mlTheme === 'dark')
     assert.equal(await page2.textContent('.ml-tool-width'), '寬度：1200')
     assert.equal(await visible(page2, '.ml-toc'), true)
   })
@@ -733,12 +739,12 @@ try {
       assert.equal(await page.textContent('.ml-tool-font'), '字級：125%')
       for (let i = 0; i < 20 && (await fontSize()) !== 20; i++) await page.waitForTimeout(50)
       assert.equal(await fontSize(), 20)
-      await until(() => page2.evaluate(() => document.querySelector('.ml-tool-font').textContent === '字級：125%'))
+      await pageUntil(page2, () => document.querySelector('.ml-tool-font').textContent === '字級：125%', 3000)
       assert.equal((await sizes(page2)).pre, '17px', '其他分頁同步縮放')
       // 快捷鍵：+ 與 = 放大一級，- 縮小一級，0 重設
       await page.keyboard.press('=')
       assert.equal(await page.textContent('.ml-tool-font'), '字級：150%')
-      await page.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent === '字級：150%')
+      await pageUntil(page, () => document.querySelector('.ml-toast.show')?.textContent === '字級：150%')
       await page.keyboard.press('-')
       await page.keyboard.press('-')
       assert.equal(await page.textContent('.ml-tool-font'), '字級：113%')
@@ -749,7 +755,7 @@ try {
       assert.equal(await fontSize(), 16)
       // popup 設定的自訂大小（不在預設選項中）列在最後並打勾
       await sw.evaluate(() => MarkLens.saveSettings({ fontSize: 17 }))
-      await page.waitForFunction(() => document.querySelector('.ml-tool-font').textContent === '字級：106%')
+      await pageUntil(page, () => document.querySelector('.ml-tool-font').textContent === '字級：106%')
       await btn.click()
       const last = await page.$$eval('.ml-menu [role="menuitemradio"]', els => els.map(e => [e.textContent, e.getAttribute('aria-checked')]).at(-1))
       assert.deepEqual(last, ['自訂：17 px', 'true'])
@@ -765,14 +771,14 @@ try {
     const id = await sw.evaluate(async () => (await chrome.tabs.query({ active: true, currentWindow: true }))[0].id)
     const raw = p => p.evaluate(() => document.documentElement.classList.contains('ml-raw'))
     await sw.evaluate(tid => onCommand('toggle-raw', { id: tid }), id)
-    await page.waitForFunction(() => document.documentElement.classList.contains('ml-raw'))
+    await pageUntil(page, () => document.documentElement.classList.contains('ml-raw'))
     assert.equal(await raw(page2), false, '其他分頁不受影響')
     await sw.evaluate(tid => onCommand('toggle-raw', { id: tid }), id)
-    await page.waitForFunction(() => !document.documentElement.classList.contains('ml-raw'))
+    await pageUntil(page, () => !document.documentElement.classList.contains('ml-raw'))
     await sw.evaluate(tid => onCommand('cycle-theme', { id: tid }), id)
     try {
       assert.equal((await sw.evaluate(() => MarkLens.loadSettings())).theme, 'light')
-      await until(() => page2.evaluate(() => document.documentElement.dataset.mlTheme === 'light'))
+      await pageUntil(page2, () => document.documentElement.dataset.mlTheme === 'light', 3000)
     } finally {
       await sw.evaluate(() => MarkLens.saveSettings({ theme: 'auto' }))
     }
@@ -1241,7 +1247,7 @@ try {
       })
       // 通知依寫入順序送達：背景程式再寫一個哨兵值，頁面套用它時，前面的通知都已處理
       await sw.evaluate(() => MarkLens.saveSettings({ lineHeight: 1.71 }))
-      await until(() => mp.evaluate(() => document.documentElement.style.getPropertyValue('--ml-line-height') === '1.71'))
+      await pageUntil(mp, () => document.documentElement.style.getPropertyValue('--ml-line-height') === '1.71', 3000)
       // 四次按鍵在同一個工作內，觀察者只看到最後的畫面；之後的通知不能讓它變動
       const seen = (await mp.evaluate(() => window.mlSeen)).filter((v, i, all) => v !== all[i - 1])
       assert.deepEqual(seen, [`主題：深色｜${label}`])
@@ -1403,9 +1409,9 @@ try {
     const color = () => page.$eval('.markdown-body h1', el => getComputedStyle(el).color)
     try {
       await sw.evaluate(() => MarkLens.saveSettings({ customCss: '.markdown-body h1 { color: rgb(1, 2, 3) }' }))
-      await page.waitForFunction(() => getComputedStyle(document.querySelector('.markdown-body h1')).color === 'rgb(1, 2, 3)')
+      await pageUntil(page, () => getComputedStyle(document.querySelector('.markdown-body h1')).color === 'rgb(1, 2, 3)')
       await sw.evaluate(() => MarkLens.saveSettings({ customCss: '.markdown-body h1 { color: rgb(4, 5, 6) } </style><b id="ml-injected">x</b>' }))
-      await page.waitForFunction(() => getComputedStyle(document.querySelector('.markdown-body h1')).color === 'rgb(4, 5, 6)')
+      await pageUntil(page, () => getComputedStyle(document.querySelector('.markdown-body h1')).color === 'rgb(4, 5, 6)')
       const { html, file } = await exportFrom(page)
       assert.ok(html.includes('color: rgb(4, 5, 6)'), '匯出檔含自訂 CSS')
       const xp = await ctx.newPage()
@@ -1414,7 +1420,7 @@ try {
       assert.equal(await xp.$eval('.markdown-body h1', el => getComputedStyle(el).color), 'rgb(4, 5, 6)', '匯出檔套用自訂 CSS')
       await xp.close()
       await sw.evaluate(() => MarkLens.saveSettings({ customCss: '' }))
-      await page.waitForFunction(() => getComputedStyle(document.querySelector('.markdown-body h1')).color !== 'rgb(4, 5, 6)')
+      await pageUntil(page, () => getComputedStyle(document.querySelector('.markdown-body h1')).color !== 'rgb(4, 5, 6)')
       assert.notEqual(await color(), 'rgb(4, 5, 6)')
     } finally {
       await sw.evaluate(() => MarkLens.saveSettings({ customCss: '' }))
@@ -1504,7 +1510,7 @@ try {
             fonts: [...document.fonts].filter(f => f.family.startsWith('KaTeX_Main')).map(f => f.status),
           }))
         try {
-          await until(() => hp.evaluate(() => document.querySelectorAll('.katex-display').length === 2), 10000)
+          await pageUntil(hp, () => document.querySelectorAll('.katex-display').length === 2, 10000)
           // 主動載入字型並等完成；載入失敗（被擋）時回傳空陣列
           const loaded = await hp.evaluate(() => document.fonts.load('16px KaTeX_Main').then(f => f.length))
           assert.ok(loaded > 0, 'KaTeX_Main 字型載入失敗')
@@ -1849,9 +1855,8 @@ try {
     } finally {
       await sw.evaluate(() => MarkLens.saveSettings({ enabled: true }))
     }
-    // 停用／啟用會重新整理所有已開啟的分頁：等主要分頁重新渲染，後面的檢查才能繼續用。
-    // 主要分頁此時在背景，以 until 輪詢；重新整理中 evaluate 會失敗，視為尚未完成
-    await until(() => page.evaluate(() => !!document.querySelector('#ml-root .markdown-body h1')).catch(() => false), 10000)
+    // 停用／啟用會重新整理所有已開啟的分頁：等主要分頁重新渲染，後面的檢查才能繼續用
+    await pageUntil(page, () => !!document.querySelector('#ml-root .markdown-body h1')?.checkVisibility(), 10000)
     await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important; }' })
   })
 
@@ -2316,7 +2321,7 @@ try {
     await page.mouse.wheel(0, 400)
     writeFileSync(localMd, readFileSync(fixture, 'utf8') + '\n\n重新載入後的修改\n')
     // 重新載入當下若有一個讀檔請求還在等背景程式回應，要等它失敗後下一輪才發現失聯，所以多給一點時間
-    await page.waitForSelector('.ml-orphan', { timeout: 8000 })
+    await pageUntil(page, () => !!document.querySelector('.ml-orphan')?.checkVisibility(), 8000)
     await page.waitForTimeout(800)
     assert.deepEqual(errors.slice(before), [])
     const wrap = page.locator('.ml-table').first()
