@@ -1188,6 +1188,36 @@ try {
     await mp.waitForFunction(() => document.querySelector('.ml-mermaid').dataset.mlMermaidTheme === 'dark')
     await sw.evaluate(t => MarkLens.saveSettings({ theme: t }), before)
   })
+  await check('連按 d 與 =：每一次都切換一級，畫面不會被前一次寫入的通知蓋回去', async () => {
+    const before = await sw.evaluate(() => MarkLens.loadSettings())
+    try {
+      await sw.evaluate(() => MarkLens.saveSettings({ theme: 'auto', fontSize: 16 }))
+      await mp.waitForFunction(
+        () => document.querySelector('.ml-tool-theme').textContent.includes('自動') && document.querySelector('.ml-tool-font').textContent === '字級：100%',
+      )
+      // 同一個工作內連按：每次寫入的通知一定晚於下一次按鍵
+      await mp.evaluate(() => {
+        window.mlSeen = []
+        const record = () => window.mlSeen.push(`${document.querySelector('.ml-tool-theme').textContent}｜${document.querySelector('.ml-tool-font').textContent}`)
+        new MutationObserver(record).observe(document.querySelector('.ml-toolbar'), { subtree: true, childList: true, characterData: true })
+        for (const key of ['d', 'd', '=', '=']) document.body.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
+      })
+      const font = await sw.evaluate(() => MarkLens.stepFontSize(MarkLens.stepFontSize(16, 1), 1))
+      const label = `字級：${await sw.evaluate(px => MarkLens.fontPercent(px), font)}`
+      await until(async () => {
+        const s = await sw.evaluate(() => MarkLens.loadSettings())
+        return s.theme === 'dark' && s.fontSize === font
+      })
+      // 通知依寫入順序送達：背景程式再寫一個哨兵值，頁面套用它時，前面的通知都已處理
+      await sw.evaluate(() => MarkLens.saveSettings({ lineHeight: 1.71 }))
+      await until(() => mp.evaluate(() => document.documentElement.style.getPropertyValue('--ml-line-height') === '1.71'))
+      // 四次按鍵在同一個工作內，觀察者只看到最後的畫面；之後的通知不能讓它變動
+      const seen = (await mp.evaluate(() => window.mlSeen)).filter((v, i, all) => v !== all[i - 1])
+      assert.deepEqual(seen, [`主題：深色｜${label}`])
+    } finally {
+      await sw.evaluate(s => MarkLens.saveSettings({ theme: s.theme, fontSize: s.fontSize, lineHeight: s.lineHeight }), before)
+    }
+  })
   await check('Mermaid：自動更新時沿用已繪製的圖，不閃爍', async () => {
     writeFileSync(localMermaid, readFileSync(mermaidFixture, 'utf8') + '\n自動更新後的段落\n')
     const pending = await mp.waitForFunction(

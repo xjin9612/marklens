@@ -146,13 +146,21 @@ MarkLens.loadSettings = async function () {
   return { ...MarkLens.DEFAULTS, ...stored }
 }
 
-MarkLens.saveSettings = async function (patch) {
-  const current = await MarkLens.loadSettings()
-  const next = { ...current, ...patch }
-  await chrome.storage.local.set({ [MarkLens.SETTINGS_KEY]: next })
-  if (await MarkLens.isSyncEnabled()) await MarkLens.pushSync(next).catch(() => {}) // 同步失敗（例如超過寫入次數）不影響本機
-  return next
-}
+;(() => {
+  // 同一個執行環境內依序寫入：讀改寫並行時，後寫入的整份設定會蓋掉先寫入的其他鍵
+  let queue = Promise.resolve()
+  MarkLens.saveSettings = function (patch) {
+    const run = queue.then(async () => {
+      const current = await MarkLens.loadSettings()
+      const next = { ...current, ...patch }
+      await chrome.storage.local.set({ [MarkLens.SETTINGS_KEY]: next })
+      if (await MarkLens.isSyncEnabled()) await MarkLens.pushSync(next).catch(() => {}) // 同步失敗（例如超過寫入次數）不影響本機
+      return next
+    })
+    queue = run.catch(() => {})
+    return run
+  }
+})()
 
 MarkLens.nextOf = function (list, current) {
   const i = list.indexOf(current)
