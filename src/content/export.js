@@ -102,6 +102,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     let css = `${(await asset('src/shared/tokens.css')).text}\n${(await asset('src/content/content.css')).text}`
     if (article.querySelector('.katex')) css += `\n${await katexCss()}`
     // 程式碼區塊中英對齊（fonts.js 依本機字型算出的設定）
+    await MarkLens.codeFontReady
     if (MarkLens.codeFontCss) css += `\n${MarkLens.codeFontCss}`
     // 使用者自訂的 CSS 放在最後，與閱讀頁相同可覆蓋前面的樣式
     const custom = (await MarkLens.loadSettings()).customCss

@@ -40,12 +40,29 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
   const CJK_SAMPLE = '名名名名名名名名名名'
 
+  let applied = [] // 目前加入 document.fonts 的校正字型
+  let latest = 0
+
+  function replaceFaces(faces, css) {
+    for (const f of applied) document.fonts.delete(f)
+    for (const f of faces) document.fonts.add(f)
+    applied = faces
+    MarkLens.codeFontCss = css
+  }
+
   /**
-   * codePx：程式碼區塊的字級。PingFang 等 Apple 字型的字距隨字級改變，要在這個字級量寬度
+   * codePx：程式碼區塊的字級。PingFang 等 Apple 字型的字距隨字級改變，要在這個字級量寬度。
+   * 字級改變時再呼叫一次；較晚的呼叫開始後，較早的呼叫不套用結果並回傳 null。
+   * MarkLens.codeFontReady 是最近一次呼叫的 Promise，讀 MarkLens.codeFontCss 前要先等它
    */
-  MarkLens.alignCodeFont = async function (codePx) {
+  MarkLens.alignCodeFont = function (codePx) {
+    return (MarkLens.codeFontReady = align(codePx))
+  }
+
+  async function align(codePx) {
+    const id = ++latest
     try {
-      if (!document.fonts || typeof FontFace !== 'function') return null
+      if (!document.fonts || typeof FontFace !== 'function' || !(codePx > 0)) return null
       if (ALIGNED_FONTS.some(installed)) return { skipped: 'sarasa' }
 
       const ascii = ASCII_FONTS.find(installed) || 'monospace'
@@ -54,41 +71,39 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
       const cjk = CJK_FONTS.find(([name]) => installed(name))
       if (!cjk) return { skipped: 'no-cjk-font' }
-      // 字距取決於 size-adjust 縮放後的字級，所以在估出的字級再量一次
+      // 字距取決於 size-adjust 縮放後的字級：在縮放後的字級重新量測，直到比例不再變動
       const cjkWidth = px => width(`${px}px "${cjk[0]}"`, CJK_SAMPLE) / 10 / px
-      const estimate = (2 * asciiWidth) / (codePx * cjkWidth(codePx))
-      const ratio = (2 * asciiWidth) / (codePx * cjkWidth(codePx * estimate))
-      if (Math.abs(ratio - 1) < 0.002) return { skipped: 'already-aligned' }
+      let ratio = 1
+      for (let i = 0; i < 5; i++) {
+        const next = (2 * asciiWidth) / (codePx * cjkWidth(codePx * ratio))
+        const settled = Math.abs(next - ratio) < 1e-4
+        ratio = next
+        if (settled) break
+      }
+      if (Math.abs(ratio - 1) < 0.002) {
+        if (id === latest) replaceFaces([], '')
+        return { skipped: 'already-aligned' }
+      }
 
       const sizeAdjust = `${(ratio * 100).toFixed(3)}%`
-      const faces = [
+      const faces = []
+      const css = []
+      for (const [names, weight] of [
         [cjk[1], '400'],
         [cjk[2], '700'],
-      ].map(
-        ([names, weight]) =>
-          new FontFace(FAMILY, names.map(n => `local("${n}")`).join(', '), {
-            unicodeRange: CJK_RANGE,
-            sizeAdjust,
-            weight,
-          }),
-      )
-      let loaded = 0
-      const css = []
-      for (const [i, face] of faces.entries()) {
+      ]) {
+        const src = names.map(n => `local("${n}")`).join(', ')
         try {
-          document.fonts.add(await face.load())
-          loaded++
+          faces.push(await new FontFace(FAMILY, src, { unicodeRange: CJK_RANGE, sizeAdjust, weight }).load())
           // 同樣的設定以 CSS 形式保留，匯出 HTML 時寫進檔案
-          const names = (i === 0 ? cjk[1] : cjk[2]).map(n => `local("${n}")`).join(', ')
-          css.push(
-            `@font-face { font-family: "${FAMILY}"; src: ${names}; font-weight: ${face.weight}; size-adjust: ${sizeAdjust}; unicode-range: ${CJK_RANGE}; }`,
-          )
+          css.push(`@font-face { font-family: "${FAMILY}"; src: ${src}; font-weight: ${weight}; size-adjust: ${sizeAdjust}; unicode-range: ${CJK_RANGE}; }`)
         } catch {
           // 該字重找不到對應的 local() 名稱，交給瀏覽器的一般備援
         }
       }
-      MarkLens.codeFontCss = css.join('\n')
-      return { ascii, cjk: cjk[0], codePx, ratio, loaded }
+      if (id !== latest) return null
+      replaceFaces(faces, css.join('\n'))
+      return { ascii, cjk: cjk[0], codePx, ratio, loaded: faces.length }
     } catch (err) {
       console.warn('[MarkLens] 程式碼字型校正失敗', err)
       return null
