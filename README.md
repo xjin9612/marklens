@@ -21,6 +21,8 @@ Open any `.md` file, on your computer or on the web. Read it with an outline and
 
 ## Install
 
+MarkLens works in Chrome and Edge on Windows, macOS and Linux.
+
 1. Download `marklens-vX.Y.Z.zip` from the [latest release](https://github.com/xjin9612/marklens/releases/latest) and unzip it.
 2. Open `chrome://extensions` (Edge: `edge://extensions`) and turn on **Developer mode**.
 3. Click **Load unpacked** and select the unzipped `marklens-vX.Y.Z` folder.
@@ -108,7 +110,7 @@ The sidebar outline highlights the section you're reading. Fold any section, or 
 **Sharing**
 - Print or save as PDF, with sections expanded and only page numbers in the margins
 - Export as a single HTML file with styles, diagrams and math fonts embedded and no scripts
-- The **Copy** menu has two modes. **Copy content** copies the Markdown source with HTML formatting attached, so apps that accept formatted text keep the formatting. **Copy location** copies the path and line range, such as `D:\notes\report.md:142-168 (Causes)`, so you can point an AI tool at the exact lines
+- The **Copy** menu has two modes. **Copy content** copies the Markdown source with HTML formatting attached, so apps that accept formatted text keep the formatting. **Copy location** copies the path and line range, such as `D:\notes\report.md:142-168 (Causes)` on Windows or `/Users/you/notes/report.md:142-168 (Causes)` on macOS, so you can point an AI tool at the exact lines
 - **Copy** in the toolbar works on the whole document; the copy button next to a heading works on that section
 - Select text to copy its Markdown source or its location
 
@@ -159,10 +161,10 @@ MarkLens only runs on addresses that end in `.md`, `.markdown`, `.mkd` or `.mdx`
 Turn on **Allow access to file URLs** on the extension's **Details** page, then reload the file. The welcome page (MarkLens icon → **Help**) walks you through it.
 
 **Checking a box asks for folder access.**<br>
-The first time, pick a top-level folder such as `D:\Projects`. Every `.md` under it becomes writable. After a restart, Chrome asks again unless you chose **Allow on every visit**. Manage folders from the MarkLens icon → **Manage folders**. Files that aren't UTF-8 (such as Big5) display normally, but their checkboxes are read-only.
+The first time, pick a top-level folder such as `D:\Projects` or `~/Projects`. Every `.md` under it becomes writable. After a restart, Chrome asks again unless you chose **Allow on every visit**. Manage folders from the MarkLens icon → **Manage folders**. Files that aren't UTF-8 (such as Big5) display normally, but their checkboxes are read-only.
 
 **Files on WSL or a network share: the Files tab says it isn't supported.**<br>
-Chrome doesn't let extensions read files whose address has a host name, such as `file://wsl.localhost/…` or `file://server/share/…`. The document displays normally, but the Files tab, auto-reload and saving checked tasks don't work there. To use them, keep the file on a local drive, for example under `D:\`.
+Chrome doesn't let extensions read files whose address has a host name, such as `file://wsl.localhost/…` or `file://server/share/…`. The document displays normally, but the Files tab, auto-reload and saving checked tasks don't work there. To use them, keep the file on a local drive, for example under `D:\` or in your home folder.
 
 **Text diagrams in code blocks don't line up perfectly.**<br>
 MarkLens scales the system font so Chinese, Japanese and Korean characters are exactly two columns wide. That makes them look slightly larger. For the best result, install [Sarasa Gothic](https://github.com/be5invis/Sarasa-Gothic):
