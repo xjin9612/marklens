@@ -38,19 +38,26 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     return false
   }
 
-  MarkLens.alignCodeFont = async function () {
+  const CJK_SAMPLE = '名名名名名名名名名名'
+
+  /**
+   * codePx：程式碼區塊的字級。PingFang 等 Apple 字型的字距隨字級改變，要在這個字級量寬度
+   */
+  MarkLens.alignCodeFont = async function (codePx) {
     try {
       if (!document.fonts || typeof FontFace !== 'function') return null
       if (ALIGNED_FONTS.some(installed)) return { skipped: 'sarasa' }
 
       const ascii = ASCII_FONTS.find(installed) || 'monospace'
       const asciiFamily = ascii === 'monospace' ? 'monospace' : `"${ascii}"`
-      const asciiWidth = width(`100px ${asciiFamily}`, 'MMMMMMMMMM') / 10
+      const asciiWidth = width(`${codePx}px ${asciiFamily}`, 'MMMMMMMMMM') / 10
 
       const cjk = CJK_FONTS.find(([name]) => installed(name))
       if (!cjk) return { skipped: 'no-cjk-font' }
-      const cjkWidth = width(`100px "${cjk[0]}"`, '名名名名名名名名名名') / 10
-      const ratio = (2 * asciiWidth) / cjkWidth
+      // 字距取決於 size-adjust 縮放後的字級，所以在估出的字級再量一次
+      const cjkWidth = px => width(`${px}px "${cjk[0]}"`, CJK_SAMPLE) / 10 / px
+      const estimate = (2 * asciiWidth) / (codePx * cjkWidth(codePx))
+      const ratio = (2 * asciiWidth) / (codePx * cjkWidth(codePx * estimate))
       if (Math.abs(ratio - 1) < 0.002) return { skipped: 'already-aligned' }
 
       const sizeAdjust = `${(ratio * 100).toFixed(3)}%`
@@ -81,7 +88,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         }
       }
       MarkLens.codeFontCss = css.join('\n')
-      return { ascii, cjk: cjk[0], ratio, loaded }
+      return { ascii, cjk: cjk[0], codePx, ratio, loaded }
     } catch (err) {
       console.warn('[MarkLens] 程式碼字型校正失敗', err)
       return null
