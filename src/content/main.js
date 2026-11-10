@@ -116,10 +116,6 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         this.onScroll()
       })
 
-      // 程式碼區塊中英對齊（非同步，字型加入後瀏覽器會自動重排）；程式碼字級是 content.css 的內文 .85 倍
-      MarkLens.alignCodeFont(this.settings.fontSize * 0.85).then(info => {
-        if (info) root.dataset.mlCodeFont = JSON.stringify(info)
-      })
       this.render(this.raw)
       this.applyLive()
       this.applyView()
@@ -428,6 +424,13 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         setTool(this.themeBtn, icon, t('toolTheme', t(name)))
       }
       if (this.fontBtn) setTool(this.fontBtn, 'text-size', t('toolFontSize', MarkLens.fontPercent(s.fontSize)))
+      if (s.fontSize !== this.alignedFontSize) {
+        this.alignedFontSize = s.fontSize
+        // 程式碼區塊中英對齊（非同步，字型換好後瀏覽器會自動重排）；程式碼字級是 content.css 的內文 .85 倍
+        MarkLens.alignCodeFont(s.fontSize * 0.85).then(info => {
+          if (info) document.documentElement.dataset.mlCodeFont = JSON.stringify(info)
+        })
+      }
       return this.article ? MarkLens.rethemeMermaid(this.article) : Promise.resolve()
     }
 
