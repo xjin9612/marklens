@@ -11,9 +11,17 @@ permissions:
   contents: read
 
 jobs:
+  # 路徑、字型與檔名規則隨作業系統不同；只在 Linux 做與平台無關的檢查與套件快取
   e2e:
-    runs-on: ubuntu-26.04
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-26.04, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -26,6 +34,7 @@ jobs:
 
       # 版本一致、商店欄位長度、manifest 引用的檔案；不必等推送標籤才發現
       - name: 檢查發版條件
+        if: runner.os == 'Linux'
         run: node scripts/release.mjs check "v$(node -p "require('./package.json').version")"
 
       - name: 安裝相依套件
@@ -33,10 +42,12 @@ jobs:
 
       # 相依套件都要有 npm registry 的簽章，有來源證明的一併驗證
       - name: 驗證相依套件簽章
+        if: runner.os == 'Linux'
         run: npm audit signatures
 
       # Chromium 與 apt 下載的套件（Playwright 的系統相依套件、中日韓字型）存進快取：Ubuntu 套件鏡像站常常很慢
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        if: runner.os == 'Linux'
         with:
           path: |
             ~/.cache/ms-playwright
@@ -45,6 +56,7 @@ jobs:
 
       # 框線字元表格對齊的測試需要中日韓字型，GitHub 的 Linux 機器預設沒有
       - name: 安裝 Chromium 與中日韓字型
+        if: runner.os == 'Linux'
         timeout-minutes: 10 # 第一次建立快取時仍要從鏡像站下載
         run: |
           # apt 下載的 .deb 放在快取的資料夾，已有相同版本時不再下載；partial 要讓 apt 的下載帳號 _apt 寫入
@@ -57,6 +69,10 @@ jobs:
           sudo rm -f ~/apt-cache/lock
           sudo chmod -R a+rX ~/apt-cache
 
+      - name: 安裝 Chromium
+        if: runner.os != 'Linux'
+        run: npx playwright install chromium
+
       - name: 執行測試
         run: |
           mkdir -p "$RUNNER_TEMP/shots"
@@ -68,7 +84,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: screenshots
+          name: screenshots-${{ runner.os }}
           path: ${{ runner.temp }}/shots
           if-no-files-found: ignore
 

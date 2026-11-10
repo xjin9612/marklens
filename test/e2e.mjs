@@ -1,6 +1,7 @@
 // 端對端測試：以 Chromium 載入未封裝擴充功能，開啟 file:// 與 http:// 的 Markdown 檢查行為
 // 用法：node test/e2e.mjs（需要 playwright；截圖輸出到 SHOT_DIR，預設為系統暫存目錄）
 import { createRequire } from 'node:module'
+import { execFileSync } from 'node:child_process'
 import { createServer } from 'node:http'
 import { readFileSync, mkdtempSync, writeFileSync, copyFileSync, mkdirSync, readdirSync, cpSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -44,6 +45,25 @@ writeFileSync(
   JSON.stringify({ ...realManifest, host_permissions: realManifest.optional_host_permissions, optional_host_permissions: undefined }),
 )
 
+/**
+ * macOS 的 Chromium 不理會 --lang，介面語言取自 AppleLanguages 偏好設定。
+ * 只寫測試用 Chromium 的偏好設定網域，不動系統設定；設定在下一次啟動瀏覽器時生效。lang 為 null 時刪除
+ */
+function setMacLanguage(lang) {
+  if (process.platform !== 'darwin') return
+  const info = join(dirname(dirname(chromium.executablePath())), 'Info')
+  const id = execFileSync('defaults', ['read', info, 'CFBundleIdentifier'], { encoding: 'utf8' }).trim()
+  if (lang) execFileSync('defaults', ['write', id, 'AppleLanguages', '-array', lang])
+  else {
+    try {
+      execFileSync('defaults', ['delete', id, 'AppleLanguages'], { stdio: 'ignore' })
+    } catch {
+      // 沒有這個設定時 defaults delete 的結束碼不是 0
+    }
+  }
+}
+setMacLanguage('zh-TW')
+
 const ctx = await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), 'ml-prof-')), {
   headless: true,
   channel: 'chromium', // 新版 headless 才支援擴充功能
@@ -67,17 +87,23 @@ async function check(name, fn) {
     await fn()
     results.push(`✔ ${name}`)
   } catch (e) {
-    results.push(`✘ ${name}\n    ${e.message.split('\n').slice(0, 3).join('\n    ')}`)
+    results.push(`✘ ${name}\n    ${e.message.split('\n').slice(0, 8).join('\n    ')}`)
   }
 }
 
 const errors = []
-async function openDoc(url = localUrl) {
+async function openDoc(url = localUrl, timeout = 5000) {
   const page = await ctx.newPage()
   page.on('pageerror', e => errors.push(e.message))
   page.on('console', m => m.type() === 'error' && errors.push(m.text()))
   await page.goto(url)
-  await page.waitForSelector('#ml-root .markdown-body h1', { timeout: 5000 })
+  try {
+    await page.waitForSelector('#ml-root .markdown-body h1', { timeout })
+  } catch (e) {
+    // 沒有接管時附上頁面類型與開頭，才分得出是擴充功能沒執行還是瀏覽器給了不同的頁面
+    const state = await page.evaluate(() => `${document.contentType} ${document.documentElement.outerHTML.slice(0, 200)}`).catch(() => '')
+    throw new Error(`${e.message}\n${url}\n${state}`)
+  }
   // 關閉轉場動畫：檢查結果不必等動畫跑完，也不受背景分頁不跑動畫影響
   await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important; }' })
   return page
@@ -95,7 +121,8 @@ const visible = (page, sel) => page.locator(sel).first().isVisible()
 
 try {
   const sw = ctx.serviceWorkers()[0] || (await ctx.waitForEvent('serviceworker'))
-  const page = await openDoc()
+  // macOS 的 CI 上，第一份文件常超過 5 秒才渲染完成
+  const page = await openDoc(localUrl, 30000)
 
   /* ---------- 首次安裝引導頁 ---------- */
   await check('首次安裝自動開啟引導頁，並顯示檔案存取狀態', async () => {
@@ -838,12 +865,15 @@ try {
     const ep = await openDoc()
     await ep.click('.ml-toc-list a:text("程式碼")')
     await ep.waitForFunction(() => document.querySelector('.ml-toc-list li.active')?.textContent === '程式碼')
+    const before = errors.length
     await ep.click('.ml-tool-edit')
     const href = await ep.getAttribute('.ml-tool-edit', 'data-ml-href')
     const line = readFileSync(localMd, 'utf8').split('\n').findIndex(l => l === '## 程式碼') + 1
     const path = encodeURI(decodeURIComponent(new URL(localUrl).pathname).replace(/^\/+/, ''))
     assert.equal(href, `vscode://file/${path}:${line}`)
     await ep.close()
+    // 沒有安裝 VS Code 的 Windows 會記一筆 scheme 沒有註冊處理程式的錯誤；Linux 不會
+    errors.splice(before, Infinity, ...errors.slice(before).filter(e => !e.includes('does not have a registered handler')))
     // 檔名中的 # ? 要編碼，磁碟代號的冒號保留
     const special = await sw.evaluate(() => MarkLens.editorUrl({ editor: 'vscode' }, 'file:///D:/a%20b/c%23d%3F.md', 3))
     assert.equal(special, 'vscode://file/D:/a%20b/c%23d%3F.md:3')
@@ -1410,7 +1440,8 @@ try {
             fonts: [...document.fonts].filter(f => f.family.startsWith('KaTeX_Main')).map(f => f.status),
           }))
         try {
-          await hp.waitForFunction(() => document.querySelectorAll('.katex-display').length === 2, null, { timeout: 10000 })
+          // 預設以 requestAnimationFrame 輪詢，分頁不在前景時不會執行；改用固定間隔
+          await hp.waitForFunction(() => document.querySelectorAll('.katex-display').length === 2, null, { timeout: 10000, polling: 100 })
           // 主動載入字型並等完成；載入失敗（被擋）時回傳空陣列
           const loaded = await hp.evaluate(() => document.fonts.load('16px KaTeX_Main').then(f => f.length))
           assert.ok(loaded > 0, 'KaTeX_Main 字型載入失敗')
@@ -2184,11 +2215,13 @@ try {
     }
   })
   await check('英文介面：工具列、popup 與引導頁顯示英文', async () => {
+    setMacLanguage('en-US')
     const enCtx = await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), 'ml-prof-en-')), {
       headless: true,
       channel: 'chromium',
       args: [`--disable-extensions-except=${extDir}`, `--load-extension=${extDir}`, '--disable-extensions-file-access-check', '--lang=en-US'],
     })
+    setMacLanguage('zh-TW')
     try {
       const enSw = enCtx.serviceWorkers()[0] || (await enCtx.waitForEvent('serviceworker'))
       const ep = await enCtx.newPage()
@@ -2232,6 +2265,7 @@ try {
   console.log(results.join('\n'))
   await ctx.close()
   server.close()
+  setMacLanguage(null)
 }
 const failed = results.filter(r => r.startsWith('✘')).length
 const skipped = results.filter(r => r.startsWith('－')).length

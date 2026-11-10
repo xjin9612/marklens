@@ -23,7 +23,16 @@ npm ci
 npx playwright install chromium
 ```
 
-Windows 上的 `npm test` 有一項必定失敗。「檔名中的 HTML 不會被執行」要建立檔名含 `<`、`>` 的檔案，Windows 不允許這種檔名。CI 在 Linux 上執行，不受影響。
+Windows 上的 `npm test` 跳過「檔名中的 HTML 不會被執行」。這項要建立檔名含 `<`、`>` 的檔案，Windows 不允許這種檔名。CI 在 Linux 上執行這一項。
+
+### macOS
+
+```bash
+npm ci
+npx playwright install chromium
+```
+
+macOS 的 Chromium 不理會 `--lang`，介面語言取自 `AppleLanguages` 偏好設定。`npm test` 啟動瀏覽器前，會以 `defaults` 寫入測試用 Chromium 的偏好設定，結束時刪除，不動系統設定。
 
 ### 載入擴充功能
 
@@ -176,7 +185,7 @@ flowchart LR
 npm test
 ```
 
-以 Chromium 載入擴充功能，開啟本機與 http 的測試文件。push 到 `main` 與 pull request 時由 CI 執行。截圖輸出到 `SHOT_DIR`，預設為系統暫存目錄。涵蓋：
+以 Chromium 載入擴充功能，開啟本機與 http 的測試文件。push 到 `main` 與 pull request 時由 CI 在 Linux、macOS、Windows 上執行。截圖輸出到 `SHOT_DIR`，預設為系統暫存目錄。涵蓋：
 
 - 渲染：GFM、任務清單（緊湊／鬆散清單）、腳註、Alert、front matter、程式碼高亮、Emoji 短碼、比照 GitHub 的自動連結
 - 載入：換檔時保留舊畫面到新頁排好版、載入中背景沿用上次的主題、停用 MarkLens 時原文照常顯示、非 Markdown 網址不接管
@@ -208,7 +217,7 @@ npm run test:visual -- --update      # 以目前畫面作為新的基準圖
 
 比對幾個固定畫面的截圖與 `test/visual/<平台>/` 的基準圖：閱讀頁淺色、深色、窄螢幕、檔案分頁、深色 Mermaid、popup、引導頁。
 
-- 字型隨作業系統不同，基準圖依平台分開。`win32` 在 Windows 上建立。
+- 字型隨作業系統不同，基準圖依平台分開。`win32` 在 Windows 上建立。macOS 沒有基準圖，第一次執行時以當下畫面建立。
 - `linux` 由 GitHub Actions 的 **Visual baselines** workflow 產生，環境與 CI 相同（固定 `ubuntu-26.04`；升級作業系統時要重新產生）。下載 artifact，覆蓋 `test/visual/linux/` 再提交。
   - PR 改到畫面相關的檔案時自動執行。
   - 手動觸發要等 workflow 檔已在 main 上，這是 GitHub 對 `workflow_dispatch` 的限制。
