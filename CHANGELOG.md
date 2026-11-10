@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-11-10
+
 ### Fixed
 - On macOS, Chinese, Japanese and Korean characters in code blocks were slightly wider than two columns, so text diagrams didn't line up. Alignment is now also recalculated when you change the font size
 - Pressing `d`, `-` or `+` several times quickly could skip a theme or font size step, or show the wrong value for a moment
@@ -168,7 +170,8 @@ First public release.
 ### Security
 - Allow-list HTML sanitizer, minimal permissions (`storage` only), no remote code
 
-[Unreleased]: https://github.com/xjin9612/marklens/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/xjin9612/marklens/compare/v1.7.1...HEAD
+[1.7.1]: https://github.com/xjin9612/marklens/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/xjin9612/marklens/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/xjin9612/marklens/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/xjin9612/marklens/compare/v1.4.0...v1.5.0
