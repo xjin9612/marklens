@@ -72,6 +72,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.raw = raw
       this.rawExact = exact
       this.taskBusy = false
+      this.emptySince = 0 // 自動更新開始讀到空檔案的時間；0 表示沒有
       this.liveWrites = new Map() // 本分頁還沒寫完的全域外觀設定：鍵 → 寫入數
       this.liveEpoch = 0 // 套用設定通知的次數；讀取期間有變動，讀到的值就可能比通知舊
       this.md = MarkLens.createMarkdown()
@@ -375,6 +376,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
     /** 自動更新時重新渲染，保留捲動位置、摺疊狀態與表格狀態 */
     update(src) {
+      this.emptySince = 0
       const y = scrollY
       const folded = Array.from(this.article.querySelectorAll(':scope > .ml-folded'), el => el.id)
       const tableStates = this.tables.map(t => t.getState())
@@ -864,7 +866,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           MarkLens.toast(t('taskPermission', res.root), [{ label: t('goConfirm'), fn: openGrant }], 8000)
           break
         case 'conflict':
-          this.update(res.text)
+          // 讀到空檔案可能是編輯器寫入中途：不重繪，交給自動更新等內容穩定
+          if (res.text !== '' || this.raw === '') this.update(res.text)
           MarkLens.toast(t('taskConflict'))
           break
         case 'not-utf8':
@@ -903,13 +906,42 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       const tick = async () => {
         if (!MarkLens.alive()) return this.onOrphaned()
         if (!document.hidden) {
-          const src = await MarkLens.fetchSource({ ifChanged: true })
-          if (src !== MarkLens.UNCHANGED && src != null && src !== this.raw) this.update(src)
+          let src = await MarkLens.fetchSource({ ifChanged: true })
+          // 背景程式記住空內容後只回傳 UNCHANGED：仍在等空內容持續時，視為又讀到空的
+          if (src === MarkLens.UNCHANGED) src = this.emptySince ? '' : this.raw
+          else if (typeof src === 'string' && src !== this.raw && location.protocol === 'file:') src = await settledSource(src)
+          if (typeof src !== 'string') {
+            // 讀取失敗：維持目前畫面
+          } else if (src === '' && this.raw !== '') {
+            // 編輯器先清空再寫入：空內容持續 2 秒才套用，期間保留目前畫面
+            this.emptySince ||= Date.now()
+            if (Date.now() - this.emptySince >= 2000) {
+              this.emptySince = 0
+              this.update('')
+            }
+          } else {
+            this.emptySince = 0
+            if (src !== this.raw) this.update(src)
+          }
         }
         this.refreshTimer = setTimeout(tick, Math.max(300, this.settings.refreshInterval))
       }
       this.refreshTimer = setTimeout(tick, this.settings.refreshInterval)
     }
+  }
+
+  /**
+   * 本機檔案寫入中途可能讀到寫到一半的內容：每隔 100ms 再讀，內容不再變動才採用。
+   * 最多再讀 5 次，之後採用最後讀到的內容；再讀失敗時採用目前的內容，背景程式已記住它，之後只會回傳 UNCHANGED
+   */
+  async function settledSource(src) {
+    for (let i = 0; i < 5; i++) {
+      await new Promise(r => setTimeout(r, 100))
+      const again = await MarkLens.fetchSource({ ifChanged: true })
+      if (again === MarkLens.UNCHANGED || again === src || again == null) break
+      src = again
+    }
+    return src
   }
 
   /** 不接管這一頁：取消 content.css 載入期間對原始文字的隱藏，並立刻結束換頁轉場 */
