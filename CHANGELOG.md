@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - On macOS, Chinese, Japanese and Korean characters in code blocks were slightly wider than two columns, so text diagrams didn't line up. Alignment is now also recalculated when you change the font size
 - Pressing `d`, `-` or `+` several times quickly could skip a theme or font size step, or show the wrong value for a moment
 - Changing the theme and the font size in quick succession could lose one of the changes
+- When an editor saved a file by emptying it first, auto-reload could briefly show a blank document and lose table sorting, filters and column widths
 
 ## [1.7.0] - 2026-11-09
 

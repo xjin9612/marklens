@@ -359,6 +359,37 @@ try {
     await page.fill('.ml-table-filter', '')
   })
 
+  await check('自動更新讀到寫入中途的空檔案時保留畫面，寫完後更新，表格狀態保留', async () => {
+    // 寫入新內容後的前 3 次讀取回傳空內容：等同編輯器清空檔案後，隔了超過一次自動更新才寫入
+    await sw.evaluate(() => {
+      const orig = self.fetch
+      self.mlEmptyReads = 0
+      self.fetch = async (url, opts) => {
+        const res = await orig(url, opts)
+        if (!String(url).endsWith('/sample.md') || self.mlEmptyReads >= 3) return res
+        if (!(await res.clone().text()).includes('寫入中途的標題')) return res
+        self.mlEmptyReads++
+        return new Response('')
+      }
+      self.mlRestoreFetch = () => (self.fetch = orig)
+    })
+    try {
+      await page.evaluate(() => {
+        window.mlTitles = []
+        new MutationObserver(() => window.mlTitles.push(document.title)).observe(document.head, { childList: true, characterData: true, subtree: true })
+      })
+      writeFileSync(localMd, readFileSync(fixture, 'utf8').replace('# MarkLens 功能測試', '# 寫入中途的標題'))
+      await page.waitForFunction(() => document.title === '寫入中途的標題', null, { timeout: 8000 })
+      assert.equal(await sw.evaluate(() => self.mlEmptyReads), 3, '空內容應在寫入後被讀到')
+      // 空白文件沒有 H1，標題會退回檔名
+      const titles = await page.evaluate(() => window.mlTitles)
+      assert.ok(!titles.includes('sample.md'), `不應先顯示空白文件：${titles.join(' → ')}`)
+      assert.equal(await th(3).getAttribute('aria-sort'), 'ascending')
+    } finally {
+      await sw.evaluate(() => self.mlRestoreFetch())
+    }
+  })
+
   /* ---------- 原始文字 ---------- */
   await check('原始文字：工具列可返回', async () => {
     await page.click('.ml-tool-raw')
