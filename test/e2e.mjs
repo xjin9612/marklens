@@ -1849,8 +1849,9 @@ try {
     } finally {
       await sw.evaluate(() => MarkLens.saveSettings({ enabled: true }))
     }
-    // 停用／啟用會重新整理所有已開啟的分頁：等主要分頁重新渲染，後面的檢查才能繼續用
-    await page.waitForSelector('#ml-root .markdown-body h1', { timeout: 5000 })
+    // 停用／啟用會重新整理所有已開啟的分頁：等主要分頁重新渲染，後面的檢查才能繼續用。
+    // 主要分頁此時在背景，以 until 輪詢；重新整理中 evaluate 會失敗，視為尚未完成
+    await until(() => page.evaluate(() => !!document.querySelector('#ml-root .markdown-body h1')).catch(() => false), 10000)
     await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important; }' })
   })
 
