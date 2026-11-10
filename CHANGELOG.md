@@ -6,8 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Fixed
-- On macOS, Chinese, Japanese and Korean characters in code blocks were slightly wider than two columns, so text diagrams didn't line up
-- Pressing `-` or `+` several times quickly could skip a font size step or show the wrong size for a moment
+- On macOS, Chinese, Japanese and Korean characters in code blocks were slightly wider than two columns, so text diagrams didn't line up.
+- Pressing `d`, `-` or `+` several times quickly could skip a theme or font size step, or show the wrong value for a moment
+- Changing the theme and the font size in quick succession could lose one of the changes
 
 ## [1.7.0] - 2026-11-09
 

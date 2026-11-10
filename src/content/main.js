@@ -72,7 +72,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.raw = raw
       this.rawExact = exact
       this.taskBusy = false
-      this.fontWrites = 0 // 本分頁還沒寫完的字體大小寫入數
+      this.liveWrites = new Map() // 本分頁還沒寫完的全域外觀設定：鍵 → 寫入數
+      this.liveEpoch = 0 // 套用設定通知的次數；讀取期間有變動，讀到的值就可能比通知舊
       this.md = MarkLens.createMarkdown()
       this.tables = []
       this.refreshTimer = null
@@ -147,10 +148,11 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         const next = { ...MarkLens.DEFAULTS, ...c.newValue }
         if (!next.enabled) return location.reload()
         for (const k of MarkLens.LIVE_KEYS) {
-          // 本分頁還有字體大小沒寫完時，通知帶的是較舊的值
-          if (k === 'fontSize' && this.fontWrites) continue
+          // 本分頁還有這個鍵沒寫完時，通知帶的是較舊的值
+          if (this.liveWrites.get(k)) continue
           this.settings[k] = next[k]
         }
+        this.liveEpoch++
         this.applyLive()
       })
       chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
@@ -450,27 +452,46 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.applyView()
     }
 
-    /** 主題是全域設定：寫入後由 storage.onChanged 同步套用到所有分頁（含本分頁） */
-    setTheme(theme) {
-      if (!MarkLens.alive()) return this.onOrphaned()
-      MarkLens.saveSettings({ theme }).catch(() => {})
+    /** 全域外觀設定（LIVE_KEYS）：本分頁立即套用，寫入後由 storage.onChanged 同步到其他分頁 */
+    saveLive(patch) {
+      Object.assign(this.settings, patch)
+      this.applyLive()
+      const keys = Object.keys(patch)
+      for (const k of keys) this.liveWrites.set(k, (this.liveWrites.get(k) || 0) + 1)
+      MarkLens.saveSettings(patch)
+        .catch(() => {})
+        .finally(() => {
+          for (const k of keys) this.liveWrites.set(k, this.liveWrites.get(k) - 1)
+          this.syncLive(keys)
+        })
     }
 
-    /** 字體大小同主題，是全域設定：所有分頁一起縮放 */
+    /** 寫入期間略過的通知可能來自其他頁面：這些鍵都寫完後，改以儲存的值為準 */
+    async syncLive(keys) {
+      if (keys.some(k => this.liveWrites.get(k)) || !MarkLens.alive()) return
+      const epoch = this.liveEpoch
+      const stored = await MarkLens.loadSettings().catch(() => null)
+      if (epoch !== this.liveEpoch) return
+      const changed = stored && keys.filter(k => !this.liveWrites.get(k) && stored[k] !== this.settings[k])
+      if (!changed?.length) return
+      for (const k of changed) this.settings[k] = stored[k]
+      this.applyLive()
+    }
+
+    setTheme(theme) {
+      if (!MarkLens.alive()) return this.onOrphaned()
+      this.saveLive({ theme })
+    }
+
     setFontSize(px) {
       if (!MarkLens.alive()) return this.onOrphaned()
       const fontSize = Math.min(MarkLens.FONT_MAX, Math.max(MarkLens.FONT_MIN, Math.round(px)))
       if (fontSize === this.settings.fontSize) return
       // 以目前閱讀位置為錨點：縮放後頁面高度改變，捲回同一個比例的位置
       const ratio = scrollY / Math.max(1, document.documentElement.scrollHeight)
-      this.settings.fontSize = fontSize
-      this.applyLive()
+      this.saveLive({ fontSize })
       scrollTo(0, ratio * document.documentElement.scrollHeight)
       this.onScroll()
-      this.fontWrites++
-      MarkLens.saveSettings({ fontSize })
-        .catch(() => {})
-        .finally(() => this.fontWrites--)
     }
 
     stepFont(dir) {
