@@ -115,8 +115,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         this.onScroll()
       })
 
-      // 程式碼區塊中英對齊（非同步，字型加入後瀏覽器會自動重排）
-      MarkLens.alignCodeFont().then(info => {
+      // 程式碼區塊中英對齊（非同步，字型加入後瀏覽器會自動重排）；程式碼字級是 content.css 的內文 .85 倍
+      MarkLens.alignCodeFont(this.settings.fontSize * 0.85).then(info => {
         if (info) root.dataset.mlCodeFont = JSON.stringify(info)
       })
       this.render(this.raw)
