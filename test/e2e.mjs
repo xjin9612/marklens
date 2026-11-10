@@ -108,7 +108,10 @@ async function openDoc(url = localUrl, timeout = 5000) {
   await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important; }' })
   return page
 }
-/** 等到條件成立（輪詢；用在無法以頁面事件等待的地方，例如背景程式裡的設定值） */
+/**
+ * 等到條件成立（從 Node 端輪詢）：用在背景程式的設定值、背景分頁與 sandbox CSP 的頁面。
+ * 後兩者的 waitForFunction 不會輪詢：背景分頁暫停 requestAnimationFrame，sandbox CSP 的頁面不執行輪詢
+ */
 async function until(fn, ms = 3000) {
   const end = Date.now() + ms
   for (;;) {
@@ -663,7 +666,7 @@ try {
   })
   await check('主題即時同步所有分頁；版面設定不推送', async () => {
     await sw.evaluate(() => MarkLens.saveSettings({ theme: 'dark', textWidth: 960, tocHidden: true }))
-    await page2.waitForFunction(() => document.documentElement.dataset.mlTheme === 'dark')
+    await until(() => page2.evaluate(() => document.documentElement.dataset.mlTheme === 'dark'))
     await page.waitForFunction(() => document.documentElement.dataset.mlTheme === 'dark')
     assert.equal(await page2.textContent('.ml-tool-width'), '寬度：1200')
     assert.equal(await visible(page2, '.ml-toc'), true)
@@ -699,7 +702,7 @@ try {
       assert.equal(await page.textContent('.ml-tool-font'), '字級：125%')
       for (let i = 0; i < 20 && (await fontSize()) !== 20; i++) await page.waitForTimeout(50)
       assert.equal(await fontSize(), 20)
-      await page2.waitForFunction(() => document.querySelector('.ml-tool-font').textContent === '字級：125%')
+      await until(() => page2.evaluate(() => document.querySelector('.ml-tool-font').textContent === '字級：125%'))
       assert.equal((await sizes(page2)).pre, '17px', '其他分頁同步縮放')
       // 快捷鍵：+ 與 = 放大一級，- 縮小一級，0 重設
       await page.keyboard.press('=')
@@ -738,7 +741,7 @@ try {
     await sw.evaluate(tid => onCommand('cycle-theme', { id: tid }), id)
     try {
       assert.equal((await sw.evaluate(() => MarkLens.loadSettings())).theme, 'light')
-      await page2.waitForFunction(() => document.documentElement.dataset.mlTheme === 'light')
+      await until(() => page2.evaluate(() => document.documentElement.dataset.mlTheme === 'light'))
     } finally {
       await sw.evaluate(() => MarkLens.saveSettings({ theme: 'auto' }))
     }
@@ -1440,8 +1443,7 @@ try {
             fonts: [...document.fonts].filter(f => f.family.startsWith('KaTeX_Main')).map(f => f.status),
           }))
         try {
-          // 預設以 requestAnimationFrame 輪詢，分頁不在前景時不會執行；改用固定間隔
-          await hp.waitForFunction(() => document.querySelectorAll('.katex-display').length === 2, null, { timeout: 10000, polling: 100 })
+          await until(() => hp.evaluate(() => document.querySelectorAll('.katex-display').length === 2), 10000)
           // 主動載入字型並等完成；載入失敗（被擋）時回傳空陣列
           const loaded = await hp.evaluate(() => document.fonts.load('16px KaTeX_Main').then(f => f.length))
           assert.ok(loaded > 0, 'KaTeX_Main 字型載入失敗')
