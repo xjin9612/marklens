@@ -72,6 +72,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.raw = raw
       this.rawExact = exact
       this.taskBusy = false
+      this.fontWrites = 0 // 本分頁還沒寫完的字體大小寫入數
       this.md = MarkLens.createMarkdown()
       this.tables = []
       this.refreshTimer = null
@@ -145,7 +146,11 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         if (!c) return
         const next = { ...MarkLens.DEFAULTS, ...c.newValue }
         if (!next.enabled) return location.reload()
-        for (const k of MarkLens.LIVE_KEYS) this.settings[k] = next[k]
+        for (const k of MarkLens.LIVE_KEYS) {
+          // 本分頁還有字體大小沒寫完時，通知帶的是較舊的值
+          if (k === 'fontSize' && this.fontWrites) continue
+          this.settings[k] = next[k]
+        }
         this.applyLive()
       })
       chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
@@ -462,7 +467,10 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.applyLive()
       scrollTo(0, ratio * document.documentElement.scrollHeight)
       this.onScroll()
-      MarkLens.saveSettings({ fontSize }).catch(() => {})
+      this.fontWrites++
+      MarkLens.saveSettings({ fontSize })
+        .catch(() => {})
+        .finally(() => this.fontWrites--)
     }
 
     stepFont(dir) {
