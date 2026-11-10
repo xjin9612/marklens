@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "__MSG_extName__",
   "short_name": "MarkLens",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "__MSG_extDescription__",
   "default_locale": "en",
   "icons": {
@@ -154,5 +154,5 @@
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'none'"
   },
-  "version_name": "1.7.0"
+  "version_name": "1.7.1"
 }
