@@ -57,7 +57,7 @@ MARKDOWN SUPPORT
 • Syntax highlighting with a copy button for code blocks
 • KaTeX math and Mermaid diagrams, in local files and on web pages
 • Box-drawing tables in code blocks stay aligned with Chinese, Japanese and Korean text
-• Export the current view as one self-contained HTML file to share, or print it / save it as a PDF with every section expanded
+• Export the current view as HTML to share: one self-contained file with the images embedded, or a file that links to them. Or print it / save it as a PDF with every section expanded
 • Copy content or location: the Markdown source (with formatting for apps that accept rich text), or the file path and line range to point an AI tool at the right lines. Works on the whole document, one section or selected text
 • Line numbers in source view; click one to copy that line's location
 
@@ -105,7 +105,7 @@ Markdown 支援
 • 程式碼語法高亮，附複製按鈕
 • KaTeX 數學公式與 Mermaid 圖表，本機檔案與網頁上都能繪製
 • 程式碼區塊中的框線字元表格，中日韓文字也能對齊
-• 把目前畫面匯出成單一 HTML 檔方便分享，或列印／存成 PDF，摺疊的段落會全部展開
+• 把目前畫面匯出成 HTML 方便分享：內嵌圖片的單一檔，或保留圖片連結；也能列印／存成 PDF，摺疊的段落會全部展開
 • 複製內容或位置：Markdown 原文（貼到支援格式的程式時保留格式），或檔案路徑與行號，方便請 AI 讀取指定段落。可作用於整份文件、單一章節或選取的文字
 • 原始文字顯示行號，點行號複製該行位置
 
@@ -155,7 +155,7 @@ Markdown 支持
 • 代码语法高亮，附复制按钮
 • KaTeX 数学公式与 Mermaid 图表，本机文件与网页上都能绘制
 • 代码块中的框线字符表格，中日韩文字也能对齐
-• 把当前画面导出为单个 HTML 文件方便分享，或打印／存成 PDF，折叠的段落会全部展开
+• 把当前画面导出为 HTML 方便分享：内嵌图片的单个文件，或保留图片链接；也能打印／存成 PDF，折叠的段落会全部展开
 • 复制内容或位置：Markdown 原文（粘贴到支持格式的程序时保留格式），或文件路径与行号，方便请 AI 读取指定段落。可作用于整份文档、单个章节或选中的文字
 • 原始文本显示行号，点击行号复制该行位置
 
