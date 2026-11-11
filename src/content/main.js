@@ -336,6 +336,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       const lineOffset = (src.slice(0, src.length - body.length).match(/\n/g) || []).length
       const frag = MarkLens.sanitize(this.md.render(body, { lineOffset }), this.md.marklensNonce)
       this.article.textContent = ''
+      const lang = MarkLens.frontMatterLang(frontMatter)
+      if (lang) this.article.lang = lang
+      else this.article.removeAttribute('lang')
       if (frontMatter != null) {
         this.article.append(
           h('details', { class: 'ml-frontmatter' }, [

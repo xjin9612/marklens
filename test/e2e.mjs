@@ -1445,6 +1445,7 @@ try {
       // 單一檔不帶出本機路徑：沒有內嵌的本機圖片維持原文的相對路徑
       assert.equal(imgSrc(html, '不存在'), 'img/missing.png')
       assert.equal(imgSrc(html, '不是圖片'), 'img/fake.png')
+      assert.ok(html.includes('<html class='), '沒有 front matter 的 lang 時不輸出 lang')
       assert.equal(await ip.locator('.ml-toast.show').textContent(), '已匯出 images.html；2 張圖片無法內嵌，保留原網址')
       const xp = await ctx.newPage()
       await xp.goto(pathToFileURL(file).href)
@@ -1463,6 +1464,9 @@ try {
   await check('匯出 HTML：單一檔的本機連結保留相對路徑並改成 .html，不帶出本機路徑；保留連結時改成絕對網址', async () => {
     const md = join(work, 'export', 'links.md')
     const src = [
+      '---',
+      'lang: "zh-TW"',
+      '---',
       '# 第一節',
       '[總覽](seo-aeo-總覽.md#第一節)',
       '[參照][ref]',
@@ -1479,7 +1483,9 @@ try {
     writeFileSync(md, src)
     const lp = await openDoc(pathToFileURL(md).href)
     try {
+      assert.equal(await lp.$eval('.markdown-body', el => el.lang), 'zh-TW', '閱讀頁套用 front matter 的 lang')
       const { html } = await exportFrom(lp, '單一檔（內嵌圖片）')
+      assert.ok(html.includes('<html lang="zh-TW" class='), '匯出檔的 lang')
       // Markdown 語法的連結由 markdown-it 編碼；原文 HTML 的網址照原文
       assert.equal(linkHref(html, '總覽'), encodeURI('seo-aeo-總覽.html#第一節'))
       assert.equal(linkHref(html, '參照'), 'other.html?v=1#x')
@@ -1514,6 +1520,16 @@ try {
       assert.equal(linkHref(linked, '網站'), 'https://example.com/a.md')
     } finally {
       await lp.close()
+    }
+  })
+  await check('front matter 的 lang：去掉引號與行尾註解後套用到閱讀頁', async () => {
+    const lang = join(work, 'export', 'lang.md')
+    writeFileSync(lang, "---\ntitle: x\nlang: 'en' # 註解\n---\n\n# x\n")
+    const gp = await openDoc(pathToFileURL(lang).href)
+    try {
+      assert.equal(await gp.$eval('.markdown-body', el => el.lang), 'en', '單引號與行尾註解')
+    } finally {
+      await gp.close()
     }
   })
   await check('匯出 HTML：網路上的文件不能把本機圖片內嵌進匯出檔', async () => {
