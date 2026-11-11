@@ -175,16 +175,22 @@ Markdown 支持
 
 ### 圖片
 
-| 欄位 | 檔案（en／zh-TW 各一組，簡體沿用 zh-TW） |
-|---|---|
-| 商店圖示 128×128 | `icons/icon128.png` |
-| 螢幕截圖 1280×800（最多 5 張，依序上傳） | `docs/store/<語系>/1-tables.png` … `5-table-fullscreen.png` |
-| 小型宣傳圖 440×280 | `docs/store/<語系>/promo-440x280.png` |
-| 大型宣傳圖 1400×560（選填） | `docs/store/<語系>/marquee-1400x560.png` |
+圖片分成兩區。「通用資產」所有語言共用；「在地化資產」只套用在目前編輯的語言，上傳後取代通用的截圖。截圖與宣傳圖都要 24 位元 PNG，不能有透明層。
+
+| 欄位 | 區域 | 檔案 |
+|---|---|---|
+| 商店圖示 128×128 | 不分語言 | `icons/icon128.png` |
+| 通用螢幕截圖 1280×800（最多 5 張，依序上傳） | 通用 | `docs/store/en/1-tables.png` … `5-table-fullscreen.png` |
+| 小型宣傳圖塊 440×280 | 通用 | `docs/store/en/promo-440x280.png` |
+| 跑馬燈宣傳圖塊 1400×560（選填） | 通用 | `docs/store/en/marquee-1400x560.png` |
+| 在地化螢幕截圖 | zh_TW、zh_CN 各上傳一次 | `docs/store/zh-TW/1-tables.png` … `5-table-fullscreen.png` |
+
+宣傳圖塊沒有在地化欄位，各語言都顯示英文版。宣傳影片留空。
 
 ### 其他欄位
 
 - 官方網址：不填（需要在 Google Search Console 驗證網域）
+- 成人內容：否
 - 首頁網址：https://github.com/xjin9612/marklens
 - 支援網址：https://github.com/xjin9612/marklens/issues
 
@@ -212,7 +218,9 @@ Saves the user's reading settings (theme, font size, text width, language, edito
 Registers MarkLens's own packaged content scripts for Markdown URLs on websites (paths ending in .md, .markdown, .mkd, .mdx), only after the user turns on "Also open .md files on websites" and grants the optional host permission. The scripts are the same files the manifest already runs on local Markdown files; no code is fetched or generated. They are unregistered when the permission is removed.
 ```
 
-**主機權限（content_scripts 的 `file:///*.md` 等網址，與 optional_host_permissions 的 `*://*/*`）**
+Chrome 後台只列出 `storage` 與 `scripting` 兩格。網站權限是選用權限，後台不要求說明。
+
+**主機權限（content_scripts 的 `file:///*.md` 等網址，與 optional_host_permissions 的 `*://*/*`）**：Chrome 後台沒有這一格；Edge 或日後的審查要求說明時使用。
 
 ```text
 At install, the content scripts match only local Markdown files (file:/// URLs ending in .md, .markdown, .mkd or .mdx), to render the document the user opened. They take effect only after the user turns on "Allow access to file URLs".
@@ -221,7 +229,7 @@ The website permission (*://*/*) is optional and not requested at install. The u
 
 ### 遠端程式碼（Remote code）
 
-選「**No, I am not using remote code**」。
+Chrome 後台沒有這一題。Edge 的隱私權頁有這一題，選「**No, I am not using remote code**」；需要說明時使用下面這段。
 
 ```text
 All JavaScript, including third-party libraries (markdown-it and its plugins, highlight.js, Mermaid, KaTeX), is packaged in the extension under vendor/ with pinned versions. Nothing is fetched or evaluated at runtime. vendor/mermaid/mermaid.mjs is the official dist/mermaid.min.js of mermaid 12.2.0 with one change: its last line, which assigns the library to globalThis, is replaced by `export default` so it loads as a module (scripts/vendor.mjs).
@@ -248,15 +256,29 @@ https://github.com/xjin9612/marklens/blob/main/PRIVACY.md
 
 ---
 
-## 4. 發布範圍（Distribution）
+## 4. 發布（Distribution）
 
-- 價格：免費
-- 地區：所有地區
-- 公開範圍：公開
+- 付款：無須支付費用
+- 顯示設定：公開
+- 發布區域：所有區域
 
 ---
 
-## 5. Edge Add-ons（另外送審）
+## 5. 測試操作說明（Test instructions）
+
+憑證（使用者名稱、密碼）留空。「其他操作說明」上限 500 字元，貼下面這段：
+
+```text
+No account needed.
+Local files: in chrome://extensions open MarkLens Details, turn on "Allow access to file URLs", then drag any .md file into the browser. Checking a task (- [ ]) asks once for folder access, then saves to the file.
+Websites (optional): in the MarkLens popup turn on "Also open .md files on websites", allow the permission, then open https://raw.githubusercontent.com/xjin9612/marklens/main/docs/demo.md
+```
+
+送出審查時，確認視窗的「審查通過後自動發布」保持勾選；取消勾選時，審查通過後 30 天內要手動發布。
+
+---
+
+## 6. Edge Add-ons（另外送審）
 
 使用同一個 `-store.zip`，文字與圖片沿用上面的內容。欄位規定見 [Edge 發布文件](https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/publish-extension)，差異如下：
 - 隱私權政策網址：必填，用同一個
