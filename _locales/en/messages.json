@@ -166,7 +166,7 @@
     "message": "Link to images"
   },
   "exportMissed": {
-    "message": "Exported $1. $2 images couldn't be embedded and keep their original addresses"
+    "message": "Exported $1. Images not embedded: $2. They keep their original addresses"
   },
   "exportNeedsWebAccess": {
     "message": ". If an image from a website opens in the browser, turn on \"$1\" in the MarkLens popup and try again"
