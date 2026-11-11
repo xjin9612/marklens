@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- **Export HTML** is now a menu. **Single file** embeds the document's images, so the exported file works on its own when you share it. **Link to images** keeps links to the images, as before. Images on websites are embedded when the site allows it or **Also open .md files on websites** is on; images that can't be read keep their address, and MarkLens tells you how many
+- In a **Single file** export, links to local files keep their relative paths and links to `.md` files point to `.html`, so documents exported into the same folder link to each other. The file doesn't reveal your local folders
+
 ## [1.7.1] - 2026-11-10
 
 ### Fixed

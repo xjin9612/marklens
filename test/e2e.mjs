@@ -26,7 +26,36 @@ const mermaidFixture = join(root, 'test/fixtures/mermaid.md')
 const localMermaid = join(work, 'mermaid.md')
 copyFileSync(mermaidFixture, localMermaid)
 
+// 匯出內嵌圖片用：1×1 的 PNG，與放在本機的圖片資料夾
+const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64')
+const imgDir = join(work, 'export', 'img')
+mkdirSync(imgDir, { recursive: true })
+writeFileSync(join(imgDir, 'pic.png'), PNG)
+writeFileSync(join(imgDir, 'fake.png'), '這不是圖片')
+
 const server = createServer((req, res) => {
+  // /img/big.png 不送 Content-Length，本文超過單張上限
+  if (req.url === '/img/big.png') {
+    res.writeHead(200, { 'content-type': 'image/png' })
+    res.write(PNG)
+    for (let i = 0; i < 11; i++) res.write(Buffer.alloc(1024 * 1024))
+    return res.end()
+  }
+  // 導向另一個來源（另一個 port）的本機服務
+  if (req.url === '/img/to-other-origin.png') {
+    res.writeHead(302, { location: `http://127.0.0.1:${otherPort}/x.png` })
+    return res.end()
+  }
+  // /img/cors.png 允許任何網站跨站讀取，/img/nocors.png 不允許
+  if (req.url.startsWith('/img/')) {
+    res.writeHead(200, { 'content-type': 'image/png', ...(req.url === '/img/cors.png' && { 'access-control-allow-origin': '*' }) })
+    return res.end(PNG)
+  }
+  // 網路上的文件引用本機圖片：匯出時不能內嵌
+  if (req.url === '/docs/local-image.md') {
+    res.writeHead(200, { 'content-type': 'text/markdown; charset=utf-8' })
+    return res.end(`# 網路文件\n\n![本機](${pathToFileURL(join(imgDir, 'pic.png')).href})\n\n![網路](/img/cors.png)\n`)
+  }
   const headers = { 'content-type': 'text/markdown; charset=utf-8' }
   // /strict/…：仿 raw.githubusercontent.com 的 CSP（不允許任何外部資源，且頁面在沙箱中）
   if (req.url.startsWith('/strict/')) headers['content-security-policy'] = "default-src 'none'; style-src 'unsafe-inline'; sandbox"
@@ -35,6 +64,11 @@ const server = createServer((req, res) => {
   res.end(readFileSync(name ? join(root, `test/fixtures/${name}.md`) : fixture))
 }).listen(0)
 const port = server.address().port
+const otherServer = createServer((_req, res) => {
+  res.writeHead(200, { 'content-type': 'image/png' })
+  res.end(PNG)
+}).listen(0)
+const otherPort = otherServer.address().port
 
 // 網站權限是選用權限，測試無法按下 Chrome 的權限對話框：載入一份改成安裝時就授予的副本，其餘檔案與 repo 相同
 const extDir = mkdtempSync(join(tmpdir(), 'ml-ext-'))
@@ -1346,9 +1380,10 @@ try {
   await mt.screenshot({ path: join(shotDir, 'ml-math.png'), fullPage: true })
 
   /* ---------- 匯出 HTML ---------- */
-  /** 按工具列的匯出，回傳下載的 HTML 內容與存檔路徑 */
-  async function exportFrom(pg) {
-    const [dl] = await Promise.all([pg.waitForEvent('download'), pg.click('.ml-tool-export')])
+  /** 按工具列的匯出並選擇模式，回傳下載的 HTML 內容與存檔路徑 */
+  async function exportFrom(pg, mode = '圖片保留連結') {
+    await pg.click('.ml-tool-export')
+    const [dl] = await Promise.all([pg.waitForEvent('download'), pg.click(`.ml-menu-item:has-text("${mode}")`)])
     const file = join(work, `export-${Date.now()}-${dl.suggestedFilename()}`)
     await dl.saveAs(file)
     return { name: dl.suggestedFilename(), file, html: readFileSync(file, 'utf8') }
@@ -1385,6 +1420,129 @@ try {
     else assert.ok(codeFont.skipped, `沒有寫入對齊字型時應記錄原因：${JSON.stringify(codeFont)}`)
     assert.deepEqual(xerr, [])
     await xp.close()
+  })
+  /** 匯出檔中 alt 為指定文字的圖片網址 */
+  const imgSrc = (html, alt) => html.match(new RegExp(`<img[^>]*alt="${alt}"[^>]*>`))?.[0].match(/src="([^"]*)"/)?.[1]
+  await check('匯出 HTML：單一檔內嵌本機與網路圖片，讀不到或不是圖片的維持原網址並提示張數', async () => {
+    const md = join(work, 'export', 'images.md')
+    writeFileSync(
+      md,
+      [
+        '# 圖片匯出',
+        '![本機](img/pic.png)',
+        '![本機重複](img/pic.png)',
+        `![允許跨站](http://127.0.0.1:${port}/img/cors.png)`,
+        `![不允許跨站](http://127.0.0.1:${port}/img/nocors.png)`,
+        '![不存在](img/missing.png)',
+        '![不是圖片](img/fake.png)',
+      ].join('\n\n'),
+    )
+    const ip = await openDoc(pathToFileURL(md).href)
+    try {
+      const { html, file } = await exportFrom(ip, '單一檔（內嵌圖片）')
+      // 測試環境已授予網站權限：不允許跨站讀取的網路圖片也能由背景程式讀到
+      for (const alt of ['本機', '本機重複', '允許跨站', '不允許跨站']) assert.ok(imgSrc(html, alt)?.startsWith('data:image/png;base64,'), `${alt} 應內嵌`)
+      // 單一檔不帶出本機路徑：沒有內嵌的本機圖片維持原文的相對路徑
+      assert.equal(imgSrc(html, '不存在'), 'img/missing.png')
+      assert.equal(imgSrc(html, '不是圖片'), 'img/fake.png')
+      assert.equal(await ip.locator('.ml-toast.show').textContent(), '已匯出 images.html；2 張圖片無法內嵌，保留原網址')
+      const xp = await ctx.newPage()
+      await xp.goto(pathToFileURL(file).href)
+      assert.equal(await xp.$eval('img[alt="本機"]', img => img.naturalWidth), 1, '匯出檔的內嵌圖片應能顯示')
+      await xp.close()
+      // 保留連結：圖片一律是絕對網址
+      const linked = (await exportFrom(ip)).html
+      assert.equal(imgSrc(linked, '本機'), pathToFileURL(join(imgDir, 'pic.png')).href)
+      assert.ok(!linked.includes('data:image/png'), '保留連結時不應內嵌圖片')
+    } finally {
+      await ip.close()
+    }
+  })
+  /** 匯出檔中文字為指定內容的連結網址 */
+  const linkHref = (html, text) => html.match(new RegExp(`<a[^>]*\\shref="([^"]*)"[^>]*>${text}</a>`))?.[1]
+  await check('匯出 HTML：單一檔的本機連結保留相對路徑並改成 .html，不帶出本機路徑；保留連結時改成絕對網址', async () => {
+    const md = join(work, 'export', 'links.md')
+    const src = [
+      '# 第一節',
+      '[總覽](seo-aeo-總覽.md#第一節)',
+      '[參照][ref]',
+      '[子資料夾](docs/x.md)',
+      '[其他檔案](img/pic.png)',
+      '[網站](https://example.com/a.md)',
+      '[頁內](#第一節)',
+      '<a href="總覽.md">原文中文</a> <a href="%E7%B8%BD.md">原文編碼</a> <a href="file:///ml-測試/x.md">原文本機網址</a>',
+      '<video src="clip.mp4" poster="poster.png" controls></video>',
+      '<img src="img/pic.png" srcset="img/pic.png 2x" alt="多尺寸">',
+      '<picture><source srcset="img/pic.png"><img src="img/missing.png" alt="picture"></picture>',
+      '[ref]: other.MARKDOWN?v=1#x',
+    ].join('\n\n')
+    writeFileSync(md, src)
+    const lp = await openDoc(pathToFileURL(md).href)
+    try {
+      const { html } = await exportFrom(lp, '單一檔（內嵌圖片）')
+      // Markdown 語法的連結由 markdown-it 編碼；原文 HTML 的網址照原文
+      assert.equal(linkHref(html, '總覽'), encodeURI('seo-aeo-總覽.html#第一節'))
+      assert.equal(linkHref(html, '參照'), 'other.html?v=1#x')
+      assert.equal(linkHref(html, '子資料夾'), 'docs/x.html')
+      assert.equal(linkHref(html, '其他檔案'), 'img/pic.png')
+      assert.equal(linkHref(html, '網站'), 'https://example.com/a.md')
+      assert.ok(linkHref(html, '頁內')?.startsWith('#'), '頁內錨點')
+      assert.equal(linkHref(html, '原文中文'), '總覽.html')
+      assert.equal(linkHref(html, '原文編碼'), '%E7%B8%BD.html')
+      assert.equal(linkHref(html, '原文本機網址'), 'file:///ml-測試/x.md', '原文自己寫的 file: 網址照原文保留')
+      const video = html.match(/<video[^>]*>/)?.[0] || ''
+      assert.ok(video.includes('src="clip.mp4"') && video.includes('poster="poster.png"'), `影片：${video}`)
+      assert.ok(imgSrc(html, '多尺寸')?.startsWith('data:image/png;base64,'), '有 srcset 的圖片應內嵌')
+      assert.equal(imgSrc(html, 'picture'), 'img/missing.png')
+      // sanitizer 不允許 srcset；開放時要一併改寫，否則單一檔會帶出本機路徑
+      assert.ok(!/\ssrcset=/.test(html), '不應含 srcset')
+      // 匯出器不產生 file: 網址：出現的都要是原文寫的。比對前兩邊都解碼，同一個網址可能寫成編碼或未編碼
+      const decode = s => {
+        try {
+          return decodeURI(s)
+        } catch {
+          return s
+        }
+      }
+      const files = [...html.matchAll(/(?:href|src|poster)="(file:[^"]*)"/g)].map(m => m[1])
+      for (const u of files) assert.ok(decode(src).includes(decode(u)), `匯出器產生了 file: 網址：${u}`)
+      assert.equal(files.length, 1, `file: 網址：${files}`)
+
+      const linked = (await exportFrom(lp)).html
+      assert.match(linkHref(linked, '總覽'), /^file:.*\.md#/)
+      assert.match(linked.match(/<video[^>]*>/)?.[0] || '', /poster="file:/)
+      assert.equal(linkHref(linked, '網站'), 'https://example.com/a.md')
+    } finally {
+      await lp.close()
+    }
+  })
+  await check('匯出 HTML：網路上的文件不能把本機圖片內嵌進匯出檔', async () => {
+    const wp = await openDoc(`http://127.0.0.1:${port}/docs/local-image.md`)
+    try {
+      const { html } = await exportFrom(wp, '單一檔（內嵌圖片）')
+      assert.ok(imgSrc(html, '網路')?.startsWith('data:image/png;base64,'), '網路圖片應內嵌')
+      // 渲染時已移除網路文件中的 file:// 圖片；背景程式的拒絕由下面直接驗證
+      assert.ok(!imgSrc(html, '本機')?.startsWith('data:'), '本機圖片不應內嵌')
+      // 背景程式的規則：網路上的文件不能讀 file:// 與內網圖片，同源除外；本機文件不受限
+      const read = (url, from) => sw.evaluate(([u, f]) => HANDLERS['read-image']({ url: u }, { url: f }).then(r => r.reason || r.status), [url, from])
+      const web = `http://127.0.0.1:${port}/docs/local-image.md`
+      const other = 'https://example.com/a.md'
+      const fileDoc = pathToFileURL(join(work, 'export', 'images.md')).href
+      const cors = `http://127.0.0.1:${port}/img/cors.png`
+      assert.equal(await read(pathToFileURL(join(imgDir, 'pic.png')).href, web), 'not-allowed', '網路文件讀 file://')
+      for (const u of ['http://192.168.0.1/x.png', 'http://10.1.2.3/x.png', 'http://2130706433/x.png', 'http://localhost/x.png', 'http://localhost./x.png', 'http://[::1]/x.png', 'http://[::ffff:7f00:1]/x.png', 'http://intranet/x.png', 'http://printer.local./x.png', cors]) {
+        assert.equal(await read(u, other), 'not-allowed', `網路文件讀內網圖片：${u}`)
+      }
+      assert.equal(await read(cors, web), 'ok', '與文件同源')
+      assert.equal(await read(`http://127.0.0.1:${otherPort}/x.png`, fileDoc), 'ok', '本機文件可讀另一個來源')
+      assert.equal(await read(`http://127.0.0.1:${port}/img/to-other-origin.png`, web), 'not-allowed', '重新導向到其他來源的本機服務')
+      assert.equal(await read('http://10.0.0.1/x.png', ''), 'not-allowed', '來源網址無效')
+      assert.equal(await read(cors, fileDoc), 'ok', '本機文件')
+      assert.equal(await read(`http://127.0.0.1:${port}/img/big.png`, fileDoc), 'too-large', '沒有 Content-Length 也要擋下超過上限的圖片')
+      assert.equal(await read('http://127.0.0.1:1/x.png', fileDoc), 'unreachable', '連不上時不應誤報為缺網站權限')
+    } finally {
+      await wp.close()
+    }
   })
   await check('列印樣式：摺疊的段落照樣印出，工具列、側邊欄與摺疊按鈕不印', async () => {
     await page.bringToFront()
@@ -2334,6 +2492,7 @@ try {
   console.log(results.join('\n'))
   await ctx.close()
   server.close()
+  otherServer.close()
   setMacLanguage(null)
 }
 const failed = results.filter(r => r.startsWith('✘')).length

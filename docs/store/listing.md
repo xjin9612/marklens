@@ -216,7 +216,7 @@ Registers MarkLens's own packaged content scripts for Markdown URLs on websites 
 
 ```text
 At install, the content scripts match only local Markdown files (file:/// URLs ending in .md, .markdown, .mkd or .mdx), to render the document the user opened. They take effect only after the user turns on "Allow access to file URLs".
-The website permission (*://*/*) is optional and not requested at install. The user grants it from the popup or the welcome page to render Markdown files hosted on websites. The registered scripts match only URLs whose path ends in a Markdown extension and never run on other pages. The host part is broad because Markdown files can be hosted on any site, and host permissions cannot be limited by path.
+The website permission (*://*/*) is optional and not requested at install. The user grants it from the popup or the welcome page to render Markdown files hosted on websites. The registered scripts match only URLs whose path ends in a Markdown extension and never run on other pages. The host part is broad because Markdown files can be hosted on any site, and host permissions cannot be limited by path. When the permission is granted and the user exports a document as a single HTML file, it is also used to download the images in that document so they can be embedded in the file.
 ```
 
 ### 遠端程式碼（Remote code）

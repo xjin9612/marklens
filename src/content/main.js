@@ -175,12 +175,14 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.themeBtn = btn('ml-tool-theme', 'auto', '', t('toolThemeTitle'), () => this.toggleMenu(this.themeBtn, () => this.themeMenu()))
       this.fontBtn = btn('ml-tool-font', 'text-size', '', t('toolFontSizeTitle'), () => this.toggleMenu(this.fontBtn, () => this.fontMenu()))
       this.copyMdBtn = btn('ml-tool-copy', 'copy', t('toolCopyMd'), t('toolCopyMdTitle'), () => this.toggleMenu(this.copyMdBtn, () => this.copyMenu(this.copyMdBtn)))
-      for (const b of [this.widthBtn, this.themeBtn, this.fontBtn, this.copyMdBtn]) {
+      this.exportBtn = btn('ml-tool-export', 'download', t('toolExport'), t('toolExportTitle'), () => this.toggleMenu(this.exportBtn, () => this.exportMenu()))
+      for (const b of [this.widthBtn, this.themeBtn, this.fontBtn, this.copyMdBtn, this.exportBtn]) {
         b.setAttribute('aria-haspopup', 'menu')
         b.setAttribute('aria-expanded', 'false')
       }
-      setTool(this.copyMdBtn, 'copy', t('toolCopyMd')) // 加上選單的小箭頭
-      this.exportBtn = btn('ml-tool-export', 'download', t('toolExport'), t('toolExportTitle'), () => this.exportHtml())
+      // 加上選單的小箭頭
+      setTool(this.copyMdBtn, 'copy', t('toolCopyMd'))
+      setTool(this.exportBtn, 'download', t('toolExport'))
       this.printBtn = btn('ml-tool-print', 'print', t('toolPrint'), t('toolPrintTitle'), () => this.print())
       this.rawBtn = btn('ml-tool-raw', 'code', t('toolRaw'), t('toolRawTitle'), () => this.toggleRaw())
       // 用編輯器開啟：設定中選了編輯器且為本機檔案才顯示
@@ -611,12 +613,24 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       a.click()
     }
 
-    async exportHtml() {
+    exportMenu() {
+      MarkLens.openMenu({
+        anchor: this.exportBtn,
+        label: t('exportMenu'),
+        items: [
+          { label: t('exportEmbed'), icon: 'file', fn: () => this.exportHtml(true) },
+          { label: t('exportLinked'), icon: 'download', fn: () => this.exportHtml(false) },
+        ],
+      })
+    }
+
+    async exportHtml(embed) {
       if (!MarkLens.alive()) return this.onOrphaned()
       this.exportBtn.disabled = true
       try {
-        const name = await MarkLens.exportHtml(this.article)
-        MarkLens.toast(t('exportDone', name))
+        const { name, missed, needsWebAccess } = await MarkLens.exportHtml(this.article, { embed })
+        if (!missed) MarkLens.toast(t('exportDone', name))
+        else MarkLens.toast(`${t('exportMissed', name, missed)}${needsWebAccess ? t('exportNeedsWebAccess', t('optWebAccess')) : ''}`, [], 10000)
       } catch (err) {
         MarkLens.toast(t('exportFailed', err.message))
       } finally {

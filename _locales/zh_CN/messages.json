@@ -142,7 +142,7 @@
     "message": "导出 HTML"
   },
   "toolExportTitle": {
-    "message": "把当前画面下载成单一 HTML 文件（不含代码，可脱机打开、方便分享）"
+    "message": "把当前画面下载成 HTML 文件（不含代码）。可选择内嵌图片成单一文件，或保留图片链接"
   },
   "toolPrint": {
     "message": "打印／PDF"
@@ -155,6 +155,21 @@
   },
   "exportFailed": {
     "message": "导出失败：$1"
+  },
+  "exportMenu": {
+    "message": "导出 HTML"
+  },
+  "exportEmbed": {
+    "message": "单一文件（内嵌图片）"
+  },
+  "exportLinked": {
+    "message": "图片保留链接"
+  },
+  "exportMissed": {
+    "message": "已导出 $1；$2 张图片无法内嵌，保留原网址"
+  },
+  "exportNeedsWebAccess": {
+    "message": "。其中的网络图片，若网址能在浏览器打开，可在 MarkLens 图标的设置中开启“$1”后再试一次"
   },
   "taskTitle": {
     "message": "点击勾选／取消，并存回原文件"

@@ -142,7 +142,7 @@
     "message": "匯出 HTML"
   },
   "toolExportTitle": {
-    "message": "把目前畫面下載成單一 HTML 檔（不含程式碼，可離線開啟、方便分享）"
+    "message": "把目前畫面下載成 HTML 檔（不含程式碼）。可選擇內嵌圖片成單一檔，或保留圖片連結"
   },
   "toolPrint": {
     "message": "列印／PDF"
@@ -155,6 +155,21 @@
   },
   "exportFailed": {
     "message": "匯出失敗：$1"
+  },
+  "exportMenu": {
+    "message": "匯出 HTML"
+  },
+  "exportEmbed": {
+    "message": "單一檔（內嵌圖片）"
+  },
+  "exportLinked": {
+    "message": "圖片保留連結"
+  },
+  "exportMissed": {
+    "message": "已匯出 $1；$2 張圖片無法內嵌，保留原網址"
+  },
+  "exportNeedsWebAccess": {
+    "message": "。其中的網路圖片，若網址能在瀏覽器開啟，可在 MarkLens 圖示的設定中開啟「$1」後再試一次"
   },
   "taskTitle": {
     "message": "點擊勾選／取消，並存回原檔"
