@@ -66,7 +66,9 @@ The sidebar outline highlights the section you're reading. Fold any section, or 
 
 ### Print, PDF and HTML export
 
-**Print / PDF** prints the whole document in light colors, with every section expanded. The margins show only a page number. **Export HTML** saves what you see as one self-contained file.
+**Print / PDF** prints the whole document in light colors, with every section expanded. The margins show only a page number. **Export HTML** saves what you see as an HTML file. **Single file** embeds the images, so the file works on its own when you share it. **Link to images** keeps the file small.
+
+In a **Single file** export, links to local files keep their relative paths, and links to `.md` files point to `.html`. Export the linked documents into the same folder, and the links work between the exported files. Heading anchors match only between files that MarkLens exported. **Link to images** turns local links into absolute `file://` addresses, which work only on your computer.
 
 ## All features
 
@@ -109,7 +111,7 @@ The sidebar outline highlights the section you're reading. Fold any section, or 
 
 **Sharing**
 - Print or save as PDF, with sections expanded and only page numbers in the margins
-- Export as a single HTML file with styles, diagrams and math fonts embedded and no scripts
+- Export as HTML with styles, diagrams and math fonts embedded and no scripts. **Single file** also embeds the images. An image on a website is embedded only if that site allows it, or if **Also open .md files on websites** is on. Images that can't be read keep their address, and MarkLens tells you how many
 - The **Copy** menu has two modes. **Copy content** copies the Markdown source with HTML formatting attached, so apps that accept formatted text keep the formatting. **Copy location** copies the path and line range, such as `D:\notes\report.md:142-168 (Causes)` on Windows or `/Users/you/notes/report.md:142-168 (Causes)` on macOS, so you can point an AI tool at the exact lines
 - **Copy** in the toolbar works on the whole document; the copy button next to a heading works on that section
 - Select text to copy its Markdown source or its location

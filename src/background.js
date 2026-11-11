@@ -194,11 +194,111 @@ const HANDLERS = {
     const res = await fetch(chrome.runtime.getURL(path))
     if (!res.ok) return { status: 'error', error: `HTTP ${res.status}` }
     if (path.endsWith('.css')) return { status: 'ok', text: await res.text() }
-    const bytes = new Uint8Array(await res.arrayBuffer())
-    let bin = ''
-    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
-    return { status: 'ok', base64: btoa(bin) }
+    return { status: 'ok', base64: toBase64(new Uint8Array(await res.arrayBuffer())) }
   },
+
+  /**
+   * 匯出時內嵌圖片：回傳圖片的 MIME 類型與 base64。失敗時 reason 為
+   * not-allowed、no-permission（讀取失敗且沒有網站權限，原因不一定是權限）、unreachable、too-large、not-image 之一。
+   * 匯出檔可能被分享出去：網路上的文件不能內嵌 file:// 圖片，也不能內嵌內網或本機服務的圖片（與文件同源的除外）
+   */
+  async 'read-image'(msg, sender) {
+    let url
+    try {
+      url = new URL(String(msg.url))
+    } catch {
+      return { status: 'error', reason: 'not-allowed' }
+    }
+    const local = url.protocol === 'file:'
+    let from
+    try {
+      from = new URL(sender.url)
+    } catch {
+      return { status: 'error', reason: 'not-allowed' }
+    }
+    const fromFile = from.protocol === 'file:'
+    // 網路上的文件：內網圖片只接受與文件同源的
+    const webAllowed = target => /^https?:$/.test(target.protocol) && (fromFile || !privateHost(target.hostname) || from.origin === target.origin)
+    if (local ? !fromFile || !isLocalFile(url.href) : !webAllowed(url)) return { status: 'error', reason: 'not-allowed' }
+    let res
+    try {
+      // 不帶 cookie：允許任何網站跨站讀取（Access-Control-Allow-Origin: *）的圖床不接受帶 cookie 的請求
+      res = await fetch(url.href, { credentials: 'omit' })
+    } catch {
+      // 沒有網站權限時，跨站讀取被擋與連不上無法區分
+      const denied = !local && !(await chrome.permissions.contains({ origins: MarkLens.WEB_ORIGINS }))
+      return { status: 'error', reason: denied ? 'no-permission' : 'unreachable' }
+    }
+    // 重新導向後的網址也要符合規則。導向的目的地在檢查前已收到請求；瀏覽器顯示這張圖片時同樣會請求它
+    if (!local && !webAllowed(new URL(res.url))) return { status: 'error', reason: 'not-allowed' }
+    if (!res.ok) return { status: 'error', reason: 'unreachable' }
+    const bytes = await readLimited(res, IMAGE_MAX)
+    if (!bytes) return { status: 'error', reason: 'too-large' }
+    const mime = imageType(bytes)
+    if (!mime) return { status: 'error', reason: 'not-image' }
+    return { status: 'ok', mime, base64: toBase64(bytes) }
+  },
+}
+
+const IMAGE_MAX = 10 * 1024 * 1024
+
+/** 讀完回應本文；超過 max 位元組就中斷並回傳 null。沒有本文（例如 204）時回傳空陣列 */
+async function readLimited(res, max) {
+  if (Number(res.headers.get('content-length')) > max) return null
+  if (!res.body) return new Uint8Array(0)
+  const reader = res.body.getReader()
+  const chunks = []
+  let size = 0
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    size += value.length
+    if (size > max) {
+      reader.cancel()
+      return null
+    }
+    chunks.push(value)
+  }
+  const bytes = new Uint8Array(size)
+  let offset = 0
+  for (const c of chunks) {
+    bytes.set(c, offset)
+    offset += c.length
+  }
+  return bytes
+}
+
+/** 內網或本機服務的主機：localhost、.local、沒有點號的名稱、私有與保留的 IP。以網域名稱指向內網的情況判斷不到 */
+function privateHost(hostname) {
+  const h = hostname.toLowerCase().replace(/^\[|\]$/g, '').replace(/\.$/, '')
+  if (h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.local') || !/[.:]/.test(h)) return true
+  const v4 = h.match(/^(\d+)\.(\d+)\.\d+\.\d+$/)
+  if (v4) {
+    const [a, b] = [+v4[1], +v4[2]]
+    return a === 0 || a === 10 || a === 127 || (a === 100 && b >= 64 && b <= 127) || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168)
+  }
+  return h.includes(':') && (h === '::1' || h === '::' || /^f[cd]/.test(h) || /^fe[89ab]/.test(h) || h.startsWith('::ffff:'))
+}
+
+function toBase64(bytes) {
+  let bin = ''
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
+  return btoa(bin)
+}
+
+/** 依檔頭判斷圖片格式；不是瀏覽器能顯示的圖片時回傳 null */
+function imageType(b) {
+  const ascii = (from, to) => String.fromCharCode(...b.subarray(from, to))
+  if (b[0] === 0x89 && ascii(1, 4) === 'PNG') return 'image/png'
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'image/jpeg'
+  if (ascii(0, 4) === 'GIF8') return 'image/gif'
+  if (ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WEBP') return 'image/webp'
+  if (ascii(4, 8) === 'ftyp' && /^avi[fs]$/.test(ascii(8, 12))) return 'image/avif'
+  if (ascii(0, 2) === 'BM') return 'image/bmp'
+  if (b[0] === 0 && b[1] === 0 && b[2] === 1 && b[3] === 0) return 'image/x-icon'
+  const head = new TextDecoder().decode(b.subarray(0, 1024)).replace(/^\uFEFF/, '').trimStart()
+  if (head.startsWith('<') && /<svg[\s>]/i.test(head)) return 'image/svg+xml'
+  return null
 }
 
 /** 沒有主機名稱的 file:// 網址。WSL（file://wsl.localhost/…）與網路共用的網址 Chrome 一律拒絕讀取，不必發出請求 */

@@ -142,7 +142,7 @@
     "message": "Export HTML"
   },
   "toolExportTitle": {
-    "message": "Download what you see as a single HTML file (no scripts; opens offline, easy to share)"
+    "message": "Download what you see as an HTML file (no scripts). Choose a single file with images embedded, or keep links to the images"
   },
   "toolPrint": {
     "message": "Print / PDF"
@@ -155,6 +155,21 @@
   },
   "exportFailed": {
     "message": "Export failed: $1"
+  },
+  "exportMenu": {
+    "message": "Export HTML"
+  },
+  "exportEmbed": {
+    "message": "Single file (images embedded)"
+  },
+  "exportLinked": {
+    "message": "Link to images"
+  },
+  "exportMissed": {
+    "message": "Exported $1. $2 images couldn't be embedded and keep their original addresses"
+  },
+  "exportNeedsWebAccess": {
+    "message": ". If an image from a website opens in the browser, turn on \"$1\" in the MarkLens popup and try again"
   },
   "taskTitle": {
     "message": "Click to check / uncheck and save to the file"
