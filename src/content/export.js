@@ -184,7 +184,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     const version = chrome.runtime.getManifest().version
 
     const html = `<!doctype html>
-<html lang="${escapeHtml(root.lang || '')}" class="${classes.join(' ')}" data-ml-theme="${escapeHtml(root.dataset.mlTheme || 'light')}"${root.dataset.mlPalette ? ` data-ml-palette="${escapeHtml(root.dataset.mlPalette)}"` : ''} style="${escapeHtml(vars)}">
+<html${article.lang ? ` lang="${escapeHtml(article.lang)}"` : ''} class="${classes.join(' ')}" data-ml-theme="${escapeHtml(root.dataset.mlTheme || 'light')}"${root.dataset.mlPalette ? ` data-ml-palette="${escapeHtml(root.dataset.mlPalette)}"` : ''} style="${escapeHtml(vars)}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

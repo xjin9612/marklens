@@ -349,4 +349,13 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     if (!m) return { frontMatter: null, body: src.replace(/^\ufeff/, '') }
     return { frontMatter: m[1], body: src.slice(m[0].length) }
   }
+
+  /** front matter 最上層的 lang 欄位，去掉引號與行尾註解；沒有或不是語言代碼時回傳空字串 */
+  MarkLens.frontMatterLang = function (frontMatter) {
+    const m = /^lang[ \t]*:[ \t]*(.*)$/m.exec(frontMatter || '')
+    if (!m) return ''
+    const value = m[1].replace(/(^|[ \t])#.*$/, '').trim()
+    const lang = /^(["'])(.*)\1$/.exec(value)?.[2] ?? value
+    return /^[a-z]{2,3}(-[a-z0-9]{1,8})*$/i.test(lang) ? lang : ''
+  }
 })()

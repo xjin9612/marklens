@@ -70,6 +70,8 @@ MarkLens 支援 Windows、macOS、Linux 上的 Chrome 與 Edge。
 
 選「單一檔」時，指向本機檔案的連結保留相對路徑，連到 `.md` 的連結改成 `.html`。把連到的文件也匯出到同一個資料夾，匯出檔之間就能互相連結。標題錨點只在都由 MarkLens 匯出的檔案之間對得上。選「圖片保留連結」時，本機連結改成 `file://` 絕對網址，只在你自己的電腦上有效。
 
+在 front matter 寫 `lang`（例如 `lang: zh-TW`），可以設定閱讀頁與匯出檔的文件語言。
+
 ## 完整功能
 
 **閱讀**
@@ -88,7 +90,7 @@ MarkLens 支援 Windows、macOS、Linux 上的 Chrome 與 Edge。
 
 **Markdown**
 - CommonMark 與 GitHub Flavored Markdown：表格、任務清單、腳註、自動連結
-- GitHub 提示框（`> [!NOTE]`）、`==螢光標記==`、Emoji 短碼（`:tada:`）、可收合的 front matter
+- GitHub 提示框（`> [!NOTE]`）、`==螢光標記==`、Emoji 短碼（`:tada:`）、可收合的 front matter（其中的 `lang` 設定文件語言）
 - 文件網站的容器區塊（`::: tip`、`::: warning`、`::: details`、Docusaurus 的 `:::note`）與定義清單
 - 程式碼語法高亮，附語言標籤、複製按鈕與換行切換
 - KaTeX 數學公式（`$…$`、`$$…$$`、`` $`…`$ ``、` ```math `），網頁上也能繪製

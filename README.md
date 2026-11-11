@@ -70,6 +70,8 @@ The sidebar outline highlights the section you're reading. Fold any section, or 
 
 In a **Single file** export, links to local files keep their relative paths, and links to `.md` files point to `.html`. Export the linked documents into the same folder, and the links work between the exported files. Heading anchors match only between files that MarkLens exported. **Link to images** turns local links into absolute `file://` addresses, which work only on your computer.
 
+Add `lang` to the front matter (for example `lang: zh-TW`) to set the document language for the reader and the exported file.
+
 ## All features
 
 **Reading**
@@ -88,7 +90,7 @@ In a **Single file** export, links to local files keep their relative paths, and
 
 **Markdown**
 - CommonMark and GitHub Flavored Markdown: tables, task lists, footnotes, autolinks
-- GitHub alerts (`> [!NOTE]`), `==highlight==`, emoji shortcodes (`:tada:`), collapsible front matter
+- GitHub alerts (`> [!NOTE]`), `==highlight==`, emoji shortcodes (`:tada:`), collapsible front matter (its `lang` sets the document language)
 - Docs-site containers (`::: tip`, `::: warning`, `::: details`, Docusaurus `:::note`) and definition lists
 - Syntax highlighting with a language label, copy button and wrap toggle
 - KaTeX math (`$…$`, `$$…$$`, `` $`…`$ ``, ` ```math `), on web pages too
