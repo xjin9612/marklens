@@ -7,7 +7,7 @@
     "message": "Markloupe – Markdown Reader"
   },
   "extDescription": {
-    "message": "Lightweight, auditable Markdown reader: outline, folding, resizable sortable tables, Mermaid, and task check-off in local files."
+    "message": "Markdown reader for working docs: sort, filter and resize tables, check off tasks saved to the file, outline, Mermaid and math."
   },
   "cmdToggleToc": {
     "message": "Show / hide sidebar (current tab)"

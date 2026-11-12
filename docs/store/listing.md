@@ -10,10 +10,10 @@
 - 名稱與簡短說明取自 `manifest.json` 與 `_locales/`，後台不能另外修改：
   - 名稱（en）：`Markloupe – Markdown Reader`
   - 名稱（zh_TW）：`Markloupe – Markdown 閱讀器`
-  - 簡短說明（en，128 字元）：Lightweight, auditable Markdown reader: outline, folding, resizable sortable tables, Mermaid, and task check-off in local files.
-  - 簡短說明（zh_TW）：輕量、可稽核的 Markdown 閱讀器：目錄、摺疊、可拖拉排序的表格、Mermaid 圖表，並可直接勾選本機檔案的任務。
+  - 簡短說明（en，127 字元）：Markdown reader for working docs: sort, filter and resize tables, check off tasks saved to the file, outline, Mermaid and math.
+  - 簡短說明（zh_TW）：讓 Markdown 成為工作文件：表格可排序、篩選、調整欄寬，勾選任務直接存回檔案，另有目錄、Mermaid 與數學公式。
   - 名稱（zh_CN）：`Markloupe – Markdown 阅读器`
-  - 簡短說明（zh_CN）：轻量、可审计的 Markdown 阅读器：目录、折叠、可拖动排序的表格、Mermaid 图表，并可直接勾选本机文件的任务。
+  - 簡短說明（zh_CN）：让 Markdown 成为工作文档：表格可排序、筛选、调整列宽，勾选任务直接保存回文件，另有目录、Mermaid 与数学公式。
 
 ---
 

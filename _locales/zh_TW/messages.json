@@ -7,7 +7,7 @@
     "message": "Markloupe – Markdown 閱讀器"
   },
   "extDescription": {
-    "message": "輕量、可稽核的 Markdown 閱讀器：目錄、摺疊、可拖拉排序的表格、Mermaid 圖表，並可直接勾選本機檔案的任務。"
+    "message": "讓 Markdown 成為工作文件：表格可排序、篩選、調整欄寬，勾選任務直接存回檔案，另有目錄、Mermaid 與數學公式。"
   },
   "cmdToggleToc": {
     "message": "顯示／收合側邊欄（目前分頁）"

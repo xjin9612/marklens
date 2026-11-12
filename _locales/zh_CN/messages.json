@@ -7,7 +7,7 @@
     "message": "Markloupe – Markdown 阅读器"
   },
   "extDescription": {
-    "message": "轻量、可审计的 Markdown 阅读器：目录、折叠、可拖动排序的表格、Mermaid 图表，并可直接勾选本机文件的任务。"
+    "message": "让 Markdown 成为工作文档：表格可排序、筛选、调整列宽，勾选任务直接保存回文件，另有目录、Mermaid 与数学公式。"
   },
   "cmdToggleToc": {
     "message": "显示／收起侧边栏（当前标签页）"

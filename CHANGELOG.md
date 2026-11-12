@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 - MarkLens is now **Markloupe**, because other Markdown extensions in the Chrome Web Store already use the name MarkLens. The repository moves to `xjin9612/markloupe`; old GitHub links redirect. Settings, synced settings and authorized folders carry over when you update
+- The store description now leads with what sets Markloupe apart: tables you can sort, filter and resize, and tasks you check off in the file itself
 
 ## [1.8.0] - 2026-11-12
 
