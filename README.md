@@ -104,7 +104,7 @@ Add `lang` to the front matter (for example `lang: zh-TW`) to set the document l
 - Optional **Edit** button: open the file in VS Code at the section you're reading. Other editors with a URL scheme work too
 
 **Appearance**
-- Light, dark, or follow the system; GitHub, sepia, high-contrast, soft green or graphite colors
+- Light, dark, or follow the system; GitHub, sepia, high-contrast, soft green or graphite colors, or your own
 - Add your own CSS to reading pages
 - Sync settings to your other computers through your browser account (can be turned off)
 - Text width (full, 1600, 1200, 960 or custom); tables and code can optionally grow to the right of the text column
@@ -179,6 +179,17 @@ Markloupe scales the system font so Chinese, Japanese and Korean characters are 
 
 **Search with Ctrl+F doesn't find text in folded sections of a very large file.**<br>
 In documents with more than 3,000 top-level blocks (around 400 KB), Markloupe hides folded sections in a faster way. Ctrl+F can't see them. Unfold them first (`]`).
+
+**I want my own colors.**<br>
+Set **Colors** to *Custom* and pick the background, text and accent colors for the light and dark themes. You can type color codes such as `#1e1e2e`. Markloupe works out the other colors. When the text color has 4.5:1 contrast with the background, secondary text, code colors and alert titles get at least 4.5:1 too. The popup warns when the text or accent color falls below 4.5:1.
+
+For finer control, keep **Colors** on *GitHub* and override the color variables in **Custom CSS**. This example changes the dark theme only:
+
+```css
+html.markloupe[data-ml-theme="dark"] { --bg: #1e1e2e; --fg: #cdd6f4; --link: #89b4fa; }
+```
+
+Use `light` instead of `dark` for the light theme. [`src/shared/tokens.css`](src/shared/tokens.css) lists every variable, such as `--code-bg` for code blocks and `--hl-keyword` for code colors.
 
 ## Contributing
 

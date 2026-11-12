@@ -37,8 +37,30 @@
         <option value="contrast" data-i18n="paletteContrast"></option>
         <option value="green" data-i18n="paletteGreen"></option>
         <option value="graphite" data-i18n="paletteGraphite"></option>
+        <option value="custom" data-i18n="paletteCustom"></option>
       </select>
     </label>
+    <!-- 自訂配色：取色器在部分平台會讓 popup 關閉，所以另有色碼欄位 -->
+    <div id="custom-colors" class="custom-colors" hidden>
+      <div class="cc-row cc-head"><span></span><span data-i18n="themeLight"></span><span data-i18n="themeDark"></span></div>
+      <div class="cc-row">
+        <span data-i18n="colorBg"></span>
+        <span class="cc-cell"><input type="color" data-cc="light.bg"><input type="text" data-cc="light.bg" maxlength="7" spellcheck="false"></span>
+        <span class="cc-cell"><input type="color" data-cc="dark.bg"><input type="text" data-cc="dark.bg" maxlength="7" spellcheck="false"></span>
+      </div>
+      <div class="cc-row">
+        <span data-i18n="colorFg"></span>
+        <span class="cc-cell"><input type="color" data-cc="light.fg"><input type="text" data-cc="light.fg" maxlength="7" spellcheck="false"></span>
+        <span class="cc-cell"><input type="color" data-cc="dark.fg"><input type="text" data-cc="dark.fg" maxlength="7" spellcheck="false"></span>
+      </div>
+      <div class="cc-row">
+        <span data-i18n="colorAccent"></span>
+        <span class="cc-cell"><input type="color" data-cc="light.accent"><input type="text" data-cc="light.accent" maxlength="7" spellcheck="false"></span>
+        <span class="cc-cell"><input type="color" data-cc="dark.accent"><input type="text" data-cc="dark.accent" maxlength="7" spellcheck="false"></span>
+      </div>
+      <p id="cc-warning" class="hint cc-warning" hidden></p>
+      <button type="button" id="cc-reset" data-i18n="colorReset"></button>
+    </div>
     <label><span data-i18n="uiLang"></span>
       <select name="uiLang">
         <option value="auto" data-i18n="langAuto"></option>
@@ -168,6 +190,7 @@
   </footer>
 
   <script src="../shared/settings.js"></script>
+  <script src="../shared/palette.js"></script>
   <script src="../shared/i18n.js"></script>
   <script src="../shared/web-access.js"></script>
   <script src="popup.js"></script>
