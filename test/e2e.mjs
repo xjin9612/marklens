@@ -1191,16 +1191,29 @@ try {
       })
     }
   })
-  await check('配色：米色與高對比套用到閱讀頁，Mermaid 依配色重繪，GitHub 不設屬性', async () => {
+  await check('配色：米色、高對比、護眼綠、石墨套用到閱讀頁，Mermaid 依配色重繪，GitHub 不設屬性', async () => {
     const bg = () => mp.evaluate(() => getComputedStyle(document.body).backgroundColor)
+    const apply = async (theme, palette) => {
+      await sw.evaluate(s => Markloupe.saveSettings(s), { theme, palette })
+      await mp.waitForFunction(([t, p]) => document.documentElement.dataset.mlPalette === p && document.documentElement.dataset.mlTheme === t, [theme, palette])
+    }
+    const mermaidTheme = name =>
+      mp.waitForFunction(n => [...document.querySelectorAll('.ml-mermaid[data-ml-mermaid-theme]')].every(el => el.dataset.mlMermaidTheme === n), name)
     try {
-      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'light', palette: 'sepia' }))
-      await mp.waitForFunction(() => document.documentElement.dataset.mlPalette === 'sepia')
+      await apply('light', 'sepia')
       assert.equal(await bg(), 'rgb(246, 239, 227)')
-      await mp.waitForFunction(() => [...document.querySelectorAll('.ml-mermaid[data-ml-mermaid-theme]')].every(el => el.dataset.mlMermaidTheme === 'default-sepia'))
-      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'dark', palette: 'contrast' }))
-      await mp.waitForFunction(() => document.documentElement.dataset.mlPalette === 'contrast' && document.documentElement.dataset.mlTheme === 'dark')
+      await mermaidTheme('default-sepia')
+      await apply('dark', 'contrast')
       assert.equal(await bg(), 'rgb(0, 0, 0)')
+      await apply('light', 'green')
+      assert.equal(await bg(), 'rgb(199, 237, 204)')
+      await mermaidTheme('default-green')
+      await apply('dark', 'graphite')
+      assert.equal(await bg(), 'rgb(25, 26, 28)')
+      await mermaidTheme('dark-graphite')
+      // 石墨連語法標示一起替換
+      const keyword = await mp.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--hl-keyword').trim())
+      assert.equal(keyword, '#cf8e6d')
       await sw.evaluate(() => Markloupe.saveSettings({ palette: 'github' }))
       await mp.waitForFunction(() => !('mlPalette' in document.documentElement.dataset))
     } finally {

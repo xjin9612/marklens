@@ -86,6 +86,7 @@
 /*
  * 配色（閱讀頁）：在淺色／深色之上替換部分變數；GitHub 為預設，不設 data-ml-palette
  * sepia：米色紙張、暖色文字，長時間閱讀較不刺眼；contrast：黑白高對比，框線與次要文字加深
+ * green：豆沙綠底（華語圈俗稱的護眼色）；graphite：中性灰，深色版的底色、文字與語法標示參考 JetBrains Islands Dark
  * 文字、連結、語法標示與提示框標題在底色、側邊欄與程式碼底色上都至少 4.5:1
  */
 html.markloupe[data-ml-palette="sepia"][data-ml-theme="light"] {
@@ -149,6 +150,80 @@ html.markloupe[data-ml-palette="contrast"][data-ml-theme="dark"] {
   --link: #9cc3ff;
   --accent: #9cc3ff;
   --on-accent: #000000;
+}
+html.markloupe[data-ml-palette="green"][data-ml-theme="light"] {
+  --bg: #c7edcc;
+  --fg: #1d3322;
+  --muted: #3b5642;
+  --faint: #3f5a46;
+  --border: #93c29b;
+  --border-soft: #abd8b2;
+  --subtle: #b8e2be;
+  --hover: #abd8b2;
+  --code-bg: #d8f3dc;
+  --inline-code-bg: rgba(30, 80, 40, .12);
+  --link: #0f4f8a;
+  --accent: #0f4f8a;
+  --accent-soft: #a9d9c4;
+  --shadow: 0 4px 16px rgba(29, 51, 34, .16);
+  /* GitHub 的語意色在綠底上不到 4.5:1，整組加深 */
+  --ok: #136a2c;
+  --warn: #7a5200;
+  --danger: #ad1c26;
+  --alert-note: #0a58b8;
+  --alert-important: #6a3dc0;
+  --hl-keyword: #b0202a; --hl-comment: #4a5d4f; --hl-title: #6f3fc9; --hl-builtin: #8a3300; --hl-meta: #1a5fd0;
+}
+html.markloupe[data-ml-palette="green"][data-ml-theme="dark"] {
+  --bg: #17211a;
+  --fg: #d4e6d7;
+  --muted: #a2bba8;
+  --faint: #8fa995;
+  --border: #3a4e40;
+  --border-soft: #26352b;
+  --subtle: #1d2a21;
+  --hover: #26352b;
+  --code-bg: #1d2a21;
+  --link: #7fcca6;
+  --accent: #7fcca6;
+  --accent-soft: #1f3a2c;
+  --on-accent: #17211a;
+  --hl-comment: #8fa995;
+}
+html.markloupe[data-ml-palette="graphite"][data-ml-theme="light"] {
+  --bg: #f7f8f9;
+  --fg: #1e1f22;
+  --muted: #55585e;
+  --faint: #62656b;
+  --border: #d3d5db;
+  --border-soft: #e3e5e9;
+  --subtle: #eceef1;
+  --hover: #e3e5e9;
+  --code-bg: #eceef1;
+  --inline-code-bg: rgba(30, 31, 34, .08);
+  --link: #2c5bb0;
+  --accent: #2c5bb0;
+  --accent-soft: #dfe7f6;
+  --hl-keyword: #0033b3; --hl-string: #067d17; --hl-number: #1750eb; --hl-comment: #61656b;
+  --hl-title: #00627a; --hl-attr: #871094; --hl-builtin: #8a4a00; --hl-meta: #6b5c00;
+}
+html.markloupe[data-ml-palette="graphite"][data-ml-theme="dark"] {
+  --bg: #191a1c;
+  --fg: #bcbec4;
+  --muted: #9a9da4;
+  --faint: #878b92;
+  --border: #3c3f45;
+  --border-soft: #2b2d30;
+  --subtle: #212326;
+  --hover: #2b2d30;
+  --code-bg: #212326;
+  --inline-code-bg: rgba(188, 190, 196, .1);
+  --link: #56a8f5;
+  --accent: #56a8f5;
+  --accent-soft: #1e2b3d;
+  --on-accent: #191a1c;
+  --hl-keyword: #cf8e6d; --hl-string: #6aab73; --hl-number: #2aacb8; --hl-comment: #878b92;
+  --hl-title: #56a8f5; --hl-attr: #c77dbb; --hl-builtin: #c77dbb; --hl-meta: #b3ae60;
 }
 
 /* 擴充功能頁面：主題腳本尚未執行前跟隨系統，避免閃白 */
