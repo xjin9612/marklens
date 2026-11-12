@@ -6,13 +6,13 @@
 
 ## 1. 上傳
 
-- 檔案：GitHub Release 的 `marklens-vX.Y.Z-store.zip`（`manifest.json` 位於 zip 根目錄）
+- 檔案：GitHub Release 的 `markloupe-vX.Y.Z-store.zip`（`manifest.json` 位於 zip 根目錄）
 - 名稱與簡短說明取自 `manifest.json` 與 `_locales/`，後台不能另外修改：
-  - 名稱（en）：`MarkLens – Markdown Reader`
-  - 名稱（zh_TW）：`MarkLens – Markdown 閱讀器`
+  - 名稱（en）：`Markloupe – Markdown Reader`
+  - 名稱（zh_TW）：`Markloupe – Markdown 閱讀器`
   - 簡短說明（en，128 字元）：Lightweight, auditable Markdown reader: outline, folding, resizable sortable tables, Mermaid, and task check-off in local files.
   - 簡短說明（zh_TW）：輕量、可稽核的 Markdown 閱讀器：目錄、摺疊、可拖拉排序的表格、Mermaid 圖表，並可直接勾選本機檔案的任務。
-  - 名稱（zh_CN）：`MarkLens – Markdown 阅读器`
+  - 名稱（zh_CN）：`Markloupe – Markdown 阅读器`
   - 簡短說明（zh_CN）：轻量、可审计的 Markdown 阅读器：目录、折叠、可拖动排序的表格、Mermaid 图表，并可直接勾选本机文件的任务。
 
 ---
@@ -30,7 +30,7 @@ English（預設）、中文（繁體）、中文（簡體）。每個語言各�
 ### 詳細說明（English）
 
 ```text
-MarkLens turns any Markdown file you open in the browser into a clean, readable page, and makes the tables in it something you can actually work with.
+Markloupe turns any Markdown file you open in the browser into a clean, readable page, and makes the tables in it something you can actually work with.
 
 TABLES YOU CAN WORK WITH
 • Drag column edges to resize; double-click to fit the content
@@ -40,7 +40,7 @@ TABLES YOU CAN WORK WITH
 
 CHECK OFF TASKS IN YOUR FILES
 • In local .md files, click a task checkbox and [ ] / [x] is saved straight back to the file, no editor needed
-• Undo from the notification; MarkLens refuses to write if the file was changed elsewhere, and keeps CRLF line endings and BOM
+• Undo from the notification; Markloupe refuses to write if the file was changed elsewhere, and keeps CRLF line endings and BOM
 • You authorize a folder once; only the line you clicked is changed
 
 READ AND NAVIGATE
@@ -66,19 +66,19 @@ PRIVATE AND AUDITABLE
 • No access to websites at install: local files only. Turn on .md files on websites yourself if you need them. Optional settings sync goes through your browser account, never to us
 • No remote code: every library is packaged inside the extension
 • Open source under the MIT license; the test suite includes 60+ attack samples that must not run any code
-• Privacy policy: https://github.com/xjin9612/marklens/blob/main/PRIVACY.md
+• Privacy policy: https://github.com/xjin9612/markloupe/blob/main/PRIVACY.md
 
 GOOD TO KNOW
 • For local files, turn on "Allow access to file URLs" on the extension's Details page. A welcome page walks you through it after installing.
-• To read .md files on websites, turn on "Also open .md files on websites" in the popup. The browser then asks for access to all websites, because its permission prompt ignores the part of the address after the site name. MarkLens only runs on addresses that end in .md, .markdown, .mkd or .mdx.
+• To read .md files on websites, turn on "Also open .md files on websites" in the popup. The browser then asks for access to all websites, because its permission prompt ignores the part of the address after the site name. Markloupe only runs on addresses that end in .md, .markdown, .mkd or .mdx.
 
-Source code, changelog and issues: https://github.com/xjin9612/marklens
+Source code, changelog and issues: https://github.com/xjin9612/markloupe
 ```
 
 ### 詳細說明（中文繁體）
 
 ```text
-MarkLens 把你在瀏覽器中開啟的 Markdown 檔案變成清楚好讀的頁面，而且裡面的表格是真的能拿來用的。
+Markloupe 把你在瀏覽器中開啟的 Markdown 檔案變成清楚好讀的頁面，而且裡面的表格是真的能拿來用的。
 
 表格真的能用
 • 拖拉欄位邊緣調整寬度，雙擊自動配合內容
@@ -114,13 +114,13 @@ Markdown 支援
 • 安裝時不要求網站存取權，只處理本機檔案；需要閱讀網頁上的 .md 時再自行開啟。可選的設定同步透過瀏覽器帳號進行，不經過我們
 • 沒有遠端程式碼：所有程式庫都打包在擴充功能內
 • 以 MIT 授權開源；測試包含 60 多個攻擊樣本，確保它們都無法執行任何程式碼
-• 隱私權政策：https://github.com/xjin9612/marklens/blob/main/PRIVACY.zh-TW.md
+• 隱私權政策：https://github.com/xjin9612/markloupe/blob/main/PRIVACY.zh-TW.md
 
 使用須知
 • 要開啟本機檔案，請在擴充功能的「詳細資料」頁面開啟「允許存取檔案網址」。安裝後的歡迎頁會帶你完成設定。
-• 要閱讀網頁上的 .md，請在設定中開啟「也在網頁上的 .md 檔案啟用」。瀏覽器會詢問是否允許存取所有網站，因為它的權限提示忽略網址中網站名稱之後的部分。MarkLens 只在網址以 .md、.markdown、.mkd 或 .mdx 結尾時執行。
+• 要閱讀網頁上的 .md，請在設定中開啟「也在網頁上的 .md 檔案啟用」。瀏覽器會詢問是否允許存取所有網站，因為它的權限提示忽略網址中網站名稱之後的部分。Markloupe 只在網址以 .md、.markdown、.mkd 或 .mdx 結尾時執行。
 
-原始碼、更新紀錄與問題回報：https://github.com/xjin9612/marklens
+原始碼、更新紀錄與問題回報：https://github.com/xjin9612/markloupe
 ```
 
 ### 詳細說明（中文簡體）
@@ -128,7 +128,7 @@ Markdown 支援
 Edge 要求套件中的每個語言都有詳細說明（[Edge 文件](https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/publish-extension#enter-properties-for-a-language)）。由繁中轉換後改用大陸用語；簡中版沒有另外的隱私權政策，連到繁中版。
 
 ```text
-MarkLens 把你在浏览器中打开的 Markdown 文件变成清晰易读的页面，而且里面的表格是真的能拿来用的。
+Markloupe 把你在浏览器中打开的 Markdown 文件变成清晰易读的页面，而且里面的表格是真的能拿来用的。
 
 表格真的能用
 • 拖动列边缘调整宽度，双击自动适应内容
@@ -164,13 +164,13 @@ Markdown 支持
 • 安装时不要求网站访问权限，只处理本机文件；需要阅读网页上的 .md 时再自行开启。可选的设置同步通过浏览器账号进行，不经过我们
 • 没有远程代码：所有程序库都打包在扩展程序内
 • 以 MIT 许可证开源；测试包含 60 多个攻击样本，确保它们都无法运行任何代码
-• 隐私政策：https://github.com/xjin9612/marklens/blob/main/PRIVACY.zh-TW.md
+• 隐私政策：https://github.com/xjin9612/markloupe/blob/main/PRIVACY.zh-TW.md
 
 使用须知
 • 要打开本机文件，请在扩展程序的“详情”页面打开“允许访问文件网址”。安装后的欢迎页会带你完成设置。
-• 要阅读网页上的 .md，请在设置中开启“也在网页上的 .md 文件启用”。浏览器会询问是否允许访问所有网站，因为它的权限提示忽略网址中网站名称之后的部分。MarkLens 只在网址以 .md、.markdown、.mkd 或 .mdx 结尾时运行。
+• 要阅读网页上的 .md，请在设置中开启“也在网页上的 .md 文件启用”。浏览器会询问是否允许访问所有网站，因为它的权限提示忽略网址中网站名称之后的部分。Markloupe 只在网址以 .md、.markdown、.mkd 或 .mdx 结尾时运行。
 
-源代码、更新日志与问题反馈：https://github.com/xjin9612/marklens
+源代码、更新日志与问题反馈：https://github.com/xjin9612/markloupe
 ```
 
 ### 圖片
@@ -191,8 +191,8 @@ Markdown 支持
 
 - 官方網址：不填（需要在 Google Search Console 驗證網域）
 - 成人內容：否
-- 首頁網址：https://github.com/xjin9612/marklens
-- 支援網址：https://github.com/xjin9612/marklens/issues
+- 首頁網址：https://github.com/xjin9612/markloupe
+- 支援網址：https://github.com/xjin9612/markloupe/issues
 
 ---
 
@@ -209,13 +209,13 @@ Display Markdown files (.md, .markdown, .mkd, .mdx) opened in the browser as for
 **storage**
 
 ```text
-Saves the user's reading settings (theme, font size, text width, language, editor and similar options) and the reading position of recently opened Markdown files, so they apply the next time a document is opened. Data stays in chrome.storage.local. If the user keeps settings sync on, the settings (not reading positions or folder access) are also saved to chrome.storage.sync, which the browser syncs through the user's own account. MarkLens never transmits any data itself.
+Saves the user's reading settings (theme, font size, text width, language, editor and similar options) and the reading position of recently opened Markdown files, so they apply the next time a document is opened. Data stays in chrome.storage.local. If the user keeps settings sync on, the settings (not reading positions or folder access) are also saved to chrome.storage.sync, which the browser syncs through the user's own account. Markloupe never transmits any data itself.
 ```
 
 **scripting**
 
 ```text
-Registers MarkLens's own packaged content scripts for Markdown URLs on websites (paths ending in .md, .markdown, .mkd, .mdx), only after the user turns on "Also open .md files on websites" and grants the optional host permission. The scripts are the same files the manifest already runs on local Markdown files; no code is fetched or generated. They are unregistered when the permission is removed.
+Registers Markloupe's own packaged content scripts for Markdown URLs on websites (paths ending in .md, .markdown, .mkd, .mdx), only after the user turns on "Also open .md files on websites" and grants the optional host permission. The scripts are the same files the manifest already runs on local Markdown files; no code is fetched or generated. They are unregistered when the permission is removed.
 ```
 
 Chrome 後台只列出 `storage` 與 `scripting` 兩格。網站權限是選用權限，後台不要求說明。
@@ -239,7 +239,7 @@ All JavaScript, including third-party libraries (markdown-it and its plugins, hi
 
 **收集的資料類型：全部不勾。**
 
-理由：商店所說的「收集」是指資料離開使用者的裝置。MarkLens 除了閱讀設定之外，存放的資料只有兩種，都只留在本機，不傳送給任何人，且在隱私權政策中逐項列出：
+理由：商店所說的「收集」是指資料離開使用者的裝置。Markloupe 除了閱讀設定之外，存放的資料只有兩種，都只留在本機，不傳送給任何人，且在隱私權政策中逐項列出：
 - 閱讀位置：最近 300 個檔案的網址與捲動位置，用於回到上次閱讀處
 - 已授權資料夾的存取權
 
@@ -251,7 +251,7 @@ All JavaScript, including third-party libraries (markdown-it and its plugins, hi
 ### 隱私權政策網址
 
 ```text
-https://github.com/xjin9612/marklens/blob/main/PRIVACY.md
+https://github.com/xjin9612/markloupe/blob/main/PRIVACY.md
 ```
 
 ---
@@ -270,8 +270,8 @@ https://github.com/xjin9612/marklens/blob/main/PRIVACY.md
 
 ```text
 No account needed.
-Local files: in chrome://extensions open MarkLens Details, turn on "Allow access to file URLs", then drag any .md file into the browser. Checking a task (- [ ]) asks once for folder access, then saves to the file.
-Websites (optional): in the MarkLens popup turn on "Also open .md files on websites", allow the permission, then open https://raw.githubusercontent.com/xjin9612/marklens/main/docs/demo.md
+Local files: in chrome://extensions open Markloupe Details, turn on "Allow access to file URLs", then drag any .md file into the browser. Checking a task (- [ ]) asks once for folder access, then saves to the file.
+Websites (optional): in the Markloupe popup turn on "Also open .md files on websites", allow the permission, then open https://raw.githubusercontent.com/xjin9612/markloupe/main/docs/demo.md
 ```
 
 送出審查時，確認視窗的「審查通過後自動發布」保持勾選；取消勾選時，審查通過後 30 天內要手動發布。
@@ -290,5 +290,5 @@ Websites (optional): in the MarkLens popup turn on "Also open .md files on websi
 - 認證備註（Notes for certification，選填）：
 
 ```text
-No account is needed. To test with local files: open edge://extensions, open MarkLens's Details and turn on "Allow access to file URLs", then drag any .md file into the browser. To test on websites: open the MarkLens popup, turn on "Also open .md files on websites" and allow the permission, then open https://raw.githubusercontent.com/xjin9612/marklens/main/docs/demo.md. Checking a task in a local file asks once for access to the folder that contains it.
+No account is needed. To test with local files: open edge://extensions, open Markloupe's Details and turn on "Allow access to file URLs", then drag any .md file into the browser. To test on websites: open the Markloupe popup, turn on "Also open .md files on websites" and allow the permission, then open https://raw.githubusercontent.com/xjin9612/markloupe/main/docs/demo.md. Checking a task in a local file asks once for access to the folder that contains it.
 ```

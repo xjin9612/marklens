@@ -46,19 +46,19 @@ jobs:
       - name: 打包擴充功能
         run: node scripts/release.mjs pack "$GITHUB_REF_NAME" dist
 
-      # 證明 zip 由這個 repo 的這個標籤建置；驗證：gh attestation verify <zip> --repo <owner>/marklens
+      # 證明 zip 由這個 repo 的這個標籤建置；驗證：gh attestation verify <zip> --repo <owner>/markloupe
       - name: 產生建置來源證明
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-path: dist/marklens-*.zip
+          subject-path: dist/markloupe-*.zip
 
       - name: 發布 Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" \
-            "dist/marklens-${GITHUB_REF_NAME}.zip" \
-            "dist/marklens-${GITHUB_REF_NAME}-store.zip" \
+            "dist/markloupe-${GITHUB_REF_NAME}.zip" \
+            "dist/markloupe-${GITHUB_REF_NAME}-store.zip" \
             --title "$GITHUB_REF_NAME" \
             --notes-file "$RUNNER_TEMP/notes.md" \
             --verify-tag

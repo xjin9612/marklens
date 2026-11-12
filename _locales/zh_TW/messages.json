@@ -4,7 +4,7 @@
     "description": "Name of this locale folder, read by the extension to load the whole file. Do not translate."
   },
   "extName": {
-    "message": "MarkLens – Markdown 閱讀器"
+    "message": "Markloupe – Markdown 閱讀器"
   },
   "extDescription": {
     "message": "輕量、可稽核的 Markdown 閱讀器：目錄、摺疊、可拖拉排序的表格、Mermaid 圖表，並可直接勾選本機檔案的任務。"
@@ -169,7 +169,7 @@
     "message": "已匯出 $1；$2 張圖片無法內嵌，保留原網址"
   },
   "exportNeedsWebAccess": {
-    "message": "。其中的網路圖片，若網址能在瀏覽器開啟，可在 MarkLens 圖示的設定中開啟「$1」後再試一次"
+    "message": "。其中的網路圖片，若網址能在瀏覽器開啟，可在 Markloupe 圖示的設定中開啟「$1」後再試一次"
   },
   "taskTitle": {
     "message": "點擊勾選／取消，並存回原檔"
@@ -352,7 +352,7 @@
     "message": "約 $1 字 · $2 分鐘"
   },
   "popupTitle": {
-    "message": "MarkLens 設定"
+    "message": "Markloupe 設定"
   },
   "popupEnable": {
     "message": "啟用"
@@ -523,13 +523,13 @@
     "message": "此分頁不是 Markdown 頁面"
   },
   "grantPageTitle": {
-    "message": "MarkLens：檔案寫回授權"
+    "message": "Markloupe：檔案寫回授權"
   },
   "grantH1": {
     "message": "檔案寫回授權"
   },
   "grantIntro": {
-    "message": "在閱讀頁直接勾選任務清單時，MarkLens 需要這些資料夾的讀寫權限，才能把勾選結果存回原檔。授權只保存在擴充功能內部，一般網頁（包括本機 HTML 檔）無法取得。"
+    "message": "在閱讀頁直接勾選任務清單時，Markloupe 需要這些資料夾的讀寫權限，才能把勾選結果存回原檔。授權只保存在擴充功能內部，一般網頁（包括本機 HTML 檔）無法取得。"
   },
   "grantBackNote": {
     "message": "完成授權後，回到剛才的頁面再勾選一次。"
@@ -589,7 +589,7 @@
     "message": "已授權：$1"
   },
   "welcomeTitle": {
-    "message": "歡迎使用 MarkLens"
+    "message": "歡迎使用 Markloupe"
   },
   "welcomeLead": {
     "message": "在瀏覽器裡直接閱讀 Markdown：目錄、摺疊、可排序的表格、Mermaid 圖表，還能直接勾選任務存回檔案。"
@@ -601,7 +601,7 @@
     "message": "要閱讀電腦裡的 <code>.md</code>，Chrome 需要你手動開啟一個開關（擴充功能無法自行開啟）。"
   },
   "step1Li1": {
-    "message": "按下方按鈕開啟 MarkLens 的設定頁"
+    "message": "按下方按鈕開啟 Markloupe 的設定頁"
   },
   "step1Li2": {
     "message": "找到 <b>「允許存取檔案網址」</b> 並開啟"
@@ -628,7 +628,7 @@
     "message": "把任一 <code>.md</code> 檔拖進 Chrome 視窗，或在網址列輸入它的路徑（例如 <code>D:\\Projects\\README.md</code>）。要閱讀網路上的 <code>.md</code>，請開啟下方選項。"
   },
   "step2Tip": {
-    "message": "建議把 MarkLens 釘選在工具列：按右上角拼圖圖示 → MarkLens 旁的圖釘。點圖示可以調整主題、字體與預設版面。"
+    "message": "建議把 Markloupe 釘選在工具列：按右上角拼圖圖示 → Markloupe 旁的圖釘。點圖示可以調整主題、字體與預設版面。"
   },
   "step3Title": {
     "message": "常用操作"
@@ -739,7 +739,7 @@
     "message": "也在網頁上的 .md 檔案啟用"
   },
   "optWebAccessNote": {
-    "message": "Chrome 會詢問是否允許讀取及變更所有網站上的資料。MarkLens 仍只在網址以 .md、.markdown、.mkd 或 .mdx 結尾時執行。已開啟的分頁要重新整理。"
+    "message": "Chrome 會詢問是否允許讀取及變更所有網站上的資料。Markloupe 仍只在網址以 .md、.markdown、.mkd 或 .mdx 結尾時執行。已開啟的分頁要重新整理。"
   },
   "optSync": {
     "message": "同步設定到我的其他電腦"

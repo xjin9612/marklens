@@ -62,7 +62,7 @@ jobs:
           # apt 下載的 .deb 放在快取的資料夾，已有相同版本時不再下載；partial 要讓 apt 的下載帳號 _apt 寫入
           mkdir -p ~/apt-cache/partial
           sudo chown _apt ~/apt-cache/partial
-          echo "Dir::Cache::Archives \"$HOME/apt-cache\";" | sudo tee /etc/apt/apt.conf.d/99marklens-cache >/dev/null
+          echo "Dir::Cache::Archives \"$HOME/apt-cache\";" | sudo tee /etc/apt/apt.conf.d/99markloupe-cache >/dev/null
           npx playwright install --with-deps chromium
           sudo apt-get install -y --no-install-recommends fonts-noto-cjk
           # apt 留下的 lock 只有 root 能讀，快取存檔時會讀不到

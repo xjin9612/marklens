@@ -4,7 +4,7 @@
     "description": "Name of this locale folder, read by the extension to load the whole file. Do not translate."
   },
   "extName": {
-    "message": "MarkLens – Markdown 阅读器"
+    "message": "Markloupe – Markdown 阅读器"
   },
   "extDescription": {
     "message": "轻量、可审计的 Markdown 阅读器：目录、折叠、可拖动排序的表格、Mermaid 图表，并可直接勾选本机文件的任务。"
@@ -169,7 +169,7 @@
     "message": "已导出 $1；$2 张图片无法内嵌，保留原网址"
   },
   "exportNeedsWebAccess": {
-    "message": "。其中的网络图片，若网址能在浏览器打开，可在 MarkLens 图标的设置中开启“$1”后再试一次"
+    "message": "。其中的网络图片，若网址能在浏览器打开，可在 Markloupe 图标的设置中开启“$1”后再试一次"
   },
   "taskTitle": {
     "message": "点击勾选／取消，并存回原文件"
@@ -352,7 +352,7 @@
     "message": "约 $1 字 · $2 分钟"
   },
   "popupTitle": {
-    "message": "MarkLens 设置"
+    "message": "Markloupe 设置"
   },
   "popupEnable": {
     "message": "启用"
@@ -523,13 +523,13 @@
     "message": "此标签页不是 Markdown 页面"
   },
   "grantPageTitle": {
-    "message": "MarkLens：文件写回授权"
+    "message": "Markloupe：文件写回授权"
   },
   "grantH1": {
     "message": "文件写回授权"
   },
   "grantIntro": {
-    "message": "在阅读页直接勾选任务清单时，MarkLens 需要这些文件夹的读写权限，才能把勾选结果存回原文件。授权只保存在扩展程序内部，一般网页（包括本机 HTML 文件）无法取得。"
+    "message": "在阅读页直接勾选任务清单时，Markloupe 需要这些文件夹的读写权限，才能把勾选结果存回原文件。授权只保存在扩展程序内部，一般网页（包括本机 HTML 文件）无法取得。"
   },
   "grantBackNote": {
     "message": "完成授权后，回到刚才的页面再勾选一次。"
@@ -589,7 +589,7 @@
     "message": "已授权：$1"
   },
   "welcomeTitle": {
-    "message": "欢迎使用 MarkLens"
+    "message": "欢迎使用 Markloupe"
   },
   "welcomeLead": {
     "message": "在浏览器里直接阅读 Markdown：目录、折叠、可排序的表格、Mermaid 图表，还能直接勾选任务存回文件。"
@@ -601,7 +601,7 @@
     "message": "要阅读电脑里的 <code>.md</code>，Chrome 需要你手动打开一个开关（扩展程序无法自行打开）。"
   },
   "step1Li1": {
-    "message": "按下方按钮打开 MarkLens 的设置页"
+    "message": "按下方按钮打开 Markloupe 的设置页"
   },
   "step1Li2": {
     "message": "找到 <b>“允许访问文件网址”</b> 并打开"
@@ -628,7 +628,7 @@
     "message": "把任一 <code>.md</code> 文件拖进 Chrome 窗口，或在地址栏输入它的路径（例如 <code>D:\\Projects\\README.md</code>）。要阅读网络上的 <code>.md</code>，请开启下方选项。"
   },
   "step2Tip": {
-    "message": "建议把 MarkLens 固定在工具栏：按右上角拼图图标 → MarkLens 旁的图钉。点图标可以调整主题、字体与默认布局。"
+    "message": "建议把 Markloupe 固定在工具栏：按右上角拼图图标 → Markloupe 旁的图钉。点图标可以调整主题、字体与默认布局。"
   },
   "step3Title": {
     "message": "常用操作"
@@ -739,7 +739,7 @@
     "message": "也在网页上的 .md 文件启用"
   },
   "optWebAccessNote": {
-    "message": "Chrome 会询问是否允许读取和更改所有网站上的数据。MarkLens 仍只在网址以 .md、.markdown、.mkd 或 .mdx 结尾时运行。已打开的标签页需要刷新。"
+    "message": "Chrome 会询问是否允许读取和更改所有网站上的数据。Markloupe 仍只在网址以 .md、.markdown、.mkd 或 .mdx 结尾时运行。已打开的标签页需要刷新。"
   },
   "optSync": {
     "message": "同步设置到我的其他电脑"

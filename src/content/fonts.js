@@ -4,10 +4,10 @@
 // 框線字元表格（┌─┬─┐）因此錯位。做法：量出實際使用的英數字寬，以 @font-face 的 size-adjust
 // 只針對中文字元範圍，把系統中文字型等比例縮放到剛好兩倍寬。框線字元仍用英數字型（半形）。
 // 已安裝更紗黑體（中英本來就 2:1）時不需要校正。
-var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
+var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
 
 ;(() => {
-  const FAMILY = 'MarkLens CJK Mono' // content.css 的 --ml-mono 已預留此名稱
+  const FAMILY = 'Markloupe CJK Mono' // content.css 的 --ml-mono 已預留此名稱
   // 與 content.css --ml-mono 的英數字型順序一致，才能量到實際使用的字型
   const ASCII_FONTS = ['Cascadia Code', 'Consolas', 'SFMono-Regular', 'Menlo', 'DejaVu Sans Mono', 'Liberation Mono']
   const ALIGNED_FONTS = ['Sarasa Mono TC', 'Sarasa Term TC', 'Sarasa Mono SC', 'Sarasa Term SC']
@@ -47,16 +47,16 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     for (const f of applied) document.fonts.delete(f)
     for (const f of faces) document.fonts.add(f)
     applied = faces
-    MarkLens.codeFontCss = css
+    Markloupe.codeFontCss = css
   }
 
   /**
    * codePx：程式碼區塊的字級。PingFang 等 Apple 字型的字距隨字級改變，要在這個字級量寬度。
    * 字級改變時再呼叫一次；較晚的呼叫開始後，較早的呼叫不套用結果並回傳 null。
-   * MarkLens.codeFontReady 是最近一次呼叫的 Promise，讀 MarkLens.codeFontCss 前要先等它
+   * Markloupe.codeFontReady 是最近一次呼叫的 Promise，讀 Markloupe.codeFontCss 前要先等它
    */
-  MarkLens.alignCodeFont = function (codePx) {
-    return (MarkLens.codeFontReady = align(codePx))
+  Markloupe.alignCodeFont = function (codePx) {
+    return (Markloupe.codeFontReady = align(codePx))
   }
 
   async function align(codePx) {
@@ -105,7 +105,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       replaceFaces(faces, css.join('\n'))
       return { ascii, cjk: cjk[0], codePx, ratio, loaded: faces.length }
     } catch (err) {
-      console.warn('[MarkLens] 程式碼字型校正失敗', err)
+      console.warn('[Markloupe] 程式碼字型校正失敗', err)
       return null
     }
   }

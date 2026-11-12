@@ -1,11 +1,11 @@
 'use strict'
 // 側邊欄：「目錄｜檔案」兩個分頁、搜尋、目前章節高亮、摺疊標記、拖拉寬度
-var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
+var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
 
 ;(() => {
-  const { h, t, icon } = MarkLens
+  const { h, t, icon } = Markloupe
 
-  MarkLens.Toc = class {
+  Markloupe.Toc = class {
     constructor(app) {
       this.app = app
       this.items = [] // { heading, li, level, text }
@@ -64,7 +64,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
       // 「檔案」分頁只有本機檔案才有（網路上的資料夾無法列出內容）
       if (location.protocol === 'file:') {
-        this.files = new MarkLens.FileTree({
+        this.files = new Markloupe.FileTree({
           root: app.view.filesRoot,
           open: app.view.filesOpen,
           onChange: ({ root, open }) => app.setView({ filesRoot: root, filesOpen: open }),
@@ -178,9 +178,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       e.preventDefault()
       const it = this.items.find(x => x.li.contains(a))
       if (!it) return
-      MarkLens.revealElement(this.app.article, it.heading)
+      Markloupe.revealElement(this.app.article, it.heading)
       // 點被摺疊的標題本身：順便展開它
-      if (it.heading.classList.contains('ml-folded')) MarkLens.toggleFold(it.heading, false)
+      if (it.heading.classList.contains('ml-folded')) Markloupe.toggleFold(it.heading, false)
       it.heading.scrollIntoView({ block: 'start' })
       history.replaceState(null, '', `#${encodeURIComponent(it.heading.id)}`)
       this.setTarget(it.heading)
@@ -267,7 +267,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           this.resizer.removeEventListener('pointercancel', up)
           document.documentElement.classList.remove('ml-dragging')
           // 同時記成新分頁的預設值（不影響已開的分頁）
-          if (MarkLens.alive()) MarkLens.saveSettings({ tocWidth: width }).catch(() => {})
+          if (Markloupe.alive()) Markloupe.saveSettings({ tocWidth: width }).catch(() => {})
         }
         this.resizer.addEventListener('pointermove', move)
         this.resizer.addEventListener('pointerup', up)

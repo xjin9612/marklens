@@ -1,6 +1,6 @@
 'use strict'
 // 匯出 HTML：把目前的渲染結果存成單一 HTML 檔（樣式內嵌、不含任何 JavaScript），可離線開啟或分享
-var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
+var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
 
 ;(() => {
   // 匯出的檔案禁止執行任何腳本；圖片與影音可來自任何位置，字型只允許內嵌
@@ -149,7 +149,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   }
 
   /** 部分內容（例如一個章節）整理成靜態 HTML，供複製到剪貼簿 */
-  MarkLens.staticHtml = function (nodes) {
+  Markloupe.staticHtml = function (nodes) {
     const box = document.createElement('article')
     for (const n of nodes) box.append(n.cloneNode(true))
     return staticArticle(box).innerHTML
@@ -161,17 +161,17 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
    *   否則圖片與連結一律改成絕對網址
    * @returns {Promise<{html: string, missed: number, needsWebAccess: boolean}>} missed 與 needsWebAccess 同 embedImages
    */
-  MarkLens.buildExportHtml = async function (article, { embed = false } = {}) {
+  Markloupe.buildExportHtml = async function (article, { embed = false } = {}) {
     const root = document.documentElement
     const body = staticArticle(article, { portable: embed })
     const images = embed ? await embedImages(body) : { missed: 0, needsWebAccess: false }
     let css = `${(await asset('src/shared/tokens.css')).text}\n${(await asset('src/content/content.css')).text}`
     if (article.querySelector('.katex')) css += `\n${await katexCss()}`
     // 程式碼區塊中英對齊（fonts.js 依本機字型算出的設定）
-    await MarkLens.codeFontReady
-    if (MarkLens.codeFontCss) css += `\n${MarkLens.codeFontCss}`
+    await Markloupe.codeFontReady
+    if (Markloupe.codeFontCss) css += `\n${Markloupe.codeFontCss}`
     // 使用者自訂的 CSS 放在最後，與閱讀頁相同可覆蓋前面的樣式
-    const custom = (await MarkLens.loadSettings()).customCss
+    const custom = (await Markloupe.loadSettings()).customCss
     if (custom) css += `\n${custom.replace(/<\/style/gi, '<\\/style')}` // 不能提前結束 <style>
 
     // 沿用目前的主題、字體、行高與文字寬度
@@ -179,7 +179,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       .filter(p => p.startsWith('--ml-'))
       .map(p => `${p}: ${root.style.getPropertyValue(p)}`)
       .join('; ')
-    const classes = ['marklens', 'ml-toc-hidden', 'ml-export']
+    const classes = ['markloupe', 'ml-toc-hidden', 'ml-export']
     for (const c of ['ml-wide-blocks', 'ml-code-wrap']) if (root.classList.contains(c)) classes.push(c)
     const version = chrome.runtime.getManifest().version
 
@@ -189,7 +189,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="${CSP}">
-<meta name="generator" content="MarkLens ${escapeHtml(version)}">
+<meta name="generator" content="Markloupe ${escapeHtml(version)}">
 <title>${escapeHtml(document.title)}</title>
 <style>
 ${css}
@@ -207,8 +207,8 @@ ${css}
    * 匯出並下載；檔名沿用 .md 的檔名
    * @returns {Promise<{name: string, missed: number, needsWebAccess: boolean}>}
    */
-  MarkLens.exportHtml = async function (article, opts) {
-    const { html, missed, needsWebAccess } = await MarkLens.buildExportHtml(article, opts)
+  Markloupe.exportHtml = async function (article, opts) {
+    const { html, missed, needsWebAccess } = await Markloupe.buildExportHtml(article, opts)
     let base = location.pathname.split('/').pop() || 'document'
     try {
       base = decodeURIComponent(base)
@@ -218,7 +218,7 @@ ${css}
     base = base.replace(MD_EXT, '')
     const name = `${base}.html`
     const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }))
-    const a = MarkLens.h('a', { href: url, download: name })
+    const a = Markloupe.h('a', { href: url, download: name })
     document.body.append(a)
     a.click()
     a.remove()

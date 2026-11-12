@@ -1,4 +1,4 @@
-# MarkLens 開發文件
+# Markloupe 開發文件
 
 給參與開發的人。使用說明見 [README](../README.md)。
 
@@ -74,7 +74,7 @@ src/
     files.js             檔案分頁：資料夾清單、子資料夾依需讀取
     source.js            渲染結果對應回原文：區塊與章節的行號範圍、位置文字（複製位置、複製原文）
     main.js              進入點：版面組裝、工具列、快捷鍵、分頁狀態、自動更新、勾選寫回、列印
-    content.css          所有樣式（限定在 html.marklens 底下）
+    content.css          所有樣式（限定在 html.markloupe 底下）
   popup/                 設定面板
 vendor/                  第三方程式庫（版本見 VERSIONS.md，授權見 licenses/）
 scripts/
@@ -104,7 +104,7 @@ PRIVACY.md、PRIVACY.zh-TW.md  隱私權政策（商店送審使用）
 
 ## 安全設計
 
-MarkLens 不收集任何資料。唯一主動的網路請求，是重新載入使用者開啟的文件（[隱私權政策](../PRIVACY.zh-TW.md)）。
+Markloupe 不收集任何資料。唯一主動的網路請求，是重新載入使用者開啟的文件（[隱私權政策](../PRIVACY.zh-TW.md)）。
 
 ```mermaid
 flowchart LR
@@ -138,6 +138,7 @@ flowchart LR
 - **寫入**：只在點擊任務勾選框時發生。授權資料夾只以名稱對應到網址路徑，background 先比對授權資料夾中的檔案與頁面所在的檔案內容相同，再確認原文雜湊一致，才修改那一行。行號只接受非負整數，勾選狀態只接受空白與 `x`。可寫回的勾選框由 Markdown 解析器標記，並帶有每次渲染隨機產生的 nonce，文件內的 HTML 無法偽造。
 - **授權資料夾**：存在擴充功能自己的 IndexedDB，一般網頁與本機 HTML 檔都取不到。
 - **設定同步**：只同步 `settings.js` 的 `SYNC_KEYS` 與自訂 CSS，由瀏覽器帳號處理。授權資料夾、閱讀位置、編輯器網址不同步。
+- **舊名稱的資料**：更新時，background 把舊名稱 MarkLens 的儲存鍵（`marklens:`）與資料庫（`marklens`）搬到新名稱。頁面的 `localStorage` 與 `sessionStorage` 只存主題快取、分頁狀態與 popup 區塊的展開狀態，不搬移。
 - **自訂 CSS**：寫進匯出檔時跳脫 `</style`，不能跳出樣式區塊。
 - **列印**：以 `@page` 頁邊方塊取代 Chrome 的頁首頁尾，PDF 不含本機檔案路徑。
 - **沒有遠端程式碼**：第三方程式庫固定版本放在 `vendor/`，執行時不下載、不更新。
@@ -176,7 +177,7 @@ flowchart LR
 - `vendor/` 的程式庫不在 `dependabot.yml`，不會收到每月的版本更新 PR；只有出現漏洞時才有警示與安全性更新 PR。
 - 驗證 Release 的 zip：
   ```bash
-  gh attestation verify marklens-vX.Y.Z-store.zip --repo xjin9612/marklens
+  gh attestation verify markloupe-vX.Y.Z-store.zip --repo xjin9612/markloupe
   ```
 
 ## 測試
@@ -190,7 +191,7 @@ npm test
 以 Chromium 載入擴充功能，開啟本機與 http 的測試文件。push 到 `main` 與 pull request 時由 CI 在 Linux、macOS、Windows 上執行。截圖輸出到 `SHOT_DIR`，預設為系統暫存目錄。涵蓋：
 
 - 渲染：GFM、任務清單（緊湊／鬆散清單）、腳註、Alert、front matter、程式碼高亮、Emoji 短碼、比照 GitHub 的自動連結
-- 載入：換檔時保留舊畫面到新頁排好版、載入中背景沿用上次的主題、停用 MarkLens 時原文照常顯示、非 Markdown 網址不接管
+- 載入：換檔時保留舊畫面到新頁排好版、載入中背景沿用上次的主題、停用 Markloupe 時原文照常顯示、非 Markdown 網址不接管
 - 安全：script、事件屬性、`javascript:` 連結、style 屬性過濾；`test/fixtures/security.md` 攻擊樣本（危險標籤與網址、編碼繞過、DOM clobbering、偽造介面、檔名、Mermaid）
 - 版面：文字欄寬度、寬表格超出文字欄、小表格在各種寬度下不出現捲軸、窄螢幕抽屜側邊欄、寬視窗下數學公式與 Mermaid 錯誤訊息對齊文字欄、回到頂部按鈕出現時其他按鈕不位移
 - 表格：排序（數字／容量／日期）、拖拉欄寬、篩選、全螢幕與 Esc、自動更新後狀態保留
@@ -199,6 +200,7 @@ npm test
 - 分頁：側邊欄與寬度只影響目前分頁、外觀設定即時同步、新分頁套用預設值、`Alt+Shift` 快捷鍵、記住閱讀位置
 - 外觀：配色（含 Mermaid 依配色重繪）、自訂 CSS（含匯出檔不能被提前結束 `<style>`）
 - 設定同步：寫入與套用 `storage.sync`、關閉後停止、裝置專屬設定不同步
+- 舊名稱搬移：`marklens:` 開頭的儲存鍵與 `marklens` 資料庫搬到新名稱，新鍵已有值時保留
 - 連結：外部連結開新分頁（含關閉設定）、編輯器按鈕與網址範本的限制
 - 無障礙：每個按鈕都有可念的名稱、鍵盤焦點外框、點擊範圍至少 24×24、用鍵盤排序表格與放大圖片
 - 勾選寫回：寫入正確的行（含 front matter、單獨的 `\r` 換行）、引用區塊與有序清單、復原、衝突偵測、保留 CRLF 與 BOM、未授權、只授權了別處的同名檔案、關閉功能、非 UTF-8 檔案（含手動測試的真實 Big5 文件）。資料夾授權以瀏覽器私有檔案系統（OPFS）模擬，資料夾選擇視窗需手動測試
@@ -257,7 +259,7 @@ npm run audit:layout
 `test/manual/` 是發版前在 Chrome 上逐項確認的清單。涵蓋無法自動化的項目：資料夾選擇視窗、重新啟動後的權限確認、開啟 VS Code、列印對話框、字型與圖表的實際顯示。
 
 1. 第一次先執行 `npm run manual:bigfile`，產生約 1MB 的效能測試檔，不進版控。
-2. 在 `chrome://extensions` 重新載入 MarkLens，開啟 `test/manual/00-說明.md` 依序檢查。用側邊欄的「檔案」分頁切換檔案。
+2. 在 `chrome://extensions` 重新載入 Markloupe，開啟 `test/manual/00-說明.md` 依序檢查。用側邊欄的「檔案」分頁切換檔案。
 3. 勾選會寫回這些檔案，測完執行 `git restore test/manual`。
 
 ## 截圖與示範動畫
@@ -281,12 +283,12 @@ npm run screenshots
 CDP_URL=http://127.0.0.1:9222 npm run gifs
 ```
 
-產生 README 的 `docs/screenshots/*.gif`，介面一律英文。腳本連到一個開著遠端除錯埠的 Chrome，以 CDP 錄製畫面，再用 `ffmpeg` 轉成 GIF。這個 Chrome 要先載入 MarkLens，並開啟「允許存取檔案網址」。
+產生 README 的 `docs/screenshots/*.gif`，介面一律英文。腳本連到一個開著遠端除錯埠的 Chrome，以 CDP 錄製畫面，再用 `ffmpeg` 轉成 GIF。這個 Chrome 要先載入 Markloupe，並開啟「允許存取檔案網址」。
 
-腳本會改動該 Chrome 的 MarkLens 設定，結束時還原；也會加入一個授權資料夾。請用專用的 profile，例如：
+腳本會改動該 Chrome 的 Markloupe 設定，結束時還原；也會加入一個授權資料夾。請用專用的 profile，例如：
 
 ```powershell
-chrome.exe --remote-debugging-port=9222 --user-data-dir="$env:TEMP\marklens-cdp"
+chrome.exe --remote-debugging-port=9222 --user-data-dir="$env:TEMP\markloupe-cdp"
 ```
 
 只錄一段時把名稱放在最後，例如 `npm run gifs -- tables`。
@@ -305,7 +307,7 @@ chrome.exe --remote-debugging-port=9222 --user-data-dir="$env:TEMP\marklens-cdp"
 3. 跑測試，打包擴充功能的檔案。
 4. 為兩個 zip 產生建置來源證明。
 5. 以該版 CHANGELOG 段落為說明，發布 GitHub Release，附兩個 zip：
-   - `marklens-vX.Y.Z.zip`：內含 `marklens-vX.Y.Z/` 資料夾，供「載入未封裝項目」使用
-   - `marklens-vX.Y.Z-store.zip`：`manifest.json` 位於根目錄，上傳 Chrome Web Store 與 Edge Add-ons 用
+   - `markloupe-vX.Y.Z.zip`：內含 `markloupe-vX.Y.Z/` 資料夾，供「載入未封裝項目」使用
+   - `markloupe-vX.Y.Z-store.zip`：`manifest.json` 位於根目錄，上傳 Chrome Web Store 與 Edge Add-ons 用
 
 商店後台要填的文字與圖片見 [docs/store/listing.md](store/listing.md)。

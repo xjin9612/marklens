@@ -1,13 +1,13 @@
 'use strict'
 // 進入點：偵測 Markdown 頁面、組裝版面、套用設定、自動更新
-var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
+var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
 
 ;(() => {
-  const { h, t } = MarkLens
+  const { h, t } = Markloupe
   const CONTENT_TYPES = ['text/plain', 'text/markdown', 'text/x-markdown']
-  const POS_KEY = 'marklens:scroll'
+  const POS_KEY = 'markloupe:scroll'
   const POS_LIMIT = 300
-  const VIEW_KEY = 'marklens:view' // 分頁狀態，存在 sessionStorage
+  const VIEW_KEY = 'markloupe:view' // 分頁狀態，存在 sessionStorage
   const NARROW = 900
   const THEME_LABELS = { auto: ['auto', 'themeAuto'], light: ['sun', 'themeLight'], dark: ['moon', 'themeDark'] }
 
@@ -17,9 +17,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
    */
   function setTool(btn, icon, label) {
     btn.replaceChildren(
-      MarkLens.icon(icon),
+      Markloupe.icon(icon),
       label ? h('span', { class: 'ml-tool-label', text: label }) : '',
-      btn.hasAttribute('aria-haspopup') ? h('span', { class: 'ml-tool-caret' }, [MarkLens.icon('chevron-down')]) : '',
+      btn.hasAttribute('aria-haspopup') ? h('span', { class: 'ml-tool-caret' }, [Markloupe.icon('chevron-down')]) : '',
     )
   }
 
@@ -42,7 +42,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   /*
    * ---------- 分頁狀態：只影響目前分頁，重新整理後保留，關閉分頁即清除 ----------
    * 只有本機檔案存進 sessionStorage。網頁上的 sessionStorage 屬於該網站，同分頁之後開啟的同站頁面讀得到，
-   * 網站可藉此得知裝了 MarkLens；所以網頁上的分頁狀態只留在記憶體，重新整理後回到預設值。
+   * 網站可藉此得知裝了 Markloupe；所以網頁上的分頁狀態只留在記憶體，重新整理後回到預設值。
    */
   const PERSIST_VIEW = location.protocol === 'file:'
   function readView() {
@@ -75,7 +75,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.emptySince = 0 // 自動更新開始讀到空檔案的時間；0 表示沒有
       this.liveWrites = new Map() // 本分頁還沒寫完的全域外觀設定：鍵 → 寫入數
       this.liveEpoch = 0 // 套用設定通知的次數；讀取期間有變動，讀到的值就可能比通知舊
-      this.md = MarkLens.createMarkdown()
+      this.md = Markloupe.createMarkdown()
       this.tables = []
       this.refreshTimer = null
       this.darkQuery = matchMedia('(prefers-color-scheme: dark)')
@@ -95,10 +95,10 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       const root = document.documentElement
       // 擴充功能更新後才會用到的提示，先取一次存進快取（屆時 chrome.i18n 已無法使用）
       for (const k of ['orphanBefore', 'orphanReload', 'orphanAfter']) t(k)
-      root.classList.add('marklens')
+      root.classList.add('markloupe')
 
       this.article = h('article', { class: 'ml-body markdown-body' })
-      this.toc = new MarkLens.Toc(this)
+      this.toc = new Markloupe.Toc(this)
       this.progress = h('div', { class: 'ml-progress' })
       this.toolbar = this.buildToolbar()
       // 原始文字的 <pre> 移進主區塊，切換時工具列仍在，隨時可以回來；畫面上顯示的是帶行號的 rawView
@@ -109,10 +109,10 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.appRoot = h('div', { id: 'ml-root' }, [this.progress, this.toc.el, this.backdrop, this.main])
       document.body.append(this.appRoot)
 
-      MarkLens.bindFoldSearch(this.article)
+      Markloupe.bindFoldSearch(this.article)
       this.bindTaskClicks()
       this.bindSelection()
-      this.article.addEventListener('marklens:fold', () => {
+      this.article.addEventListener('markloupe:fold', () => {
         this.toc.syncFold()
         this.onScroll()
       })
@@ -123,14 +123,14 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.startRefresh()
 
       // 工具列寬度與按鈕文字（語系、寬度與字級的數值）都會變：放不下時只顯示圖示
-      const fit = MarkLens.rafThrottle(() => this.fitToolbar())
+      const fit = Markloupe.rafThrottle(() => this.fitToolbar())
       new ResizeObserver(fit).observe(this.toolbar)
       new MutationObserver(fit).observe(this.toolbar, { childList: true, subtree: true, characterData: true })
       this.fitToolbar()
 
-      this.saveScroll = MarkLens.debounce(() => this.persistScroll(), 400)
-      addEventListener('scroll', MarkLens.rafThrottle(() => this.onScroll()), { passive: true })
-      addEventListener('resize', MarkLens.rafThrottle(() => this.onScroll()))
+      this.saveScroll = Markloupe.debounce(() => this.persistScroll(), 400)
+      addEventListener('scroll', Markloupe.rafThrottle(() => this.onScroll()), { passive: true })
+      addEventListener('resize', Markloupe.rafThrottle(() => this.onScroll()))
       addEventListener('hashchange', () => this.scrollToHash())
       addEventListener('keydown', e => this.onKey(e))
       this.darkQuery.addEventListener('change', () => this.applyLive())
@@ -140,11 +140,11 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
       // 只有外觀設定即時同步；其餘設定是新分頁的預設值
       chrome.storage.onChanged.addListener((changes, area) => {
-        const c = area === 'local' && changes[MarkLens.SETTINGS_KEY]
+        const c = area === 'local' && changes[Markloupe.SETTINGS_KEY]
         if (!c) return
-        const next = { ...MarkLens.DEFAULTS, ...c.newValue }
+        const next = { ...Markloupe.DEFAULTS, ...c.newValue }
         if (!next.enabled) return location.reload()
-        for (const k of MarkLens.LIVE_KEYS) {
+        for (const k of Markloupe.LIVE_KEYS) {
           // 本分頁還有這個鍵沒寫完時，通知帶的是較舊的值
           if (this.liveWrites.get(k)) continue
           this.settings[k] = next[k]
@@ -187,15 +187,15 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.rawBtn = btn('ml-tool-raw', 'code', t('toolRaw'), t('toolRawTitle'), () => this.toggleRaw())
       // 用編輯器開啟：設定中選了編輯器且為本機檔案才顯示
       this.editBtn = btn('ml-tool-edit', 'edit', t('toolEdit'), t('toolEditTitle'), () => this.openInEditor())
-      this.editBtn.hidden = !(location.protocol === 'file:' && MarkLens.editorTemplate(this.settings))
+      this.editBtn.hidden = !(location.protocol === 'file:' && Markloupe.editorTemplate(this.settings))
       this.topBtn = btn('ml-tool-top', 'arrow-up', t('toolTop'), t('toolTopTitle'), () => scrollTo({ top: 0 }))
       this.topBtn.classList.toggle('ml-tool-away', scrollY < 600) // 開檔時就在頂端：一開始就隱藏，不必等第一次捲動
       return h('div', { class: 'ml-toolbar', attrs: { role: 'toolbar' } }, [
         this.tocBtn,
         h('span', { class: 'ml-spacer' }),
         h('span', { class: 'ml-reading-only' }, [
-          (this.foldBtn = btn('ml-tool-fold', 'fold-all', t('toolFoldAll'), t('toolFoldAllTitle'), () => MarkLens.foldAll(this.article))),
-          (this.unfoldBtn = btn('ml-tool-unfold', 'unfold-all', t('toolUnfoldAll'), t('toolUnfoldAllTitle'), () => MarkLens.unfoldAll(this.article))),
+          (this.foldBtn = btn('ml-tool-fold', 'fold-all', t('toolFoldAll'), t('toolFoldAllTitle'), () => Markloupe.foldAll(this.article))),
+          (this.unfoldBtn = btn('ml-tool-unfold', 'unfold-all', t('toolUnfoldAll'), t('toolUnfoldAllTitle'), () => Markloupe.unfoldAll(this.article))),
           this.widthBtn,
           this.fontBtn,
           this.copyMdBtn,
@@ -222,46 +222,46 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
     /** 按鈕再按一次＝關閉選單 */
     toggleMenu(anchor, open) {
-      if (MarkLens.menuOpenFor(anchor)) MarkLens.closeMenu()
+      if (Markloupe.menuOpenFor(anchor)) Markloupe.closeMenu()
       else open()
     }
 
     widthMenu() {
       const cur = this.view.textWidth
-      const items = MarkLens.WIDTH_PRESETS.map(w => ({
+      const items = Markloupe.WIDTH_PRESETS.map(w => ({
         label: w ? `${w} px` : t('widthFull'),
         checked: w === cur,
         fn: () => this.setWidth(w),
       }))
       // popup 設定的自訂寬度不在預設選項裡：列在最後並打勾
-      if (!MarkLens.WIDTH_PRESETS.includes(cur)) items.push({ label: t('widthCustomItem', cur), checked: true, fn: () => {} })
-      MarkLens.openMenu({ anchor: this.widthBtn, items, radio: true, label: t('widthMenu') })
+      if (!Markloupe.WIDTH_PRESETS.includes(cur)) items.push({ label: t('widthCustomItem', cur), checked: true, fn: () => {} })
+      Markloupe.openMenu({ anchor: this.widthBtn, items, radio: true, label: t('widthMenu') })
     }
 
     themeMenu() {
-      const items = MarkLens.THEME_ORDER.map(theme => {
+      const items = Markloupe.THEME_ORDER.map(theme => {
         const [icon, name] = THEME_LABELS[theme]
         return { label: t(name), icon, checked: theme === this.settings.theme, fn: () => this.setTheme(theme) }
       })
-      MarkLens.openMenu({ anchor: this.themeBtn, items, radio: true, label: t('themeMenu') })
+      Markloupe.openMenu({ anchor: this.themeBtn, items, radio: true, label: t('themeMenu') })
     }
 
     /** 字體大小：放大、縮小、重設，以及預設尺寸（目前的值打勾） */
     fontMenu() {
       const cur = this.settings.fontSize
-      const def = MarkLens.DEFAULTS.fontSize
+      const def = Markloupe.DEFAULTS.fontSize
       const items = [
         { label: t('fontLarger'), icon: 'plus', fn: () => this.stepFont(1) },
         { label: t('fontSmaller'), icon: 'minus', fn: () => this.stepFont(-1) },
         { label: t('fontReset', `${def} px`), fn: () => this.setFontSize(def) },
-        ...MarkLens.FONT_PRESETS.map(px => ({
-          label: t('fontSizeItem', px, MarkLens.fontPercent(px)),
+        ...Markloupe.FONT_PRESETS.map(px => ({
+          label: t('fontSizeItem', px, Markloupe.fontPercent(px)),
           checked: px === cur,
           fn: () => this.setFontSize(px),
         })),
       ]
-      if (!MarkLens.FONT_PRESETS.includes(cur)) items.push({ label: t('fontCustomItem', cur), checked: true, fn: () => {} })
-      MarkLens.openMenu({ anchor: this.fontBtn, items, radio: true, label: t('fontMenu') })
+      if (!Markloupe.FONT_PRESETS.includes(cur)) items.push({ label: t('fontCustomItem', cur), checked: true, fn: () => {} })
+      Markloupe.openMenu({ anchor: this.fontBtn, items, radio: true, label: t('fontMenu') })
     }
 
     /**
@@ -274,29 +274,29 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           return this.toggleToc()
         case 'cycle-width':
           this.cycleWidth()
-          if (announce) MarkLens.toast(t('toolWidth', MarkLens.widthLabel(this.view.textWidth)), [], 1500)
+          if (announce) Markloupe.toast(t('toolWidth', Markloupe.widthLabel(this.view.textWidth)), [], 1500)
           return
         case 'cycle-theme': {
-          const next = MarkLens.nextOf(MarkLens.THEME_ORDER, this.settings.theme)
+          const next = Markloupe.nextOf(Markloupe.THEME_ORDER, this.settings.theme)
           this.setTheme(next)
-          if (announce) MarkLens.toast(t('toolTheme', t(THEME_LABELS[next][1])), [], 1500)
+          if (announce) Markloupe.toast(t('toolTheme', t(THEME_LABELS[next][1])), [], 1500)
           return
         }
         case 'font-larger':
         case 'font-smaller':
         case 'font-reset': {
           const px =
-            name === 'font-reset' ? MarkLens.DEFAULTS.fontSize : MarkLens.stepFontSize(this.settings.fontSize, name === 'font-larger' ? 1 : -1)
+            name === 'font-reset' ? Markloupe.DEFAULTS.fontSize : Markloupe.stepFontSize(this.settings.fontSize, name === 'font-larger' ? 1 : -1)
           this.setFontSize(px)
-          if (announce) MarkLens.toast(t('toolFontSize', MarkLens.fontPercent(px)), [], 1500)
+          if (announce) Markloupe.toast(t('toolFontSize', Markloupe.fontPercent(px)), [], 1500)
           return
         }
         case 'toggle-raw':
           return this.toggleRaw()
         case 'fold-all':
-          return MarkLens.foldAll(this.article)
+          return Markloupe.foldAll(this.article)
         case 'unfold-all':
-          return MarkLens.unfoldAll(this.article)
+          return Markloupe.unfoldAll(this.article)
       }
     }
 
@@ -331,12 +331,12 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
     /* ---------- 渲染 ---------- */
     render(src) {
-      const { frontMatter, body } = MarkLens.splitFrontMatter(src)
+      const { frontMatter, body } = Markloupe.splitFrontMatter(src)
       // 去掉 front matter 後的行號要加回偏移，才能對應原文
       const lineOffset = (src.slice(0, src.length - body.length).match(/\n/g) || []).length
-      const frag = MarkLens.sanitize(this.md.render(body, { lineOffset }), this.md.marklensNonce)
+      const frag = Markloupe.sanitize(this.md.render(body, { lineOffset }), this.md.markloupeNonce)
       this.article.textContent = ''
-      const lang = MarkLens.frontMatterLang(frontMatter)
+      const lang = Markloupe.frontMatterLang(frontMatter)
       if (lang) this.article.lang = lang
       else this.article.removeAttribute('lang')
       if (frontMatter != null) {
@@ -348,11 +348,11 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         )
       }
       this.article.append(frag)
-      MarkLens.groupInline(this.article)
-      MarkLens.setFoldMode(this.article)
+      Markloupe.groupInline(this.article)
+      Markloupe.setFoldMode(this.article)
 
-      MarkLens.applyLineRanges(this.article, this.md.marklensNonce)
-      const headings = MarkLens.processHeadings(this.article)
+      Markloupe.applyLineRanges(this.article, this.md.markloupeNonce)
+      const headings = Markloupe.processHeadings(this.article)
       for (const el of headings) {
         if (el.dataset.mlLine == null) continue // 原文中以 HTML 寫的標題沒有行號，無法切出章節
         const copyBtn = h('button', {
@@ -360,21 +360,21 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           title: t('headingCopy'),
           attrs: { 'aria-label': t('headingCopy'), 'aria-haspopup': 'menu', 'aria-expanded': 'false' },
           on: { click: e => (e.preventDefault(), this.toggleMenu(copyBtn, () => this.copyMenu(copyBtn, el))) },
-        }, [MarkLens.icon('copy')])
+        }, [Markloupe.icon('copy')])
         el.querySelector('.ml-anchor').after(copyBtn)
       }
-      MarkLens.processTaskLists(this.article, this.md.marklensNonce)
+      Markloupe.processTaskLists(this.article, this.md.markloupeNonce)
       this.enableTaskBoxes()
-      MarkLens.processAlerts(this.article)
-      MarkLens.processCodeBlocks(this.article)
-      MarkLens.renderMermaid(this.article, this.settings.mermaid)
-      MarkLens.renderMath(this.article, this.settings.math)
-      MarkLens.processImages(this.article)
-      MarkLens.processLinks(this.article, this.settings.linkNewTab)
-      this.tables = Array.from(this.article.querySelectorAll('table'), t => MarkLens.enhanceTable(t, this.settings))
+      Markloupe.processAlerts(this.article)
+      Markloupe.processCodeBlocks(this.article)
+      Markloupe.renderMermaid(this.article, this.settings.mermaid)
+      Markloupe.renderMath(this.article, this.settings.math)
+      Markloupe.processImages(this.article)
+      Markloupe.processLinks(this.article, this.settings.linkNewTab)
+      this.tables = Array.from(this.article.querySelectorAll('table'), t => Markloupe.enhanceTable(t, this.settings))
 
       this.toc.build(headings, this.settings.tocDepth)
-      this.toc.setStats(MarkLens.readingStats(this.article))
+      this.toc.setStats(Markloupe.readingStats(this.article))
       const h1 = this.article.querySelector('h1')
       document.title = h1 ? h1.dataset.mlText : fileName()
     }
@@ -395,7 +395,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.tables.forEach((t, i) => t.setState(tableStates[i]))
       for (const id of folded) {
         const el = document.getElementById(id)
-        if (el && el.parentElement === this.article) MarkLens.toggleFold(el, true)
+        if (el && el.parentElement === this.article) Markloupe.toggleFold(el, true)
       }
       scrollTo(0, y)
     }
@@ -410,18 +410,18 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       const rs = document.documentElement.style
       rs.setProperty('--ml-font-size', `${s.fontSize}px`)
       // 縮放倍率（以預設字體大小為 100%）：給無法用 em 表示大小的內容（Mermaid 圖表）等比縮放
-      rs.setProperty('--ml-scale', String(s.fontSize / MarkLens.DEFAULTS.fontSize))
+      rs.setProperty('--ml-scale', String(s.fontSize / Markloupe.DEFAULTS.fontSize))
       rs.setProperty('--ml-line-height', String(s.lineHeight))
       const dark = s.theme === 'dark' || (s.theme === 'auto' && this.darkQuery.matches)
       // 列印時一律淺色：紙張不印背景，深色主題的淺色文字印出來看不清楚
       document.documentElement.dataset.mlTheme = dark && !this.printing ? 'dark' : 'light'
-      if (s.palette && s.palette !== 'github' && MarkLens.PALETTES.includes(s.palette)) document.documentElement.dataset.mlPalette = s.palette
+      if (s.palette && s.palette !== 'github' && Markloupe.PALETTES.includes(s.palette)) document.documentElement.dataset.mlPalette = s.palette
       else delete document.documentElement.dataset.mlPalette
       this.applyCustomCss(s.customCss)
       // 給下一次開檔的等待畫面用（early.js）；只寫本機檔案的儲存空間，網站讀不到
       if (location.protocol === 'file:') {
         try {
-          localStorage.setItem('marklens:theme', dark ? 'dark' : 'light')
+          localStorage.setItem('markloupe:theme', dark ? 'dark' : 'light')
         } catch {
           // 無法寫入時下次等待畫面跟隨系統
         }
@@ -430,15 +430,15 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         const [icon, name] = THEME_LABELS[s.theme] || THEME_LABELS.auto
         setTool(this.themeBtn, icon, t('toolTheme', t(name)))
       }
-      if (this.fontBtn) setTool(this.fontBtn, 'text-size', t('toolFontSize', MarkLens.fontPercent(s.fontSize)))
+      if (this.fontBtn) setTool(this.fontBtn, 'text-size', t('toolFontSize', Markloupe.fontPercent(s.fontSize)))
       if (s.fontSize !== this.alignedFontSize) {
         this.alignedFontSize = s.fontSize
         // 程式碼區塊中英對齊（非同步，字型換好後瀏覽器會自動重排）；程式碼字級是 content.css 的內文 .85 倍
-        MarkLens.alignCodeFont(s.fontSize * 0.85).then(info => {
+        Markloupe.alignCodeFont(s.fontSize * 0.85).then(info => {
           if (info) document.documentElement.dataset.mlCodeFont = JSON.stringify(info)
         })
       }
-      return this.article ? MarkLens.rethemeMermaid(this.article) : Promise.resolve()
+      return this.article ? Markloupe.rethemeMermaid(this.article) : Promise.resolve()
     }
 
     /** 分頁狀態與只在載入時套用的設定 */
@@ -452,7 +452,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       root.classList.toggle('ml-toc-hidden', v.tocHidden)
       root.classList.toggle('ml-code-wrap', this.settings.codeWrap)
       root.classList.toggle('ml-wide-blocks', this.settings.tableWidth !== 'text')
-      setTool(this.widthBtn, 'width', t('toolWidth', MarkLens.widthLabel(v.textWidth)))
+      setTool(this.widthBtn, 'width', t('toolWidth', Markloupe.widthLabel(v.textWidth)))
       this.tocBtn.classList.toggle('active', !v.tocHidden)
     }
 
@@ -468,7 +468,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.applyLive()
       const keys = Object.keys(patch)
       for (const k of keys) this.liveWrites.set(k, (this.liveWrites.get(k) || 0) + 1)
-      MarkLens.saveSettings(patch)
+      Markloupe.saveSettings(patch)
         .catch(() => {})
         .finally(() => {
           for (const k of keys) this.liveWrites.set(k, this.liveWrites.get(k) - 1)
@@ -478,9 +478,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
     /** 寫入期間略過的通知可能來自其他頁面：這些鍵都寫完後，改以儲存的值為準 */
     async syncLive(keys) {
-      if (keys.some(k => this.liveWrites.get(k)) || !MarkLens.alive()) return
+      if (keys.some(k => this.liveWrites.get(k)) || !Markloupe.alive()) return
       const epoch = this.liveEpoch
-      const stored = await MarkLens.loadSettings().catch(() => null)
+      const stored = await Markloupe.loadSettings().catch(() => null)
       if (epoch !== this.liveEpoch) return
       const changed = stored && keys.filter(k => !this.liveWrites.get(k) && stored[k] !== this.settings[k])
       if (!changed?.length) return
@@ -489,13 +489,13 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
 
     setTheme(theme) {
-      if (!MarkLens.alive()) return this.onOrphaned()
+      if (!Markloupe.alive()) return this.onOrphaned()
       this.saveLive({ theme })
     }
 
     setFontSize(px) {
-      if (!MarkLens.alive()) return this.onOrphaned()
-      const fontSize = Math.min(MarkLens.FONT_MAX, Math.max(MarkLens.FONT_MIN, Math.round(px)))
+      if (!Markloupe.alive()) return this.onOrphaned()
+      const fontSize = Math.min(Markloupe.FONT_MAX, Math.max(Markloupe.FONT_MIN, Math.round(px)))
       if (fontSize === this.settings.fontSize) return
       // 以目前閱讀位置為錨點：縮放後頁面高度改變，捲回同一個比例的位置
       const ratio = scrollY / Math.max(1, document.documentElement.scrollHeight)
@@ -505,13 +505,13 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
 
     stepFont(dir) {
-      this.setFontSize(MarkLens.stepFontSize(this.settings.fontSize, dir))
+      this.setFontSize(Markloupe.stepFontSize(this.settings.fontSize, dir))
     }
 
-    /** 原文切行（MarkLens.splitLines），與 markdown-it 的行號一致 */
+    /** 原文切行（Markloupe.splitLines），與 markdown-it 的行號一致 */
     lines() {
       if (this.linesFor !== this.raw) {
-        this.linesCache = MarkLens.splitLines(this.raw)
+        this.linesCache = Markloupe.splitLines(this.raw)
         this.linesFor = this.raw
       }
       return this.linesCache
@@ -522,7 +522,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
      * @param {HTMLElement} [heading] 只複製這一節；省略時為整份文件
      */
     copyMenu(anchor, heading) {
-      MarkLens.openMenu({
+      Markloupe.openMenu({
         anchor,
         label: t('copyMenu'),
         items: [
@@ -547,19 +547,19 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       let text = this.raw
       let nodes = Array.from(this.article.childNodes)
       if (heading) {
-        const range = MarkLens.sectionRange(this.article, heading, this.lines())
+        const range = Markloupe.sectionRange(this.article, heading, this.lines())
         text = this.lines().slice(range[0], range[1]).join('').trimEnd() + '\n'
         nodes = this.sectionNodes(heading)
       }
-      const ok = await MarkLens.copyRich(text, MarkLens.staticHtml(nodes))
-      MarkLens.toast(t(ok ? 'mdCopied' : 'mdCopyFailed'))
+      const ok = await Markloupe.copyRich(text, Markloupe.staticHtml(nodes))
+      Markloupe.toast(t(ok ? 'mdCopied' : 'mdCopyFailed'))
     }
 
     async copyLocation(heading) {
       const text = heading
-        ? MarkLens.formatLocation(MarkLens.sectionRange(this.article, heading, this.lines()), heading.dataset.mlText)
-        : MarkLens.formatLocation()
-      MarkLens.toast((await MarkLens.copyText(text)) ? t('locationCopied', text) : t('mdCopyFailed'))
+        ? Markloupe.formatLocation(Markloupe.sectionRange(this.article, heading, this.lines()), heading.dataset.mlText)
+        : Markloupe.formatLocation()
+      Markloupe.toast((await Markloupe.copyText(text)) ? t('locationCopied', text) : t('mdCopyFailed'))
     }
 
     /* ---------- 選取文字：複製對應的原文或位置 ---------- */
@@ -596,20 +596,20 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.selectBar.hidden = true
       const range = this.selRange
       if (!range) return
-      const r = document.documentElement.classList.contains('ml-raw') ? this.rawSelectionRange(range) : MarkLens.selectionRange(this.article, range, this.lines())
-      if (!r) return MarkLens.toast(t('locationUnknown'))
-      const text = kind === 'location' ? MarkLens.formatLocation(r) : this.lines().slice(r[0], r[1]).join('').trimEnd() + '\n'
-      const ok = await MarkLens.copyText(text)
-      if (!ok) return MarkLens.toast(t('mdCopyFailed'))
-      MarkLens.toast(kind === 'location' ? t('locationCopied', text) : t('mdCopied'))
+      const r = document.documentElement.classList.contains('ml-raw') ? this.rawSelectionRange(range) : Markloupe.selectionRange(this.article, range, this.lines())
+      if (!r) return Markloupe.toast(t('locationUnknown'))
+      const text = kind === 'location' ? Markloupe.formatLocation(r) : this.lines().slice(r[0], r[1]).join('').trimEnd() + '\n'
+      const ok = await Markloupe.copyText(text)
+      if (!ok) return Markloupe.toast(t('mdCopyFailed'))
+      Markloupe.toast(kind === 'location' ? t('locationCopied', text) : t('mdCopied'))
     }
 
     /** 以設定的編輯器開啟目前檔案；正在閱讀某個章節時跳到該標題所在行 */
     openInEditor() {
       const heading = this.toc.items[this.toc.activeIndex]?.heading
       const line = heading?.dataset.mlLine != null ? Number(heading.dataset.mlLine) + 1 : 1
-      const url = MarkLens.editorUrl(this.settings, location.href, line)
-      if (!url) return MarkLens.toast(t('editorInvalid'))
+      const url = Markloupe.editorUrl(this.settings, location.href, line)
+      if (!url) return Markloupe.toast(t('editorInvalid'))
       this.editBtn.dataset.mlHref = url // 供測試確認
       // 自訂協定由瀏覽器詢問是否開啟外部程式，不會離開目前頁面
       const a = h('a', { href: url })
@@ -617,7 +617,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
 
     exportMenu() {
-      MarkLens.openMenu({
+      Markloupe.openMenu({
         anchor: this.exportBtn,
         label: t('exportMenu'),
         items: [
@@ -628,14 +628,14 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
 
     async exportHtml(embed) {
-      if (!MarkLens.alive()) return this.onOrphaned()
+      if (!Markloupe.alive()) return this.onOrphaned()
       this.exportBtn.disabled = true
       try {
-        const { name, missed, needsWebAccess } = await MarkLens.exportHtml(this.article, { embed })
-        if (!missed) MarkLens.toast(t('exportDone', name))
-        else MarkLens.toast(`${t('exportMissed', name, missed)}${needsWebAccess ? t('exportNeedsWebAccess', t('optWebAccess')) : ''}`, [], 10000)
+        const { name, missed, needsWebAccess } = await Markloupe.exportHtml(this.article, { embed })
+        if (!missed) Markloupe.toast(t('exportDone', name))
+        else Markloupe.toast(`${t('exportMissed', name, missed)}${needsWebAccess ? t('exportNeedsWebAccess', t('optWebAccess')) : ''}`, [], 10000)
       } catch (err) {
-        MarkLens.toast(t('exportFailed', err.message))
+        Markloupe.toast(t('exportFailed', err.message))
       } finally {
         this.exportBtn.disabled = false
       }
@@ -670,7 +670,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       this.printBtn.disabled = true
       try {
         await this.setPrinting(true)
-        await MarkLens.loadImages(this.article)
+        await Markloupe.loadImages(this.article)
         window.print() // 對話框關閉後才返回；afterprint 會還原主題
       } finally {
         this.setPrinting(false)
@@ -679,7 +679,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     }
 
     cycleWidth() {
-      this.setWidth(MarkLens.nextOf(MarkLens.WIDTH_PRESETS, this.view.textWidth))
+      this.setWidth(Markloupe.nextOf(Markloupe.WIDTH_PRESETS, this.view.textWidth))
     }
 
     setWidth(textWidth) {
@@ -733,8 +733,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       if (!line || !getSelection().isCollapsed) return
       if (e.clientX - line.getBoundingClientRect().left > parseFloat(getComputedStyle(line).paddingLeft)) return
       const n = +line.dataset.n - 1
-      const text = MarkLens.formatLocation([n, n + 1])
-      MarkLens.toast((await MarkLens.copyText(text)) ? t('locationCopied', text) : t('mdCopyFailed'))
+      const text = Markloupe.formatLocation([n, n + 1])
+      Markloupe.toast((await Markloupe.copyText(text)) ? t('locationCopied', text) : t('mdCopyFailed'))
     }
 
     rawSelectionRange(range) {
@@ -767,7 +767,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       }
       const el = id && document.getElementById(id)
       if (!el) return
-      MarkLens.revealElement(this.article, el)
+      Markloupe.revealElement(this.article, el)
       el.scrollIntoView({ block: 'start' })
       this.toc.setTarget(el)
     }
@@ -778,7 +778,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
     async persistScroll() {
       if (document.documentElement.classList.contains('ml-raw')) return
-      if (!MarkLens.alive()) return this.onOrphaned()
+      if (!Markloupe.alive()) return this.onOrphaned()
       try {
         const data = (await chrome.storage.local.get(POS_KEY))[POS_KEY] || {}
         const key = this.posKey()
@@ -806,7 +806,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     /** 無法寫回的原因（訊息 key）；可以寫回時回傳 null */
     taskReadonlyReason() {
       if (location.protocol !== 'file:') return 'taskReadonlyRemote'
-      if (MarkLens.networkFile) return 'taskReadonlyNetwork'
+      if (Markloupe.networkFile) return 'taskReadonlyNetwork'
       if (!this.settings.taskWrite) return 'taskReadonlyOff'
       if (!this.rawExact) return 'taskNotUtf8' // 不是 UTF-8：寫回可能損壞原檔的文字
       return null
@@ -835,7 +835,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         if (!box || box.disabled) return
         // 先維持原狀，等寫回成功才改變勾選狀態
         e.preventDefault()
-        if (box.dataset.mlReadonly) return MarkLens.toast(t(box.dataset.mlReadonly))
+        if (box.dataset.mlReadonly) return Markloupe.toast(t(box.dataset.mlReadonly))
         this.toggleTask(Number(box.dataset.mlLine))
       })
     }
@@ -843,7 +843,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     async toggleTask(line) {
       const box = this.article.querySelector(`input.ml-task-box[data-ml-line="${line}"]`)
       if (!box || this.taskBusy) return
-      if (!MarkLens.alive()) return this.onOrphaned()
+      if (!Markloupe.alive()) return this.onOrphaned()
       const from = box.dataset.mlState
       const to = from === 'x' ? ' ' : 'x'
       this.taskBusy = true
@@ -855,7 +855,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           line,
           from,
           to,
-          hash: await MarkLens.sha256(this.raw),
+          hash: await Markloupe.sha256(this.raw),
         })
       } catch (err) {
         res = { status: 'error', error: err.message }
@@ -873,28 +873,28 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
           this.syncRawView()
           box.checked = to === 'x'
           box.dataset.mlState = to
-          MarkLens.toast(t(to === 'x' ? 'taskChecked' : 'taskUnchecked'), [{ label: t('undo'), fn: () => this.toggleTask(line) }])
+          Markloupe.toast(t(to === 'x' ? 'taskChecked' : 'taskUnchecked'), [{ label: t('undo'), fn: () => this.toggleTask(line) }])
           break
         }
         case 'no-root':
-          MarkLens.toast(t('taskNoRoot'), [{ label: t('authorizeFolder'), fn: openGrant }], 8000)
+          Markloupe.toast(t('taskNoRoot'), [{ label: t('authorizeFolder'), fn: openGrant }], 8000)
           break
         case 'permission':
-          MarkLens.toast(t('taskPermission', res.root), [{ label: t('goConfirm'), fn: openGrant }], 8000)
+          Markloupe.toast(t('taskPermission', res.root), [{ label: t('goConfirm'), fn: openGrant }], 8000)
           break
         case 'conflict':
           // 讀到空檔案可能是編輯器寫入中途：不重繪，交給自動更新等內容穩定
           if (res.text !== '' || this.raw === '') this.update(res.text)
-          MarkLens.toast(t('taskConflict'))
+          Markloupe.toast(t('taskConflict'))
           break
         case 'not-utf8':
-          MarkLens.toast(t('taskNotUtf8'))
+          Markloupe.toast(t('taskNotUtf8'))
           break
         case 'ambiguous':
-          MarkLens.toast(t('taskAmbiguous'), [{ label: t('authorizeFolder'), fn: openGrant }], 8000)
+          Markloupe.toast(t('taskAmbiguous'), [{ label: t('authorizeFolder'), fn: openGrant }], 8000)
           break
         default:
-          MarkLens.toast(t('taskError', res?.error || t('unknownError')))
+          Markloupe.toast(t('taskError', res?.error || t('unknownError')))
       }
     }
 
@@ -919,13 +919,13 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     startRefresh() {
       clearTimeout(this.refreshTimer)
       const mode = this.settings.autoRefresh
-      if (mode === 'off' || (mode === 'local' && location.protocol !== 'file:') || MarkLens.networkFile) return
+      if (mode === 'off' || (mode === 'local' && location.protocol !== 'file:') || Markloupe.networkFile) return
       const tick = async () => {
-        if (!MarkLens.alive()) return this.onOrphaned()
+        if (!Markloupe.alive()) return this.onOrphaned()
         if (!document.hidden) {
-          let src = await MarkLens.fetchSource({ ifChanged: true })
+          let src = await Markloupe.fetchSource({ ifChanged: true })
           // 背景程式記住空內容後只回傳 UNCHANGED：仍在等空內容持續時，視為又讀到空的
-          if (src === MarkLens.UNCHANGED) src = this.emptySince ? '' : this.raw
+          if (src === Markloupe.UNCHANGED) src = this.emptySince ? '' : this.raw
           else if (typeof src === 'string' && src !== this.raw && location.protocol === 'file:') src = await settledSource(src)
           if (typeof src !== 'string') {
             // 讀取失敗：維持目前畫面
@@ -954,8 +954,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   async function settledSource(src) {
     for (let i = 0; i < 5; i++) {
       await new Promise(r => setTimeout(r, 100))
-      const again = await MarkLens.fetchSource({ ifChanged: true })
-      if (again === MarkLens.UNCHANGED || again === src || again == null) break
+      const again = await Markloupe.fetchSource({ ifChanged: true })
+      if (again === Markloupe.UNCHANGED || again === src || again == null) break
       src = again
     }
     return src
@@ -964,43 +964,43 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   /** 不接管這一頁：取消 content.css 載入期間對原始文字的隱藏，並立刻結束換頁轉場 */
   function reveal() {
     document.documentElement.classList.add('ml-off')
-    MarkLens.revealPage?.()
+    Markloupe.revealPage?.()
   }
 
   async function boot() {
     const pre = sourcePre()
     if (!pre) return reveal()
-    const settings = await MarkLens.loadSettings()
+    const settings = await Markloupe.loadSettings()
     if (!settings.enabled) {
       reveal()
       // 停用時仍監聽設定，重新啟用後重新整理頁面
       chrome.storage.onChanged.addListener(c => {
-        if (c[MarkLens.SETTINGS_KEY]?.newValue?.enabled) location.reload()
+        if (c[Markloupe.SETTINGS_KEY]?.newValue?.enabled) location.reload()
       })
       // 讀取設定到掛上監聽之間若剛好被重新啟用，會漏掉通知：再確認一次
-      if ((await MarkLens.loadSettings()).enabled) location.reload()
+      if ((await Markloupe.loadSettings()).enabled) location.reload()
       return
     }
     let raw = pre.textContent
     let exact = false
-    if (location.protocol === 'file:' && !MarkLens.networkFile) {
+    if (location.protocol === 'file:' && !Markloupe.networkFile) {
       // 以 UTF-8 重新讀取，修正瀏覽器猜錯編碼的情況
-      const text = await MarkLens.fetchSource()
+      const text = await Markloupe.fetchSource()
       if (text != null) {
         raw = text
         exact = true
         pre.textContent = text
       }
     }
-    await MarkLens.initI18n(settings.uiLang)
-    MarkLens.app = new App(settings, pre, raw, exact)
-    MarkLens.app.mount()
+    await Markloupe.initI18n(settings.uiLang)
+    Markloupe.app = new App(settings, pre, raw, exact)
+    Markloupe.app.mount()
     // 排版完成：結束換頁轉場，從舊畫面直接換成新頁
-    MarkLens.revealPage?.()
+    Markloupe.revealPage?.()
   }
 
   boot().catch(err => {
     reveal()
-    console.error('[MarkLens]', err)
+    console.error('[Markloupe]', err)
   })
 })()

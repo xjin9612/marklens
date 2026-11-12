@@ -1,6 +1,6 @@
 'use strict'
 // HTML 白名單過濾：markdown 允許內嵌 HTML，但不允許任何可執行內容
-var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
+var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
 
 ;(() => {
   // 連同子節點整個移除
@@ -54,7 +54,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   // markdown-it 以 style="text-align:…" 輸出表格對齊，只保留這一種 style
   const ALIGN_STYLE = /^\s*text-align\s*:\s*(left|right|center)\s*;?\s*$/i
 
-  // MarkLens 自己的介面一律使用 ml- 開頭的 class／id；文件內容不得使用，
+  // Markloupe 自己的介面一律使用 ml- 開頭的 class／id；文件內容不得使用，
   // 否則作者可借用介面樣式偽造全螢幕遮罩、假提示或假工具列
   const RESERVED = /^ml-/i
 
@@ -128,7 +128,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
    * @param {string} html
    * @param {string} [nonce] 本次渲染的 nonce；只有帶正確 nonce 的任務 class 會保留（見 markdown.js）
    */
-  MarkLens.sanitize = function (html, nonce) {
+  Markloupe.sanitize = function (html, nonce) {
     const taskClass = nonce ? new RegExp(`^ml-(?:task-${nonce}-\\d+|line-${nonce}-\\d+-\\d+)$`) : null
     // 渲染器自己產生的 ml- class：任務清單與區塊的原文行號（帶本次渲染的 nonce）
     const allowClass = c => taskClass != null && taskClass.test(c)

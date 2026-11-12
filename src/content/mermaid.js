@@ -1,9 +1,9 @@
 'use strict'
 // Mermaid 圖表：頁面有 mermaid 區塊時才動態載入程式庫（約 5MB），沒有就完全不載入
-var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
+var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
 
 ;(() => {
-  const { h, t } = MarkLens
+  const { h, t } = Markloupe
   const ENTRY = 'vendor/mermaid/mermaid.mjs'
   const CACHE_LIMIT = 50
 
@@ -256,7 +256,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
    * 快取命中的區塊同步完成（自動更新後捲動位置不會跳動），其餘排隊非同步繪製
    * @returns {Promise<void>} 全部繪製完成
    */
-  MarkLens.renderMermaid = function (article, enabled) {
+  Markloupe.renderMermaid = function (article, enabled) {
     const codes = article.querySelectorAll('.ml-code code.language-mermaid')
     if (!codes.length) return Promise.resolve()
     if (!enabled) return Promise.resolve()
@@ -288,7 +288,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
    * 主題切換後，重繪主題不符的圖表
    * @returns {Promise<void>} 重繪完成
    */
-  MarkLens.rethemeMermaid = function (article) {
+  Markloupe.rethemeMermaid = function (article) {
     const theme = themeNow()
     const pending = []
     for (const wrap of article.querySelectorAll('.ml-mermaid[data-ml-mermaid-theme]')) {

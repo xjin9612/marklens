@@ -1,5 +1,5 @@
 {
-  "name": "marklens-vendor",
+  "name": "markloupe-vendor",
   "private": true,
   "description": "Libraries copied into vendor/ by scripts/vendor.mjs. Not installed; tracked so GitHub can alert on vulnerable versions.",
   "license": "MIT",

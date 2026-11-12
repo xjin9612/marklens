@@ -5,8 +5,14 @@ importScripts('/src/shared/settings.js', '/src/shared/i18n.js', '/src/shared/roo
 // 首次安裝：開啟引導頁（說明如何開啟「允許存取檔案網址」）；更新時不打擾
 chrome.runtime.onInstalled.addListener(({ reason }) => {
   if (reason === 'install') chrome.tabs.create({ url: chrome.runtime.getURL('src/welcome/welcome.html') })
+  if (reason === 'update') migrateLegacy()
   syncWebScripts()
 })
+
+/** 舊名稱 MarkLens 的設定與授權資料夾搬到目前的名稱；具名函式方便測試直接呼叫 */
+function migrateLegacy() {
+  return Promise.all([Markloupe.migrateLegacyStorage(), Markloupe.Roots.migrateLegacy()])
+}
 
 /*
  * ---------- 網頁上的 .md ----------
@@ -18,7 +24,7 @@ let webSync = Promise.resolve()
 /** 依目前的網站權限註冊或移除網頁用的 content script；依序執行，避免同時註冊同一個 id */
 function syncWebScripts() {
   const run = async () => {
-    const granted = await chrome.permissions.contains({ origins: MarkLens.WEB_ORIGINS })
+    const granted = await chrome.permissions.contains({ origins: Markloupe.WEB_ORIGINS })
     const groups = chrome.runtime.getManifest().content_scripts
     const ids = groups.map((_, i) => `web-${i}`)
     const existing = (await chrome.scripting.getRegisteredContentScripts({ ids })).map(s => s.id)
@@ -42,19 +48,19 @@ chrome.permissions.onRemoved.addListener(syncWebScripts)
 
 // 跨裝置同步：其他電腦改了設定，寫回這台的 storage.local，已開的分頁照常由 storage.onChanged 套用
 chrome.storage.onChanged.addListener(async (changes, area) => {
-  if (area !== 'sync' || !(MarkLens.SETTINGS_KEY in changes || MarkLens.SYNC_CSS_KEY in changes)) return
-  if (await MarkLens.isSyncEnabled()) await MarkLens.pullSync()
+  if (area !== 'sync' || !(Markloupe.SETTINGS_KEY in changes || Markloupe.SYNC_CSS_KEY in changes)) return
+  if (await Markloupe.isSyncEnabled()) await Markloupe.pullSync()
 })
 chrome.runtime.onStartup.addListener(async () => {
-  if (await MarkLens.isSyncEnabled()) await MarkLens.pullSync()
+  if (await Markloupe.isSyncEnabled()) await Markloupe.pullSync()
 })
 
 /** 瀏覽器快捷鍵（manifest 的 commands）；具名函式方便測試直接呼叫 */
 async function onCommand(command, tab) {
   if (command === 'cycle-theme') {
     // 主題是全域設定，所有分頁同步
-    const s = await MarkLens.loadSettings()
-    await MarkLens.saveSettings({ theme: MarkLens.nextOf(MarkLens.THEME_ORDER, s.theme) })
+    const s = await Markloupe.loadSettings()
+    await Markloupe.saveSettings({ theme: Markloupe.nextOf(Markloupe.THEME_ORDER, s.theme) })
     return
   }
   if (tab?.id != null) await chrome.tabs.sendMessage(tab.id, { type: 'command', name: command }).catch(() => {})
@@ -149,7 +155,7 @@ const HANDLERS = {
     } catch {
       return { status: 'error' }
     }
-    const ignore = ignorePatterns((await MarkLens.loadSettings()).fileIgnore)
+    const ignore = ignorePatterns((await Markloupe.loadSettings()).fileIgnore)
     const decode = s => {
       try {
         return decodeURIComponent(s)
@@ -179,7 +185,7 @@ const HANDLERS = {
 
   /** content script 透過這裡取得整份語系檔（content script 無權直接讀取擴充功能內的檔案） */
   async 'read-messages'(msg) {
-    if (!MarkLens.UI_LANGS.includes(msg.lang)) return { status: 'error', error: 'unknown language' }
+    if (!Markloupe.UI_LANGS.includes(msg.lang)) return { status: 'error', error: 'unknown language' }
     const res = await fetch(chrome.runtime.getURL(`_locales/${msg.lang}/messages.json`))
     return { status: 'ok', messages: await res.json() }
   },
@@ -226,7 +232,7 @@ const HANDLERS = {
       res = await fetch(url.href, { credentials: 'omit' })
     } catch {
       // 沒有網站權限時，跨站讀取被擋與連不上無法區分
-      const denied = !local && !(await chrome.permissions.contains({ origins: MarkLens.WEB_ORIGINS }))
+      const denied = !local && !(await chrome.permissions.contains({ origins: Markloupe.WEB_ORIGINS }))
       return { status: 'error', reason: denied ? 'no-permission' : 'unreachable' }
     }
     // 重新導向後的網址也要符合規則。導向的目的地在檢查前已收到請求；瀏覽器顯示這張圖片時同樣會請求它
@@ -368,7 +374,7 @@ async function toggleTask(msg, sender) {
     return { status: 'error', error: 'invalid message' }
   }
 
-  const candidates = await MarkLens.Roots.locate(url)
+  const candidates = await Markloupe.Roots.locate(url)
   if (!candidates.length) return { status: 'no-root' }
   const granted = []
   for (const c of candidates) {
@@ -407,10 +413,10 @@ async function toggleTask(msg, sender) {
   }
 
   // 檔案已被其他地方修改（例如編輯器剛存檔）：不寫入，回傳最新內容讓頁面更新
-  if ((await MarkLens.sha256(text)) !== msg.hash) return { status: 'conflict', text }
+  if ((await Markloupe.sha256(text)) !== msg.hash) return { status: 'conflict', text }
 
   // 保留每行原本的換行字元（LF / CRLF / CR）
-  const lines = MarkLens.splitLines(text)
+  const lines = Markloupe.splitLines(text)
   const line = lines[msg.line]
   const m = line != null && TASK_LINE_RE.exec(line)
   if (!m || m[2].toLowerCase() !== msg.from) return { status: 'conflict', text }

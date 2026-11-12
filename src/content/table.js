@@ -1,9 +1,9 @@
 'use strict'
 // 表格增強：拖拉欄寬、點表頭排序、篩選列、複製為 TSV、換行切換、全螢幕
-var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
+var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
 
 ;(() => {
-  const { h, t } = MarkLens
+  const { h, t } = Markloupe
   const collator = new Intl.Collator('zh-Hant', { numeric: true, sensitivity: 'base' })
 
   /* ---------- 排序值解析 ---------- */
@@ -74,7 +74,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   /**
    * 增強單一表格，回傳控制器 { getState, setState }，供自動更新後還原狀態
    */
-  MarkLens.enhanceTable = function (table, settings) {
+  Markloupe.enhanceTable = function (table, settings) {
     const head = headerRow(table)
     const ths = head ? Array.from(head.cells) : []
     // 有合併儲存格的表頭無法對應欄位，只提供複製與換行等基本功能
@@ -105,7 +105,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         : null
     const btn = (text, title, fn) => h('button', { class: 'ml-btn', text, title, on: { click: fn } })
     const copyBtn = btn(t('copy'), t('tableCopyTitle'), async () => {
-      MarkLens.flash(copyBtn, t((await MarkLens.copyText(toTSV())) ? 'copied' : 'failed'))
+      Markloupe.flash(copyBtn, t((await Markloupe.copyText(toTSV())) ? 'copied' : 'failed'))
     })
     const fullBtn = btn(t('tableFullscreen'), t('tableFullscreenTitle'), () => toggleFull())
     const title = h('span', { class: 'ml-table-title' })
@@ -123,7 +123,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     wrap.append(h('div', { class: 'ml-table-inner' }, [bar, view]))
 
     // 橫向捲動時，還有內容的一側顯示陰影；欄寬拖拉與視窗縮放都會改變可捲動的範圍
-    const edges = MarkLens.rafThrottle(() => {
+    const edges = Markloupe.rafThrottle(() => {
       const max = scroller.scrollWidth - scroller.clientWidth
       view.classList.toggle('ml-more-left', scroller.scrollLeft > 1)
       view.classList.toggle('ml-more-right', scroller.scrollLeft < max - 1)

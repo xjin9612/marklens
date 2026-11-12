@@ -2,10 +2,10 @@
 // 已授權的資料夾（FileSystemDirectoryHandle）
 // 存在擴充功能自己的 IndexedDB（chrome-extension:// origin），本機網頁無法取得
 // 供 background 與授權頁使用；content script 不載入此檔
-var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
+var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
 
-MarkLens.Roots = (() => {
-  const DB_NAME = 'marklens'
+Markloupe.Roots = (() => {
+  const DB_NAME = 'markloupe'
   const STORE = 'roots'
 
   function open() {
@@ -73,5 +73,32 @@ MarkLens.Roots = (() => {
     return found
   }
 
-  return { list, add, remove, locate }
+  /** 舊名稱 MarkLens 的資料庫（marklens）中的授權資料夾搬過來，再刪除舊資料庫 */
+  async function migrateLegacy() {
+    const LEGACY = 'marklens'
+    if (!(await indexedDB.databases()).some(d => d.name === LEGACY)) return
+    const db = await new Promise((resolve, reject) => {
+      const req = indexedDB.open(LEGACY)
+      req.onsuccess = () => resolve(req.result)
+      req.onerror = () => reject(req.error)
+    })
+    try {
+      if (db.objectStoreNames.contains(STORE)) {
+        const rows = await new Promise((resolve, reject) => {
+          const req = db.transaction(STORE).objectStore(STORE).getAll()
+          req.onsuccess = () => resolve(req.result)
+          req.onerror = () => reject(req.error)
+        })
+        for (const r of rows) await add(r.handle)
+      }
+    } finally {
+      db.close()
+    }
+    await new Promise(resolve => {
+      const req = indexedDB.deleteDatabase(LEGACY)
+      req.onsuccess = req.onerror = req.onblocked = () => resolve()
+    })
+  }
+
+  return { list, add, remove, locate, migrateLegacy }
 })()

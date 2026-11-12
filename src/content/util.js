@@ -1,6 +1,6 @@
 'use strict'
 // 共用小工具
-var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
+var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
 
 /**
  * 建立元素
@@ -8,7 +8,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
  * @param {object} [props] class / text / title / attrs / on / style
  * @param {Array<Node|string>} [children]
  */
-MarkLens.h = function (tag, props = {}, children = []) {
+Markloupe.h = function (tag, props = {}, children = []) {
   const el = document.createElement(tag)
   for (const [k, v] of Object.entries(props)) {
     if (v == null) continue
@@ -31,7 +31,7 @@ MarkLens.h = function (tag, props = {}, children = []) {
  * 擴充功能被重新載入或更新後，已開分頁裡的舊 content script 會失去連線（chrome.runtime.id 變成 undefined），
  * 之後任何 chrome.* 呼叫都會拋出 "Extension context invalidated"
  */
-MarkLens.alive = function () {
+Markloupe.alive = function () {
   try {
     return !!chrome.runtime?.id
   } catch {
@@ -40,7 +40,7 @@ MarkLens.alive = function () {
 }
 
 /** 以 requestAnimationFrame 節流 */
-MarkLens.rafThrottle = function (fn) {
+Markloupe.rafThrottle = function (fn) {
   let pending = false
   return (...args) => {
     if (pending) return
@@ -52,7 +52,7 @@ MarkLens.rafThrottle = function (fn) {
   }
 }
 
-MarkLens.debounce = function (fn, ms) {
+Markloupe.debounce = function (fn, ms) {
   let t
   return (...args) => {
     clearTimeout(t)
@@ -64,7 +64,7 @@ MarkLens.debounce = function (fn, ms) {
  * 讓延遲載入的圖片立刻載入，等全部載完（或失敗）再繼續；列印前用，否則還沒捲到的圖片印出來是空白
  * 最多等 ms 毫秒，避免一張很慢的遠端圖片卡住列印
  */
-MarkLens.loadImages = function (root, ms = 5000) {
+Markloupe.loadImages = function (root, ms = 5000) {
   const waits = []
   for (const img of root.querySelectorAll('img')) {
     if (img.loading === 'lazy') img.loading = 'eager'
@@ -80,12 +80,12 @@ MarkLens.loadImages = function (root, ms = 5000) {
 }
 
 /** 複製文字；非安全環境（一般 http）退回 execCommand */
-MarkLens.copyText = async function (text) {
+Markloupe.copyText = async function (text) {
   try {
     await navigator.clipboard.writeText(text)
     return true
   } catch {
-    const ta = MarkLens.h('textarea', { value: text, style: { position: 'fixed', top: '-1000px' } })
+    const ta = Markloupe.h('textarea', { value: text, style: { position: 'fixed', top: '-1000px' } })
     document.body.append(ta)
     ta.select()
     const ok = document.execCommand('copy')
@@ -98,7 +98,7 @@ MarkLens.copyText = async function (text) {
  * 複製純文字並附上 HTML：支援格式的程式貼上時取 HTML，純文字輸入框取純文字
  * 一般 http 網頁沒有 Clipboard API，改在 copy 事件裡寫入兩種格式
  */
-MarkLens.copyRich = async function (text, html) {
+Markloupe.copyRich = async function (text, html) {
   try {
     await navigator.clipboard.write([
       new ClipboardItem({
@@ -123,7 +123,7 @@ MarkLens.copyRich = async function (text, html) {
 }
 
 /** 按鈕短暫顯示回饋文字 */
-MarkLens.flash = function (btn, text, ms = 1000) {
+Markloupe.flash = function (btn, text, ms = 1000) {
   const old = btn.textContent
   btn.textContent = text
   btn.disabled = true
@@ -133,27 +133,27 @@ MarkLens.flash = function (btn, text, ms = 1000) {
   }, ms)
 }
 
-MarkLens.UNCHANGED = Symbol('unchanged')
+Markloupe.UNCHANGED = Symbol('unchanged')
 
 /**
  * WSL（file://wsl.localhost/…）與網路共用（file://主機/…）上的檔案：Chrome 不讓擴充功能讀取帶主機名稱的 file:// 網址，
  * 只能顯示頁面上已有的內容；檔案清單、自動更新與勾選寫回都無法使用
  */
-MarkLens.networkFile = location.protocol === 'file:' && (location.host !== '' || location.pathname.startsWith('//'))
+Markloupe.networkFile = location.protocol === 'file:' && (location.host !== '' || location.pathname.startsWith('//'))
 
 /**
  * 讀取目前頁面的原始內容；失敗回傳 null
  * - file://：content script 無法直接讀（CORS），交給 background 讀 bytes 並以 UTF-8 嚴格解碼，
  *   同時修正 Chrome 對無 BOM 檔案猜錯編碼造成的中文亂碼
  * - http(s)：fetch（同源，不需額外權限）
- * @param {{ifChanged?: boolean}} [opts] ifChanged：本機檔案若與上次讀取時相同，回傳 MarkLens.UNCHANGED，
+ * @param {{ifChanged?: boolean}} [opts] ifChanged：本機檔案若與上次讀取時相同，回傳 Markloupe.UNCHANGED，
  *   不必把整份內容傳回頁面（自動更新每秒檢查一次，大檔時可省下大量傳輸與比對）
  */
-MarkLens.fetchSource = async function (opts = {}) {
+Markloupe.fetchSource = async function (opts = {}) {
   if (location.protocol === 'file:') {
     try {
       const res = await chrome.runtime.sendMessage({ type: 'read-self', ifChanged: !!opts.ifChanged })
-      if (res?.unchanged) return MarkLens.UNCHANGED
+      if (res?.unchanged) return Markloupe.UNCHANGED
       return typeof res?.text === 'string' ? res.text : null
     } catch {
       return null
@@ -171,11 +171,11 @@ MarkLens.fetchSource = async function (opts = {}) {
  * @param {Array<{label:string, fn:Function}>} [actions]
  * @param {number} [ms]
  */
-MarkLens.toast = function (text, actions = [], ms = 5000) {
-  const toast = MarkLens.toast
+Markloupe.toast = function (text, actions = [], ms = 5000) {
+  const toast = Markloupe.toast
   let el = document.querySelector('.ml-toast')
   if (!el) {
-    el = MarkLens.h('div', { class: 'ml-toast', attrs: { role: 'status' } })
+    el = Markloupe.h('div', { class: 'ml-toast', attrs: { role: 'status' } })
     // 滑鼠停在提示上或焦點在提示的按鈕上時暫停倒數，離開後重新計時，才來得及按「復原」
     const pause = () => clearTimeout(toast.timer)
     const resume = () => {
@@ -190,10 +190,10 @@ MarkLens.toast = function (text, actions = [], ms = 5000) {
   }
   toast.ms = ms
   el.textContent = ''
-  el.append(MarkLens.h('span', { text }))
+  el.append(Markloupe.h('span', { text }))
   for (const a of actions) {
     el.append(
-      MarkLens.h('button', {
+      Markloupe.h('button', {
         class: 'ml-toast-btn',
         text: a.label,
         on: {

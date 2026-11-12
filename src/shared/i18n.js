@@ -1,10 +1,10 @@
 'use strict'
 // 介面文字：來自 _locales/<語系>/messages.json
 // 預設跟隨瀏覽器語言（Chrome 選用的語系檔，找不到時用 en）；設定中指定語言時改用該語系檔，不必更改 Chrome 的語言
-var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
+var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
 
 ;(() => {
-  MarkLens.UI_LANGS = ['en', 'zh_TW', 'zh_CN'] // 與 _locales/ 的資料夾一致
+  Markloupe.UI_LANGS = ['en', 'zh_TW', 'zh_CN'] // 與 _locales/ 的資料夾一致
 
   const cache = new Map() // 不帶參數的訊息
   // 目前語系的整份訊息表 { key: { message } }。開頁時就載入：擴充功能更新或重新載入後舊分頁的 chrome.* 會失效，之後才用到的文字仍能顯示
@@ -30,16 +30,16 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
    * 套用介面語言設定，需在 t() 之前呼叫
    * @param {string} [setting] 'auto' | 'en' | 'zh_TW' | 'zh_CN'；省略時從設定讀取
    */
-  MarkLens.initI18n = async function (setting) {
+  Markloupe.initI18n = async function (setting) {
     try {
-      setting ??= (await MarkLens.loadSettings()).uiLang
+      setting ??= (await Markloupe.loadSettings()).uiLang
     } catch {
       setting = 'auto'
     }
     cache.clear()
     dict = null
     lang = null
-    const chosen = MarkLens.UI_LANGS.includes(setting)
+    const chosen = Markloupe.UI_LANGS.includes(setting)
     let code = setting
     if (!chosen) {
       // 跟隨瀏覽器：localeCode 是各語系檔自己的資料夾名稱，可知道 Chrome 選了哪一個
@@ -48,7 +48,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
       } catch {
         return
       }
-      if (!MarkLens.UI_LANGS.includes(code)) return
+      if (!Markloupe.UI_LANGS.includes(code)) return
     }
     try {
       dict = await readMessages(code)
@@ -59,7 +59,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   }
 
   /** 目前介面語言的 BCP 47 代碼（給 <html lang>） */
-  MarkLens.uiLanguage = function () {
+  Markloupe.uiLanguage = function () {
     if (lang) return lang.replace('_', '-')
     try {
       return chrome.i18n.getUILanguage()
@@ -72,7 +72,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
    * 取得翻譯文字；訊息中的 $1、$2… 依序替換為 subs
    * 找不到訊息時回傳 key 本身，方便發現遺漏
    */
-  MarkLens.t = function (key, ...subs) {
+  Markloupe.t = function (key, ...subs) {
     if (!subs.length && cache.has(key)) return cache.get(key)
     const args = subs.map(String)
     let text = ''
@@ -95,11 +95,11 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
    * data-i18n：純文字；data-i18n-html：含 <b>、<code> 等標記（訊息由擴充功能自帶，不含外部輸入）；
    * data-i18n-title／data-i18n-placeholder：屬性
    */
-  MarkLens.localize = function (root = document) {
-    for (const el of root.querySelectorAll('[data-i18n]')) el.textContent = MarkLens.t(el.dataset.i18n)
-    for (const el of root.querySelectorAll('[data-i18n-html]')) el.innerHTML = MarkLens.t(el.dataset.i18nHtml)
-    for (const el of root.querySelectorAll('[data-i18n-title]')) el.title = MarkLens.t(el.dataset.i18nTitle)
-    for (const el of root.querySelectorAll('[data-i18n-placeholder]')) el.placeholder = MarkLens.t(el.dataset.i18nPlaceholder)
-    document.documentElement.lang = MarkLens.uiLanguage()
+  Markloupe.localize = function (root = document) {
+    for (const el of root.querySelectorAll('[data-i18n]')) el.textContent = Markloupe.t(el.dataset.i18n)
+    for (const el of root.querySelectorAll('[data-i18n-html]')) el.innerHTML = Markloupe.t(el.dataset.i18nHtml)
+    for (const el of root.querySelectorAll('[data-i18n-title]')) el.title = Markloupe.t(el.dataset.i18nTitle)
+    for (const el of root.querySelectorAll('[data-i18n-placeholder]')) el.placeholder = Markloupe.t(el.dataset.i18nPlaceholder)
+    document.documentElement.lang = Markloupe.uiLanguage()
   }
 })()

@@ -88,7 +88,7 @@ for (const lang of LANGS) {
   })
   try {
     const sw = ctx.serviceWorkers()[0] || (await ctx.waitForEvent('serviceworker'))
-    await sw.evaluate(() => MarkLens.saveSettings({ rememberScroll: false }))
+    await sw.evaluate(() => Markloupe.saveSettings({ rememberScroll: false }))
     const page = await ctx.newPage()
     for (const doc of DOCS) {
       for (const width of WIDTHS) {

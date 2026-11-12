@@ -1,14 +1,14 @@
 <p align="center">
-  <img src="icons/icon.svg" width="96" height="96" alt="MarkLens">
+  <img src="icons/icon.svg" width="96" height="96" alt="Markloupe">
 </p>
 
-<h1 align="center">MarkLens</h1>
+<h1 align="center">Markloupe</h1>
 
 <p align="center"><strong>表格真的能用的 Markdown 閱讀器，支援 Chrome 與 Edge。</strong></p>
 
 <p align="center">
-  <a href="https://github.com/xjin9612/marklens/releases/latest"><img src="https://img.shields.io/github/v/release/xjin9612/marklens" alt="最新版本"></a>
-  <a href="https://github.com/xjin9612/marklens/actions/workflows/ci.yml"><img src="https://github.com/xjin9612/marklens/actions/workflows/ci.yml/badge.svg" alt="測試"></a>
+  <a href="https://github.com/xjin9612/markloupe/releases/latest"><img src="https://img.shields.io/github/v/release/xjin9612/markloupe" alt="最新版本"></a>
+  <a href="https://github.com/xjin9612/markloupe/actions/workflows/ci.yml"><img src="https://github.com/xjin9612/markloupe/actions/workflows/ci.yml/badge.svg" alt="測試"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT 授權"></a>
   <a href="PRIVACY.zh-TW.md"><img src="https://img.shields.io/badge/data%20collected-none-brightgreen" alt="不收集任何資料"></a>
 </p>
@@ -21,13 +21,13 @@
 
 ## 安裝
 
-MarkLens 支援 Windows、macOS、Linux 上的 Chrome 與 Edge。
+Markloupe 支援 Windows、macOS、Linux 上的 Chrome 與 Edge。
 
-1. 從[最新版本](https://github.com/xjin9612/marklens/releases/latest)下載 `marklens-vX.Y.Z.zip` 並解壓縮。
+1. 從[最新版本](https://github.com/xjin9612/markloupe/releases/latest)下載 `markloupe-vX.Y.Z.zip` 並解壓縮。
 2. 開啟 `chrome://extensions`（Edge：`edge://extensions`），打開「開發人員模式」。
-3. 按「載入未封裝項目」，選擇解壓縮出來的 `marklens-vX.Y.Z` 資料夾。
+3. 按「載入未封裝項目」，選擇解壓縮出來的 `markloupe-vX.Y.Z` 資料夾。
 4. 安裝後會開啟歡迎頁。要開啟電腦上的檔案，請照著它打開「允許存取檔案網址」。
-5. 要閱讀網路上的 `.md`，在歡迎頁或 MarkLens 圖示的設定中開啟「也在網頁上的 .md 檔案啟用」。
+5. 要閱讀網路上的 `.md`，在歡迎頁或 Markloupe 圖示的設定中開啟「也在網頁上的 .md 檔案啟用」。
 
 之後把 `.md` 檔拖進瀏覽器，或開啟網路上的 `.md` 連結即可。升級時用新版資料夾取代舊的。再到擴充功能頁按重新載入圖示。各版本的變更見[更新紀錄](CHANGELOG.md)（英文）。
 
@@ -42,7 +42,7 @@ MarkLens 支援 Windows、macOS、Linux 上的 Chrome 與 Edge。
 
 ### 直接勾選檔案中的任務
 
-在本機 `.md` 檔點任務的勾選框，`[ ]`／`[x]` 會立即存回檔案。MarkLens 只修改你點的那一行。提示列上可以復原。檔案已在別處被修改時，MarkLens 會拒絕寫入。
+在本機 `.md` 檔點任務的勾選框，`[ ]`／`[x]` 會立即存回檔案。Markloupe 只修改你點的那一行。提示列上可以復原。檔案已在別處被修改時，Markloupe 會拒絕寫入。
 
 ![勾選兩項任務，右側編輯器顯示檔案的變化](docs/screenshots/tasks.gif)
 
@@ -68,7 +68,7 @@ MarkLens 支援 Windows、macOS、Linux 上的 Chrome 與 Edge。
 
 「列印／PDF」以淺色印出整份文件，所有段落都會展開。頁邊只印頁碼。「匯出 HTML」把目前的畫面存成 HTML 檔。選「單一檔」會內嵌圖片，分享時只要給一個檔案。選「圖片保留連結」，檔案比較小。
 
-選「單一檔」時，指向本機檔案的連結保留相對路徑，連到 `.md` 的連結改成 `.html`。把連到的文件也匯出到同一個資料夾，匯出檔之間就能互相連結。標題錨點只在都由 MarkLens 匯出的檔案之間對得上。選「圖片保留連結」時，本機連結改成 `file://` 絕對網址，只在你自己的電腦上有效。
+選「單一檔」時，指向本機檔案的連結保留相對路徑，連到 `.md` 的連結改成 `.html`。把連到的文件也匯出到同一個資料夾，匯出檔之間就能互相連結。標題錨點只在都由 Markloupe 匯出的檔案之間對得上。選「圖片保留連結」時，本機連結改成 `file://` 絕對網址，只在你自己的電腦上有效。
 
 在 front matter 寫 `lang`（例如 `lang: zh-TW`），可以設定閱讀頁與匯出檔的文件語言。
 
@@ -143,7 +143,7 @@ MarkLens 支援 Windows、macOS、Linux 上的 Chrome 與 Edge。
 
 ## 設定
 
-點工具列上的 MarkLens 圖示開啟所有設定。
+點工具列上的 Markloupe 圖示開啟所有設定。
 
 - **主題、配色、自訂 CSS、字體大小與行高**：立即套用到所有已開的分頁。
 - **側邊欄、側邊欄寬度與文字寬度**：只影響目前分頁，方便多開分頁對照。重新整理或在同一分頁開啟其他檔案後仍會保留。
@@ -151,38 +151,38 @@ MarkLens 支援 Windows、macOS、Linux 上的 Chrome 與 Edge。
 
 ## 隱私與安全
 
-MarkLens 不收集任何資料，也不會把資料傳到任何地方；它唯一的網路請求是重新載入你開啟的文件。安裝時只要求 `storage`（保存設定）與 `scripting`（在網頁上執行時註冊腳本）兩項權限；網站存取權由你決定是否開啟。沒有遠端程式碼，所有程式庫都打包在擴充功能內。文件中的 HTML 會經過過濾，測試包含 60 多個攻擊樣本，確認它們都無法執行程式碼。詳見[隱私權政策](PRIVACY.zh-TW.md)與[安全設計](docs/DEVELOPMENT.md#安全設計)。發現漏洞請依 [SECURITY.md](SECURITY.md) 私下回報。
+Markloupe 不收集任何資料，也不會把資料傳到任何地方；它唯一的網路請求是重新載入你開啟的文件。安裝時只要求 `storage`（保存設定）與 `scripting`（在網頁上執行時註冊腳本）兩項權限；網站存取權由你決定是否開啟。沒有遠端程式碼，所有程式庫都打包在擴充功能內。文件中的 HTML 會經過過濾，測試包含 60 多個攻擊樣本，確認它們都無法執行程式碼。詳見[隱私權政策](PRIVACY.zh-TW.md)與[安全設計](docs/DEVELOPMENT.md#安全設計)。發現漏洞請依 [SECURITY.md](SECURITY.md) 私下回報。
 
 ## 常見問題
 
 **網路上的 `.md` 顯示成純文字。**<br>
-MarkLens 安裝時不要求網站存取權。在 MarkLens 圖示的設定中開啟「也在網頁上的 .md 檔案啟用」，再重新整理頁面。
+Markloupe 安裝時不要求網站存取權。在 Markloupe 圖示的設定中開啟「也在網頁上的 .md 檔案啟用」，再重新整理頁面。
 
-**開啟網頁選項時，Chrome 顯示 MarkLens 可以「讀取及變更所有網站上的資料」，為什麼？**<br>
-MarkLens 只在網址以 `.md`、`.markdown`、`.mkd`、`.mdx` 結尾時執行。Chrome 的權限提示不看網址中網站名稱之後的部分，所以顯示為所有網站。想進一步限制，可到擴充功能的「詳細資料」頁面，把「網站存取權」改為「在特定網站上」。本機檔案不受影響。
+**開啟網頁選項時，Chrome 顯示 Markloupe 可以「讀取及變更所有網站上的資料」，為什麼？**<br>
+Markloupe 只在網址以 `.md`、`.markdown`、`.mkd`、`.mdx` 結尾時執行。Chrome 的權限提示不看網址中網站名稱之後的部分，所以顯示為所有網站。想進一步限制，可到擴充功能的「詳細資料」頁面，把「網站存取權」改為「在特定網站上」。本機檔案不受影響。
 
 **本機的 `.md` 檔案顯示成純文字。**<br>
-在擴充功能的「詳細資料」頁面打開「允許存取檔案網址」，再重新整理檔案。歡迎頁（MarkLens 圖示 →「使用說明」）有逐步說明。
+在擴充功能的「詳細資料」頁面打開「允許存取檔案網址」，再重新整理檔案。歡迎頁（Markloupe 圖示 →「使用說明」）有逐步說明。
 
 **勾選任務時要求授權資料夾。**<br>
-第一次請選較上層的資料夾，例如 `D:\Projects` 或 `~/Projects`。底下所有 `.md` 都能寫回。Chrome 重新啟動後會再詢問，除非你選了「每次造訪時允許」。可從 MarkLens 圖示 →「管理授權資料夾」管理。非 UTF-8 的檔案（例如 Big5）可以正常顯示，但勾選框是唯讀的。
+第一次請選較上層的資料夾，例如 `D:\Projects` 或 `~/Projects`。底下所有 `.md` 都能寫回。Chrome 重新啟動後會再詢問，除非你選了「每次造訪時允許」。可從 Markloupe 圖示 →「管理授權資料夾」管理。非 UTF-8 的檔案（例如 Big5）可以正常顯示，但勾選框是唯讀的。
 
 **WSL 或網路共用資料夾裡的檔案，檔案分頁顯示不支援。**<br>
 Chrome 不允許擴充功能讀取網址帶有主機名稱的檔案，例如 `file://wsl.localhost/…`、`file://伺服器/共用/…`。文件本身正常顯示，但檔案分頁、自動更新與勾選寫回都無法使用。需要這些功能時，把檔案放在本機磁碟，例如 `D:\` 或家目錄底下。
 
 **程式碼區塊中的框線字元表格沒有完全對齊。**<br>
-MarkLens 會縮放系統字型，讓中日韓文字剛好兩個英數字寬，所以這些字看起來略大。想要最好的效果，可安裝[更紗黑體（Sarasa Gothic）](https://github.com/be5invis/Sarasa-Gothic)：
+Markloupe 會縮放系統字型，讓中日韓文字剛好兩個英數字寬，所以這些字看起來略大。想要最好的效果，可安裝[更紗黑體（Sarasa Gothic）](https://github.com/be5invis/Sarasa-Gothic)：
 
 1. 從它的 Releases 下載 **Single Family TTF Package → Mono**。
 2. 安裝 `SarasaMonoTC-Regular`、`-Bold` 與 `-Italic`。
-3. 開啟 `chrome://restart` 重新啟動 Chrome。MarkLens 會自動使用這個字型。
+3. 開啟 `chrome://restart` 重新啟動 Chrome。Markloupe 會自動使用這個字型。
 
 **在很大的檔案中，Ctrl+F 搜尋不到摺疊段落裡的文字。**<br>
 頂層區塊超過 3,000 個的文件（約 400KB），摺疊的段落改用較快的隱藏方式。Ctrl+F 搜尋不到這些段落，請先全部展開（`]`）。
 
 ## 參與開發
 
-歡迎到 [issues](https://github.com/xjin9612/marklens/issues) 回報問題或提出建議。開發文件見 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)。
+歡迎到 [issues](https://github.com/xjin9612/markloupe/issues) 回報問題或提出建議。開發文件見 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)。
 
 ## 授權
 

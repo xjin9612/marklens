@@ -4,7 +4,7 @@
     "description": "Name of this locale folder, read by the extension to load the whole file. Do not translate."
   },
   "extName": {
-    "message": "MarkLens – Markdown Reader"
+    "message": "Markloupe – Markdown Reader"
   },
   "extDescription": {
     "message": "Lightweight, auditable Markdown reader: outline, folding, resizable sortable tables, Mermaid, and task check-off in local files."
@@ -169,7 +169,7 @@
     "message": "Exported $1. Images not embedded: $2. They keep their original addresses"
   },
   "exportNeedsWebAccess": {
-    "message": ". If an image from a website opens in the browser, turn on \"$1\" in the MarkLens popup and try again"
+    "message": ". If an image from a website opens in the browser, turn on \"$1\" in the Markloupe popup and try again"
   },
   "taskTitle": {
     "message": "Click to check / uncheck and save to the file"
@@ -208,7 +208,7 @@
     "message": "Saving checkboxes is turned off — turn it on in the popup"
   },
   "taskAmbiguous": {
-    "message": "Several authorized folders contain this file, so MarkLens can't tell which one to save. Remove the extra folder"
+    "message": "Several authorized folders contain this file, so Markloupe can't tell which one to save. Remove the extra folder"
   },
   "taskNotUtf8": {
     "message": "This file is not UTF-8 and cannot be saved"
@@ -220,7 +220,7 @@
     "message": "unknown error"
   },
   "orphanBefore": {
-    "message": "MarkLens was updated — "
+    "message": "Markloupe was updated — "
   },
   "orphanReload": {
     "message": "reload"
@@ -352,7 +352,7 @@
     "message": "About $1 words · $2 min"
   },
   "popupTitle": {
-    "message": "MarkLens settings"
+    "message": "Markloupe settings"
   },
   "popupEnable": {
     "message": "Enabled"
@@ -523,13 +523,13 @@
     "message": "This tab is not a Markdown page"
   },
   "grantPageTitle": {
-    "message": "MarkLens: folder access"
+    "message": "Markloupe: folder access"
   },
   "grantH1": {
     "message": "Folder access for saving tasks"
   },
   "grantIntro": {
-    "message": "To save a checked task back to its file, MarkLens needs read/write access to the folder. Access is kept inside the extension; ordinary web pages, including local HTML files, cannot reach it."
+    "message": "To save a checked task back to its file, Markloupe needs read/write access to the folder. Access is kept inside the extension; ordinary web pages, including local HTML files, cannot reach it."
   },
   "grantBackNote": {
     "message": "When you're done, go back to the document and click the checkbox again."
@@ -589,7 +589,7 @@
     "message": "Authorized: $1"
   },
   "welcomeTitle": {
-    "message": "Welcome to MarkLens"
+    "message": "Welcome to Markloupe"
   },
   "welcomeLead": {
     "message": "Read Markdown right in the browser: outline, folding, sortable tables, Mermaid diagrams — and check off tasks straight into the file."
@@ -601,7 +601,7 @@
     "message": "To read <code>.md</code> files on your computer, Chrome needs a switch that only you can turn on."
   },
   "step1Li1": {
-    "message": "Open MarkLens's settings with the button below"
+    "message": "Open Markloupe's settings with the button below"
   },
   "step1Li2": {
     "message": "Turn on <b>Allow access to file URLs</b>"
@@ -628,7 +628,7 @@
     "message": "Drag any <code>.md</code> file into a Chrome window, or type its path in the address bar (for example <code>D:\\Projects\\README.md</code>). To read <code>.md</code> files on websites, turn on the option below."
   },
   "step2Tip": {
-    "message": "Tip: pin MarkLens to the toolbar (puzzle icon → pin). Its button opens theme, font and layout settings."
+    "message": "Tip: pin Markloupe to the toolbar (puzzle icon → pin). Its button opens theme, font and layout settings."
   },
   "step3Title": {
     "message": "Everyday keys"
@@ -739,7 +739,7 @@
     "message": "Also open .md files on websites"
   },
   "optWebAccessNote": {
-    "message": "Chrome will ask to read and change your data on all websites. MarkLens still runs only on addresses that end in .md, .markdown, .mkd or .mdx. Reload tabs that are already open."
+    "message": "Chrome will ask to read and change your data on all websites. Markloupe still runs only on addresses that end in .md, .markdown, .mkd or .mdx. Reload tabs that are already open."
   },
   "optSync": {
     "message": "Sync settings to my other computers"
