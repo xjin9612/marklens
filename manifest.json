@@ -85,6 +85,7 @@
         "vendor/markdown-it-deflist.min.js",
         "vendor/highlight.min.js",
         "src/shared/settings.js",
+        "src/shared/palette.js",
         "src/shared/i18n.js",
         "src/shared/hash.js",
         "src/shared/lines.js",

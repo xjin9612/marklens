@@ -30,6 +30,70 @@
     customRow.hidden = preset
     customInput.value = preset ? '' : String(s.textWidth)
     $('#editor-url-row').hidden = s.editor !== 'custom'
+    fillColors(s)
+  }
+
+  /* ---------- 自訂配色 ---------- */
+  const COLOR_NAMES = { bg: 'colorBg', fg: 'colorFg', accent: 'colorAccent' }
+  const THEME_NAMES = { light: 'themeLight', dark: 'themeDark' }
+  let colors = Markloupe.DEFAULTS.customColors
+
+  function fillColors(s) {
+    $('#custom-colors').hidden = s.palette !== 'custom'
+    colors = { light: Markloupe.customColorsFor(s.customColors, 'light'), dark: Markloupe.customColorsFor(s.customColors, 'dark') }
+    for (const el of form.querySelectorAll('[data-cc]')) {
+      const [theme, key] = el.dataset.cc.split('.')
+      el.value = colors[theme][key]
+      el.removeAttribute('aria-invalid')
+      el.setAttribute('aria-label', `${t(THEME_NAMES[theme])} ${t(COLOR_NAMES[key])}`)
+    }
+    showContrast()
+  }
+
+  /** 文字與強調色由使用者決定，不自動調整；對比不足時提醒 */
+  function showContrast() {
+    const low = []
+    for (const theme of ['light', 'dark']) {
+      for (const key of ['fg', 'accent']) {
+        const ratio = Markloupe.contrastRatio(colors[theme][key], colors[theme].bg)
+        if (ratio < 4.5) low.push(`${t(THEME_NAMES[theme])} ${t(COLOR_NAMES[key])} ${ratio.toFixed(1)}:1`)
+      }
+    }
+    $('#cc-warning').hidden = !low.length
+    $('#cc-warning').textContent = low.length ? t('colorLowContrast', low.join(' / ')) : ''
+  }
+
+  async function saveColor(el) {
+    const [theme, key] = el.dataset.cc.split('.')
+    const value = Markloupe.parseHexColor(el.value)
+    if (!value) {
+      el.setAttribute('aria-invalid', 'true')
+      return say(t('colorInvalid'))
+    }
+    // 只更新這個顏色的欄位，不重填其他正在輸入的欄位
+    colors = { ...colors, [theme]: { ...colors[theme], [key]: value } }
+    for (const other of form.querySelectorAll(`[data-cc="${el.dataset.cc}"]`)) {
+      other.value = value
+      other.removeAttribute('aria-invalid')
+    }
+    showContrast()
+    await storeColors(stored => ({ ...stored, [theme]: { ...stored[theme], [key]: value } }))
+    say(t('statusSaved'))
+  }
+
+  /**
+   * customColors 整份寫入，所以存檔依序執行，每次以儲存中的最新值為底：
+   * 連續修改、其他分頁或同步帶來的變更都不會被 popup 開啟時的舊值蓋掉
+   */
+  let colorQueue = Promise.resolve()
+  function storeColors(update) {
+    const run = colorQueue.then(async () => {
+      const cur = (await Markloupe.loadSettings()).customColors
+      const stored = { light: Markloupe.customColorsFor(cur, 'light'), dark: Markloupe.customColorsFor(cur, 'dark') }
+      await Markloupe.saveSettings({ customColors: update(stored) })
+    })
+    colorQueue = run.catch(() => {})
+    return run
   }
 
   function readValue(el) {
@@ -42,7 +106,9 @@
 
   form.addEventListener('change', async e => {
     const el = e.target
+    if (el.dataset.cc) return saveColor(el)
     if (!el.name) return
+    if (el.name === 'palette') $('#custom-colors').hidden = el.value !== 'custom'
     if (el.name === 'textWidth') {
       if (el.value === 'custom') {
         customRow.hidden = false
@@ -98,6 +164,12 @@
       }
     })
   }
+
+  $('#cc-reset').addEventListener('click', async () => {
+    fillColors({ palette: 'custom', customColors: Markloupe.DEFAULTS.customColors })
+    await storeColors(() => Markloupe.DEFAULTS.customColors)
+    say(t('statusSaved'))
+  })
 
   Markloupe.bindWebAccess($('#web-access'))
 

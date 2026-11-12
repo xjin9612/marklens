@@ -415,9 +415,9 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       const dark = s.theme === 'dark' || (s.theme === 'auto' && this.darkQuery.matches)
       // 列印時一律淺色：紙張不印背景，深色主題的淺色文字印出來看不清楚
       document.documentElement.dataset.mlTheme = dark && !this.printing ? 'dark' : 'light'
-      if (s.palette && s.palette !== 'github' && Markloupe.PALETTES.includes(s.palette)) document.documentElement.dataset.mlPalette = s.palette
-      else delete document.documentElement.dataset.mlPalette
+      // 自訂配色以主題色加上使用者 CSS 為推算基準，所以先套用使用者 CSS
       this.applyCustomCss(s.customCss)
+      this.applyPalette(Markloupe.PALETTES.includes(s.palette) ? s.palette : 'github')
       // 給下一次開檔的等待畫面用（early.js）；只寫本機檔案的儲存空間，網站讀不到
       if (location.protocol === 'file:') {
         try {
@@ -639,6 +639,28 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       } finally {
         this.exportBtn.disabled = false
       }
+    }
+
+    /**
+     * 自訂配色依目前主題推算後放進自己的樣式表，Markloupe.paletteCss 供匯出檔沿用。
+     * 推算要讀主題本身的語法標示與提示框色，所以先移除配色屬性再讀
+     */
+    applyPalette(palette) {
+      const root = document.documentElement
+      if (!this.paletteSheet) {
+        this.paletteSheet = new CSSStyleSheet()
+        document.adoptedStyleSheets = [this.paletteSheet, ...document.adoptedStyleSheets]
+      }
+      delete root.dataset.mlPalette
+      Markloupe.paletteCss = ''
+      if (palette === 'custom') {
+        const css = getComputedStyle(root)
+        const base = Object.fromEntries(Markloupe.CUSTOM_BASE_VARS.map(n => [n, css.getPropertyValue(n).trim()]))
+        const colors = Markloupe.customColorsFor(this.settings.customColors, root.dataset.mlTheme)
+        Markloupe.paletteCss = Markloupe.customPaletteCss(Markloupe.customPaletteVars(colors, base))
+      }
+      this.paletteSheet.replaceSync(Markloupe.paletteCss)
+      if (palette !== 'github') root.dataset.mlPalette = palette
     }
 
     /**

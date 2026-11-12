@@ -741,6 +741,27 @@
   "paletteGraphite": {
     "message": "Graphite"
   },
+  "paletteCustom": {
+    "message": "Custom"
+  },
+  "colorBg": {
+    "message": "Background"
+  },
+  "colorFg": {
+    "message": "Text"
+  },
+  "colorAccent": {
+    "message": "Accent"
+  },
+  "colorReset": {
+    "message": "Reset colors"
+  },
+  "colorInvalid": {
+    "message": "Enter a color code such as #1e1e2e"
+  },
+  "colorLowContrast": {
+    "message": "Low contrast, hard to read (4.5:1 or more is better): $1"
+  },
   "optWebAccess": {
     "message": "Also open .md files on websites"
   },

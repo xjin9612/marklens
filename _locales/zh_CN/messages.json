@@ -741,6 +741,27 @@
   "paletteGraphite": {
     "message": "石墨"
   },
+  "paletteCustom": {
+    "message": "自定义"
+  },
+  "colorBg": {
+    "message": "背景"
+  },
+  "colorFg": {
+    "message": "文字"
+  },
+  "colorAccent": {
+    "message": "强调色"
+  },
+  "colorReset": {
+    "message": "重置颜色"
+  },
+  "colorInvalid": {
+    "message": "请输入色值，例如 #1e1e2e"
+  },
+  "colorLowContrast": {
+    "message": "对比度不足，文字不易阅读（建议 4.5:1 以上）：$1"
+  },
   "optWebAccess": {
     "message": "也在网页上的 .md 文件启用"
   },

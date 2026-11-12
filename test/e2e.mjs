@@ -1081,6 +1081,61 @@ try {
     assert.equal(await pop.locator('#custom-width-row').isVisible(), false)
     await sw.evaluate(() => Markloupe.saveSettings({ textWidth: 1200 }))
   })
+  await check('popup 自訂配色：選「自訂」才顯示；色碼可省略 #、可用簡寫；不合法時不寫入；對比不足時提醒；可重設', async () => {
+    const colors = async () => (await sw.evaluate(() => Markloupe.loadSettings())).customColors
+    const setText = async (cc, value) => {
+      await pop.fill(`input[type=text][data-cc="${cc}"]`, value)
+      await pop.press(`input[type=text][data-cc="${cc}"]`, 'Enter')
+      await pop.locator('#status').filter({ hasText: /./ }).waitFor()
+    }
+    try {
+      assert.equal(await pop.locator('#custom-colors').isVisible(), false)
+      await pop.selectOption('[name=palette]', 'custom')
+      await until(async () => (await sw.evaluate(() => Markloupe.loadSettings())).palette === 'custom')
+      assert.equal(await pop.locator('#custom-colors').isVisible(), true)
+      assert.equal(await pop.inputValue('input[type=text][data-cc="dark.bg"]'), '#0d1117', '預設值')
+
+      await setText('light.bg', '123')
+      await until(async () => (await colors()).light?.bg === '#112233')
+      await until(async () => (await pop.inputValue('input[type=color][data-cc="light.bg"]')) === '#112233') // 取色器同步
+      // 深色文字在深底上：對比不足
+      assert.equal(await pop.locator('#cc-warning').isVisible(), true)
+      assert.match(await pop.textContent('#cc-warning'), /淺色 文字 1\.\d:1/)
+
+      // 連續修改兩個顏色，前一次還沒存完：兩個修改都要留下
+      await pop.evaluate(() => {
+        for (const [cc, value] of [['dark.bg', '#101010'], ['dark.fg', '#f0f0f0']]) {
+          const el = document.querySelector(`input[type=text][data-cc="${cc}"]`)
+          el.value = value
+          el.dispatchEvent(new Event('change', { bubbles: true }))
+        }
+      })
+      await until(async () => (await colors()).dark?.fg === '#f0f0f0')
+      assert.equal((await colors()).dark.bg, '#101010')
+
+      // popup 開著時，其他分頁或同步改了另一個顏色：popup 存檔不能用舊值蓋掉
+      await sw.evaluate(() =>
+        Markloupe.loadSettings().then(s => Markloupe.saveSettings({ customColors: { ...s.customColors, dark: { ...s.customColors.dark, accent: '#ff8800' } } }))
+      )
+      await setText('dark.bg', '#121212')
+      await until(async () => (await colors()).dark?.bg === '#121212')
+      assert.equal((await colors()).dark.accent, '#ff8800')
+
+      await setText('light.bg', 'zzz')
+      assert.equal(await pop.getAttribute('input[type=text][data-cc="light.bg"]', 'aria-invalid'), 'true')
+      assert.equal((await colors()).light.bg, '#112233', '不合法時不寫入')
+
+      await pop.click('#cc-reset')
+      await until(async () => (await colors()).light.bg === '#ffffff')
+      await until(async () => (await pop.inputValue('input[type=text][data-cc="light.bg"]')) === '#ffffff')
+      assert.equal(await pop.locator('#cc-warning').isVisible(), false)
+
+      await pop.selectOption('[name=palette]', 'github')
+      assert.equal(await pop.locator('#custom-colors').isVisible(), false)
+    } finally {
+      await sw.evaluate(() => Markloupe.saveSettings({ palette: 'github', customColors: Markloupe.DEFAULTS.customColors }))
+    }
+  })
   await pop.setViewportSize({ width: 330, height: 700 })
   await pop.screenshot({ path: join(shotDir, 'ml-popup.png') })
   await pop.close()
@@ -1220,8 +1275,9 @@ try {
       await sw.evaluate(() => Markloupe.saveSettings({ theme: 'auto', palette: 'github' }))
     }
   })
-  await check('配色對比：每組配色的文字、連結、語法標示與提示框標題都至少 4.5:1', async () => {
-    const failures = await mp.evaluate(palettes => {
+  /** 逐一套用 [配色, 主題]，回傳對比不足 4.5:1 的項目；自訂配色只有設定中的主題有推算結果 */
+  const contrastFailures = (pg, combos, extraPairs = []) =>
+    pg.evaluate(([combos, extraPairs]) => {
       const root = document.documentElement
       const saved = { theme: root.dataset.mlTheme, palette: root.dataset.mlPalette }
       const rgb = hex => {
@@ -1244,20 +1300,19 @@ try {
         ...hl.map(f => [f, '--code-bg']),
         ...alerts.map(f => [f, '--bg']),
         ['--on-accent', '--accent'],
+        ...extraPairs,
       ]
       const out = []
       try {
-        for (const palette of palettes) {
-          for (const theme of ['light', 'dark']) {
-            root.dataset.mlTheme = theme
-            if (palette === 'github') delete root.dataset.mlPalette
-            else root.dataset.mlPalette = palette
-            const css = getComputedStyle(root)
-            for (const [f, b] of pairs) {
-              const [fc, bc] = [f, b].map(v => rgb(css.getPropertyValue(v).trim()))
-              if (!fc || !bc) out.push(`${palette}/${theme} ${f} 或 ${b} 不是 #rrggbb`)
-              else if (ratio(fc, bc) < 4.5) out.push(`${palette}/${theme} ${f} on ${b} = ${ratio(fc, bc).toFixed(2)}`)
-            }
+        for (const [palette, theme] of combos) {
+          root.dataset.mlTheme = theme
+          if (palette === 'github') delete root.dataset.mlPalette
+          else root.dataset.mlPalette = palette
+          const css = getComputedStyle(root)
+          for (const [f, b] of pairs) {
+            const [fc, bc] = [f, b].map(v => rgb(css.getPropertyValue(v).trim()))
+            if (!fc || !bc) out.push(`${palette}/${theme} ${f} 或 ${b} 不是 #rrggbb`)
+            else if (ratio(fc, bc) < 4.5) out.push(`${palette}/${theme} ${f} on ${b} = ${ratio(fc, bc).toFixed(2)}`)
           }
         }
       } finally {
@@ -1266,8 +1321,71 @@ try {
         else delete root.dataset.mlPalette
       }
       return out
-    }, await sw.evaluate(() => Markloupe.PALETTES))
+    }, [combos, extraPairs])
+  await check('配色對比：每組配色的文字、連結、語法標示與提示框標題都至少 4.5:1', async () => {
+    const palettes = (await sw.evaluate(() => Markloupe.PALETTES)).filter(p => p !== 'custom')
+    const failures = await contrastFailures(mp, palettes.flatMap(p => [[p, 'light'], [p, 'dark']]))
     assert.deepEqual(failures, [], failures.join('\n'))
+  })
+  await check('自訂配色：由三色推算其餘顏色並維持 4.5:1，改色時 Mermaid 重繪，不合法的色碼改用預設值', async () => {
+    const vars = names => mp.evaluate(n => n.map(v => getComputedStyle(document.documentElement).getPropertyValue(v).trim()), names)
+    const mermaidTheme = name =>
+      mp.waitForFunction(n => [...document.querySelectorAll('.ml-mermaid[data-ml-mermaid-theme]')].every(el => el.dataset.mlMermaidTheme === n), name)
+    try {
+      // 灰底上 GitHub 的語法標示與提示框色不到 4.5:1，要由推算調整
+      const gray = { bg: '#c8c8c8', fg: '#111111', accent: '#003a99' }
+      await sw.evaluate(c => Markloupe.saveSettings({ theme: 'light', palette: 'custom', customColors: { light: c } }), gray)
+      await mp.waitForFunction(() => getComputedStyle(document.body).backgroundColor === 'rgb(200, 200, 200)')
+      assert.deepEqual(await vars(['--fg', '--link']), ['#111111', '#003a99'])
+      // 自訂配色另外推算螢光標記的底色
+      assert.deepEqual(await contrastFailures(mp, [['custom', 'light']], [['--fg', '--mark']]), [])
+      await mermaidTheme('default-custom-c8c8c8-111111-003a99')
+      await sw.evaluate(() => Markloupe.saveSettings({ customColors: { light: { bg: '#c8c8c8', fg: '#111111', accent: '#7a1f00' } } }))
+      await mermaidTheme('default-custom-c8c8c8-111111-7a1f00')
+      // 深色主題沒有設定，用預設值（與 GitHub 深色相同）
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'dark' }))
+      await mp.waitForFunction(() => getComputedStyle(document.body).backgroundColor === 'rgb(13, 17, 23)')
+      assert.deepEqual(await contrastFailures(mp, [['custom', 'dark']], [['--fg', '--mark']]), [])
+      // 淺色主題用黑底白字：標記底色不能沿用主題的淡黃色
+      await sw.evaluate(() =>
+        Markloupe.saveSettings({ theme: 'light', customColors: { light: { bg: '#000000', fg: '#ffffff', accent: '#66aaff' } } })
+      )
+      await mp.waitForFunction(() => getComputedStyle(document.body).backgroundColor === 'rgb(0, 0, 0)')
+      assert.deepEqual(await contrastFailures(mp, [['custom', 'light']], [['--fg', '--mark']]), [])
+      // 文字色剛好 4.5:1：任何黃色都會讓對比不足，標記底色退回底色本身
+      await sw.evaluate(() => Markloupe.saveSettings({ customColors: { light: { bg: '#ffffff', fg: '#767676', accent: '#0550ae' } } }))
+      await mp.waitForFunction(() => getComputedStyle(document.body).color === 'rgb(118, 118, 118)')
+      assert.deepEqual(await contrastFailures(mp, [['custom', 'light']], [['--fg', '--mark']]), [])
+      // 行內程式碼的底色是半透明的，疊在白底上算對比
+      const inline = await mp.evaluate(() => {
+        const code = document.querySelector('.markdown-body').appendChild(document.createElement('code'))
+        const bg = getComputedStyle(code).backgroundColor
+        code.remove()
+        return bg.match(/[\d.]+/g).map(Number)
+      })
+      const [r, g, b, a = 1] = inline
+      const over = [r, g, b].map(v => 255 + (v - 255) * a)
+      const lum = c => c.map(v => v / 255).map(x => (x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4)).reduce((s, x, i) => s + x * [0.2126, 0.7152, 0.0722][i], 0)
+      assert.ok((lum(over) + 0.05) / (lum([118, 118, 118]) + 0.05) >= 4.5, `行內程式碼底色 ${inline}`)
+      // 推算以使用者 CSS 為基準：改了 CSS 的同一次更新就套用新值
+      const keywordRule = c => `html.markloupe[data-ml-theme="light"] { --hl-keyword: ${c}; }`
+      await sw.evaluate(css => Markloupe.saveSettings({ customColors: Markloupe.DEFAULTS.customColors, customCss: css }), keywordRule('#0000aa'))
+      await mp.waitForFunction(() => getComputedStyle(document.body).backgroundColor === 'rgb(255, 255, 255)')
+      assert.deepEqual(await vars(['--hl-keyword']), ['#0000aa'])
+      await sw.evaluate(css => Markloupe.saveSettings({ customCss: css }), keywordRule('#aa0000'))
+      await mp.waitForFunction(() => getComputedStyle(document.documentElement).getPropertyValue('--hl-keyword').trim() !== '#0000aa')
+      assert.deepEqual(await vars(['--hl-keyword']), ['#aa0000'])
+      await sw.evaluate(() => Markloupe.saveSettings({ customCss: '' }))
+      // 不合法的值不寫進樣式表
+      await sw.evaluate(() =>
+        Markloupe.saveSettings({ theme: 'light', customColors: { light: { bg: 'red; } html { display: none', fg: '#222', accent: 42 } } })
+      )
+      await mp.waitForFunction(() => getComputedStyle(document.body).backgroundColor === 'rgb(255, 255, 255)')
+      assert.deepEqual(await vars(['--fg', '--link']), ['#1f2328', '#0969da'])
+      assert.equal(await mp.evaluate(() => getComputedStyle(document.documentElement).display), 'block')
+    } finally {
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'auto', palette: 'github', customColors: Markloupe.DEFAULTS.customColors, customCss: '' }))
+    }
   })
   await check('Mermaid：切換主題後重繪', async () => {
     const before = (await sw.evaluate(() => Markloupe.loadSettings())).theme
@@ -1660,6 +1778,38 @@ try {
       assert.notEqual(await color(), 'rgb(4, 5, 6)')
     } finally {
       await sw.evaluate(() => Markloupe.saveSettings({ customCss: '' }))
+    }
+  })
+  await check('自訂 CSS：README 的調色範例覆寫 GitHub 配色的變數', async () => {
+    const bg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor)
+    try {
+      await sw.evaluate(() =>
+        Markloupe.saveSettings({ theme: 'dark', palette: 'github', customCss: 'html.markloupe[data-ml-theme="dark"] { --bg: #1e1e2e; --fg: #cdd6f4; --link: #89b4fa; }' })
+      )
+      await pageUntil(page, () => getComputedStyle(document.body).backgroundColor === 'rgb(30, 30, 46)')
+      assert.equal(await page.$eval('.markdown-body', el => getComputedStyle(el).color), 'rgb(205, 214, 244)')
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'light' }))
+      await pageUntil(page, () => document.documentElement.dataset.mlTheme === 'light')
+      assert.equal(await bg(), 'rgb(255, 255, 255)', '只覆寫深色主題')
+    } finally {
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'auto', customCss: '' }))
+    }
+  })
+  await check('匯出 HTML：自訂配色帶進匯出檔', async () => {
+    await page.bringToFront()
+    try {
+      await sw.evaluate(() =>
+        Markloupe.saveSettings({ theme: 'dark', palette: 'custom', customColors: { dark: { bg: '#1e1e2e', fg: '#cdd6f4', accent: '#89b4fa' } } })
+      )
+      await pageUntil(page, () => getComputedStyle(document.body).backgroundColor === 'rgb(30, 30, 46)')
+      const { file } = await exportFrom(page)
+      const xp = await ctx.newPage()
+      await xp.goto(pathToFileURL(file).href)
+      assert.equal(await xp.evaluate(() => getComputedStyle(document.body).backgroundColor), 'rgb(30, 30, 46)')
+      assert.equal(await xp.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--link').trim()), '#89b4fa')
+      await xp.close()
+    } finally {
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'auto', palette: 'github', customColors: Markloupe.DEFAULTS.customColors }))
     }
   })
   await check('設定同步：寫入 storage.sync、套用其他電腦的變更；關閉後兩者都停止；裝置專屬設定不同步', async () => {

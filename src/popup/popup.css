@@ -62,3 +62,13 @@ textarea { resize: vertical; }
 
 /* 鍵盤焦點：與閱讀頁一致的外框 */
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* 自訂配色：每列一種顏色，淺色與深色主題各一欄 */
+.custom-colors { display: grid; gap: 4px; padding: 6px 0 2px; }
+.cc-row { display: grid; grid-template-columns: 1fr 96px 96px; gap: 6px; align-items: center; }
+.cc-head { font-size: 12px; color: var(--muted); }
+.cc-cell { display: flex; gap: 4px; align-items: center; }
+.cc-cell input[type=color] { flex: none; width: 24px; height: 24px; padding: 0; border: 1px solid var(--border); border-radius: 4px; background: none; cursor: pointer; }
+.cc-cell input[type=text] { width: 68px; padding: 2px 4px; }
+.cc-cell input[type=text][aria-invalid=true] { border-color: var(--danger); }
+.cc-warning { color: var(--warn); }
+#cc-reset { justify-self: start; }

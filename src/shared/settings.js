@@ -9,7 +9,12 @@ Markloupe.DEFAULTS = Object.freeze({
   uiLang: 'auto', // 介面語言：auto（跟隨瀏覽器）| en | zh_TW | zh_CN
   // ----- 即時同步到所有分頁 -----
   theme: 'auto', // auto | light | dark
-  palette: 'github', // 配色：github | sepia | contrast | green | graphite
+  palette: 'github', // 配色：github | sepia | contrast | green | graphite | custom
+  // 自訂配色的三色（#rrggbb），其餘顏色由 shared/palette.js 推算；預設與 GitHub 配色相同
+  customColors: Object.freeze({
+    light: Object.freeze({ bg: '#ffffff', fg: '#1f2328', accent: '#0969da' }),
+    dark: Object.freeze({ bg: '#0d1117', fg: '#e6edf3', accent: '#4493f8' }),
+  }),
   customCss: '', // 使用者自訂的 CSS，套用在閱讀頁
   fontSize: 16,
   lineHeight: 1.7,
@@ -34,7 +39,7 @@ Markloupe.DEFAULTS = Object.freeze({
 })
 
 // 會即時同步到所有已開分頁的設定
-Markloupe.LIVE_KEYS = ['theme', 'palette', 'customCss', 'fontSize', 'lineHeight']
+Markloupe.LIVE_KEYS = ['theme', 'palette', 'customColors', 'customCss', 'fontSize', 'lineHeight']
 
 // 文字寬度循環順序（快捷鍵與工具列使用）
 Markloupe.WIDTH_PRESETS = [0, 1600, 1200, 960]
@@ -56,7 +61,7 @@ Markloupe.fontPercent = function (px) {
   return `${Math.round((px / Markloupe.DEFAULTS.fontSize) * 100)}%`
 }
 
-Markloupe.PALETTES = ['github', 'sepia', 'contrast', 'green', 'graphite']
+Markloupe.PALETTES = ['github', 'sepia', 'contrast', 'green', 'graphite', 'custom']
 
 /*
  * 跨裝置同步：開啟時（預設），SYNC_KEYS 另存一份到 chrome.storage.sync，由瀏覽器帳號同步到其他電腦。
@@ -65,7 +70,7 @@ Markloupe.PALETTES = ['github', 'sepia', 'contrast', 'green', 'graphite']
  */
 Markloupe.SYNC_FLAG_KEY = 'markloupe:sync'
 Markloupe.SYNC_KEYS = [
-  'uiLang', 'theme', 'palette', 'fontSize', 'lineHeight', 'textWidth', 'tableWidth', 'tocHidden', 'tocDepth',
+  'uiLang', 'theme', 'palette', 'customColors', 'fontSize', 'lineHeight', 'textWidth', 'tableWidth', 'tocHidden', 'tocDepth',
   'tableWrap', 'codeWrap', 'autoRefresh', 'refreshInterval', 'rememberScroll', 'linkNewTab', 'fileIgnore',
   'editor', 'taskWrite', 'mermaid', 'math',
 ]

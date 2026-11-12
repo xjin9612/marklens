@@ -170,6 +170,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     // 程式碼區塊中英對齊（fonts.js 依本機字型算出的設定）
     await Markloupe.codeFontReady
     if (Markloupe.codeFontCss) css += `\n${Markloupe.codeFontCss}`
+    if (Markloupe.paletteCss) css += `\n${Markloupe.paletteCss}`
     // 使用者自訂的 CSS 放在最後，與閱讀頁相同可覆蓋前面的樣式
     const custom = (await Markloupe.loadSettings()).customCss
     if (custom) css += `\n${custom.replace(/<\/style/gi, '<\\/style')}` // 不能提前結束 <style>
