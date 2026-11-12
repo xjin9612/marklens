@@ -1,14 +1,14 @@
 <p align="center">
-  <img src="icons/icon.svg" width="96" height="96" alt="MarkLens">
+  <img src="icons/icon.svg" width="96" height="96" alt="Markloupe">
 </p>
 
-<h1 align="center">MarkLens</h1>
+<h1 align="center">Markloupe</h1>
 
 <p align="center"><strong>A Markdown reader for Chrome and Edge, with tables you can actually use.</strong></p>
 
 <p align="center">
-  <a href="https://github.com/xjin9612/marklens/releases/latest"><img src="https://img.shields.io/github/v/release/xjin9612/marklens" alt="Latest release"></a>
-  <a href="https://github.com/xjin9612/marklens/actions/workflows/ci.yml"><img src="https://github.com/xjin9612/marklens/actions/workflows/ci.yml/badge.svg" alt="Tests"></a>
+  <a href="https://github.com/xjin9612/markloupe/releases/latest"><img src="https://img.shields.io/github/v/release/xjin9612/markloupe" alt="Latest release"></a>
+  <a href="https://github.com/xjin9612/markloupe/actions/workflows/ci.yml"><img src="https://github.com/xjin9612/markloupe/actions/workflows/ci.yml/badge.svg" alt="Tests"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
   <a href="PRIVACY.md"><img src="https://img.shields.io/badge/data%20collected-none-brightgreen" alt="No data collected"></a>
 </p>
@@ -21,11 +21,11 @@ Open any `.md` file, on your computer or on the web. Read it with an outline and
 
 ## Install
 
-MarkLens works in Chrome and Edge on Windows, macOS and Linux.
+Markloupe works in Chrome and Edge on Windows, macOS and Linux.
 
-1. Download `marklens-vX.Y.Z.zip` from the [latest release](https://github.com/xjin9612/marklens/releases/latest) and unzip it.
+1. Download `markloupe-vX.Y.Z.zip` from the [latest release](https://github.com/xjin9612/markloupe/releases/latest) and unzip it.
 2. Open `chrome://extensions` (Edge: `edge://extensions`) and turn on **Developer mode**.
-3. Click **Load unpacked** and select the unzipped `marklens-vX.Y.Z` folder.
+3. Click **Load unpacked** and select the unzipped `markloupe-vX.Y.Z` folder.
 4. A welcome page opens. For files on your computer, follow it to turn on **Allow access to file URLs**.
 5. To read `.md` files on websites, turn on **Also open .md files on websites** on the welcome page or in the popup.
 
@@ -42,7 +42,7 @@ Then drag any `.md` file into the browser, or open a `.md` link on the web. To u
 
 ### Check off tasks in your files
 
-Click a task checkbox in a local `.md` file. MarkLens saves `[ ]` / `[x]` straight back to the file, and changes only that line. Undo from the notification. If the file changed elsewhere, MarkLens refuses to write.
+Click a task checkbox in a local `.md` file. Markloupe saves `[ ]` / `[x]` straight back to the file, and changes only that line. Undo from the notification. If the file changed elsewhere, Markloupe refuses to write.
 
 ![Checking two tasks; the editor on the right shows the file change](docs/screenshots/tasks.gif)
 
@@ -68,7 +68,7 @@ The sidebar outline highlights the section you're reading. Fold any section, or 
 
 **Print / PDF** prints the whole document in light colors, with every section expanded. The margins show only a page number. **Export HTML** saves what you see as an HTML file. **Single file** embeds the images, so the file works on its own when you share it. **Link to images** keeps the file small.
 
-In a **Single file** export, links to local files keep their relative paths, and links to `.md` files point to `.html`. Export the linked documents into the same folder, and the links work between the exported files. Heading anchors match only between files that MarkLens exported. **Link to images** turns local links into absolute `file://` addresses, which work only on your computer.
+In a **Single file** export, links to local files keep their relative paths, and links to `.md` files point to `.html`. Export the linked documents into the same folder, and the links work between the exported files. Heading anchors match only between files that Markloupe exported. **Link to images** turns local links into absolute `file://` addresses, which work only on your computer.
 
 Add `lang` to the front matter (for example `lang: zh-TW`) to set the document language for the reader and the exported file.
 
@@ -113,7 +113,7 @@ Add `lang` to the front matter (for example `lang: zh-TW`) to set the document l
 
 **Sharing**
 - Print or save as PDF, with sections expanded and only page numbers in the margins
-- Export as HTML with styles, diagrams and math fonts embedded and no scripts. **Single file** also embeds the images. An image on a website is embedded only if that site allows it, or if **Also open .md files on websites** is on. Images that can't be read keep their address, and MarkLens tells you how many
+- Export as HTML with styles, diagrams and math fonts embedded and no scripts. **Single file** also embeds the images. An image on a website is embedded only if that site allows it, or if **Also open .md files on websites** is on. Images that can't be read keep their address, and Markloupe tells you how many
 - The **Copy** menu has two modes. **Copy content** copies the Markdown source with HTML formatting attached, so apps that accept formatted text keep the formatting. **Copy location** copies the path and line range, such as `D:\notes\report.md:142-168 (Causes)` on Windows or `/Users/you/notes/report.md:142-168 (Causes)` on macOS, so you can point an AI tool at the exact lines
 - **Copy** in the toolbar works on the whole document; the copy button next to a heading works on that section
 - Select text to copy its Markdown source or its location
@@ -143,7 +143,7 @@ Browser-wide, changeable at `chrome://extensions/shortcuts`:
 
 ## Settings
 
-Open the MarkLens icon in the toolbar for all settings.
+Open the Markloupe icon in the toolbar for all settings.
 
 - **Theme, colors, custom CSS, font size and line height** apply to every open tab right away.
 - **Sidebar, its width, and text width** apply to the current tab only, so you can compare documents side by side. They're kept when you reload or open another file in the same tab.
@@ -151,38 +151,38 @@ Open the MarkLens icon in the toolbar for all settings.
 
 ## Privacy and security
 
-MarkLens collects no data and sends none of it anywhere; its only network request is reloading the document you opened. At install it asks only for `storage` (your settings) and `scripting` (to register its scripts for websites); access to websites is up to you. It runs no remote code: every library is packaged inside the extension. HTML inside documents is filtered, and a test suite of 60+ attack samples checks that none of them can run code. Details: [privacy policy](PRIVACY.md), [security design](docs/DEVELOPMENT.md#安全設計) (in Traditional Chinese). Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
+Markloupe collects no data and sends none of it anywhere; its only network request is reloading the document you opened. At install it asks only for `storage` (your settings) and `scripting` (to register its scripts for websites); access to websites is up to you. It runs no remote code: every library is packaged inside the extension. HTML inside documents is filtered, and a test suite of 60+ attack samples checks that none of them can run code. Details: [privacy policy](PRIVACY.md), [security design](docs/DEVELOPMENT.md#安全設計) (in Traditional Chinese). Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
 
 ## FAQ
 
 **A `.md` file on a website shows as plain text.**<br>
-MarkLens doesn't ask for access to websites when installed. Turn on **Also open .md files on websites** in the popup, then reload the page.
+Markloupe doesn't ask for access to websites when installed. Turn on **Also open .md files on websites** in the popup, then reload the page.
 
-**When I turn on the website option, Chrome says MarkLens can "read and change your data on all websites". Why?**<br>
-MarkLens only runs on addresses that end in `.md`, `.markdown`, `.mkd` or `.mdx`. Chrome's permission prompt ignores the part of the address after the site name, so it shows all websites. To limit it, open the extension's **Details** page and set **Site access** to *On specific sites*. Local files are not affected.
+**When I turn on the website option, Chrome says Markloupe can "read and change your data on all websites". Why?**<br>
+Markloupe only runs on addresses that end in `.md`, `.markdown`, `.mkd` or `.mdx`. Chrome's permission prompt ignores the part of the address after the site name, so it shows all websites. To limit it, open the extension's **Details** page and set **Site access** to *On specific sites*. Local files are not affected.
 
 **A local `.md` file shows as plain text.**<br>
-Turn on **Allow access to file URLs** on the extension's **Details** page, then reload the file. The welcome page (MarkLens icon → **Help**) walks you through it.
+Turn on **Allow access to file URLs** on the extension's **Details** page, then reload the file. The welcome page (Markloupe icon → **Help**) walks you through it.
 
 **Checking a box asks for folder access.**<br>
-The first time, pick a top-level folder such as `D:\Projects` or `~/Projects`. Every `.md` under it becomes writable. After a restart, Chrome asks again unless you chose **Allow on every visit**. Manage folders from the MarkLens icon → **Manage folders**. Files that aren't UTF-8 (such as Big5) display normally, but their checkboxes are read-only.
+The first time, pick a top-level folder such as `D:\Projects` or `~/Projects`. Every `.md` under it becomes writable. After a restart, Chrome asks again unless you chose **Allow on every visit**. Manage folders from the Markloupe icon → **Manage folders**. Files that aren't UTF-8 (such as Big5) display normally, but their checkboxes are read-only.
 
 **Files on WSL or a network share: the Files tab says it isn't supported.**<br>
 Chrome doesn't let extensions read files whose address has a host name, such as `file://wsl.localhost/…` or `file://server/share/…`. The document displays normally, but the Files tab, auto-reload and saving checked tasks don't work there. To use them, keep the file on a local drive, for example under `D:\` or in your home folder.
 
 **Text diagrams in code blocks don't line up perfectly.**<br>
-MarkLens scales the system font so Chinese, Japanese and Korean characters are exactly two columns wide. That makes them look slightly larger. For the best result, install [Sarasa Gothic](https://github.com/be5invis/Sarasa-Gothic):
+Markloupe scales the system font so Chinese, Japanese and Korean characters are exactly two columns wide. That makes them look slightly larger. For the best result, install [Sarasa Gothic](https://github.com/be5invis/Sarasa-Gothic):
 
 1. From its releases, download **Single Family TTF Package → Mono**.
 2. Install `SarasaMonoTC-Regular`, `-Bold` and `-Italic`.
-3. Open `chrome://restart` to restart Chrome. MarkLens uses the font automatically.
+3. Open `chrome://restart` to restart Chrome. Markloupe uses the font automatically.
 
 **Search with Ctrl+F doesn't find text in folded sections of a very large file.**<br>
-In documents with more than 3,000 top-level blocks (around 400 KB), MarkLens hides folded sections in a faster way. Ctrl+F can't see them. Unfold them first (`]`).
+In documents with more than 3,000 top-level blocks (around 400 KB), Markloupe hides folded sections in a faster way. Ctrl+F can't see them. Unfold them first (`]`).
 
 ## Contributing
 
-Bug reports and ideas are welcome in [issues](https://github.com/xjin9612/marklens/issues). Development docs (in Traditional Chinese): [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+Bug reports and ideas are welcome in [issues](https://github.com/xjin9612/markloupe/issues). Development docs (in Traditional Chinese): [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## License
 

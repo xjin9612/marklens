@@ -1,7 +1,7 @@
 'use strict'
 // 介面線條圖示：16×16、線寬 1.5、跟隨文字顏色（樣式在 shared/tokens.css 的 .ml-icon）
 // 用 SVG 而不是 emoji 或 Unicode 符號：各系統字型不同，符號的大小、粗細與基線都對不齊
-var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
+var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
 
 ;(() => {
   const NS = 'http://www.w3.org/2000/svg'
@@ -41,7 +41,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   }
 
   /** 建立圖示；裝飾用，螢幕閱讀器略過（按鈕的名稱由旁邊的文字或 aria-label 提供） */
-  MarkLens.icon = function (name) {
+  Markloupe.icon = function (name) {
     const svg = document.createElementNS(NS, 'svg')
     svg.setAttribute('viewBox', '0 0 16 16')
     svg.setAttribute('class', `ml-icon ml-icon-${name}`)

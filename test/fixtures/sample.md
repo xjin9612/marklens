@@ -1,9 +1,9 @@
 ---
-title: MarkLens 測試文件
+title: Markloupe 測試文件
 tags: [markdown, test]
 ---
 
-# MarkLens 功能測試
+# Markloupe 功能測試
 
 這是一段中文段落，用來確認 UTF-8 解碼正確。==螢光標記==、**粗體**、~~刪除線~~、`inline code`、自動連結 https://example.com。
 

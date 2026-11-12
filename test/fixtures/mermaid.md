@@ -11,8 +11,8 @@ flowchart LR
 
 ```mermaid
 sequenceDiagram
-  瀏覽器->>MarkLens: 開啟 .md
-  MarkLens-->>瀏覽器: 渲染完成
+  瀏覽器->>Markloupe: 開啟 .md
+  Markloupe-->>瀏覽器: 渲染完成
 ```
 
 ```mermaid

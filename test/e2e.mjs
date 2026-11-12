@@ -172,7 +172,7 @@ try {
     const isWelcome = p => p.url().endsWith('/src/welcome/welcome.html')
     const wp = ctx.pages().find(isWelcome) || (await ctx.waitForEvent('page', { predicate: isWelcome, timeout: 5000 }))
     await wp.waitForSelector('#file-status[data-state="ok"]')
-    assert.ok((await wp.textContent('#version')).startsWith('MarkLens '))
+    assert.ok((await wp.textContent('#version')).startsWith('Markloupe '))
     assert.equal(await wp.locator('#open-details').isVisible(), false, '已開啟時隱藏設定按鈕')
     await wp.setViewportSize({ width: 1000, height: 1400 })
     await wp.screenshot({ path: join(shotDir, 'ml-welcome.png'), fullPage: true })
@@ -205,7 +205,7 @@ try {
 
   /* ---------- 渲染 ---------- */
   await check('file:// 渲染且標題正確', async () => {
-    assert.equal(await page.title(), 'MarkLens 功能測試')
+    assert.equal(await page.title(), 'Markloupe 功能測試')
   })
   await check('UTF-8 中文正確', async () => {
     assert.ok((await page.textContent('.markdown-body p')).includes('這是一段中文段落'))
@@ -217,7 +217,7 @@ try {
   await check('front matter 顯示為預設收合的區塊', async () => {
     assert.equal(await page.$eval('.ml-frontmatter', el => el.tagName), 'DETAILS')
     assert.equal(await page.$eval('.ml-frontmatter', el => el.open), false, '預設收合')
-    assert.ok((await page.textContent('.ml-frontmatter pre')).includes('title: MarkLens 測試文件'))
+    assert.ok((await page.textContent('.ml-frontmatter pre')).includes('title: Markloupe 測試文件'))
   })
   await check('刪除線與表格對齊', async () => {
     assert.equal(await page.textContent('.markdown-body s'), '刪除線')
@@ -288,7 +288,7 @@ try {
     const ids = await page.$$eval('.markdown-body h2', els => els.map(e => e.id))
     assert.ok(ids.includes('重複標題') && ids.includes('重複標題-1'), ids.join(','))
     const first = await page.textContent('.ml-toc-list li a')
-    assert.equal(first, 'MarkLens 功能測試')
+    assert.equal(first, 'Markloupe 功能測試')
   })
 
   /* ---------- 版面：文字欄與寬表格 ---------- */
@@ -389,7 +389,7 @@ try {
   /* ---------- 自動更新保留狀態 ---------- */
   await check('自動更新後保留表格排序、欄寬、篩選', async () => {
     const width = (await th(4).boundingBox()).width
-    writeFileSync(localMd, readFileSync(fixture, 'utf8').replace('# MarkLens 功能測試', '# 已更新的標題'))
+    writeFileSync(localMd, readFileSync(fixture, 'utf8').replace('# Markloupe 功能測試', '# 已更新的標題'))
     await pageUntil(page, () => document.title === '已更新的標題', 4000)
     assert.equal(await th(3).getAttribute('aria-sort'), 'ascending')
     assert.equal(await page.inputValue('.ml-table-filter'), '櫻')
@@ -418,7 +418,7 @@ try {
         window.mlTitles = []
         new MutationObserver(() => window.mlTitles.push(document.title)).observe(document.head, { childList: true, characterData: true, subtree: true })
       })
-      writeFileSync(localMd, readFileSync(fixture, 'utf8').replace('# MarkLens 功能測試', '# 寫入中途的標題'))
+      writeFileSync(localMd, readFileSync(fixture, 'utf8').replace('# Markloupe 功能測試', '# 寫入中途的標題'))
       await pageUntil(page, () => document.title === '寫入中途的標題', 8000)
       assert.equal(await sw.evaluate(() => self.mlEmptyReads), 3, '空內容應在寫入後被讀到')
       // 空白文件沒有 H1，標題會退回檔名
@@ -675,7 +675,7 @@ try {
   })
   await check('收合目錄只影響目前分頁（不寫入全域設定）', async () => {
     assert.equal(await visible(page2, '.ml-toc'), true)
-    assert.equal((await sw.evaluate(() => MarkLens.loadSettings())).tocHidden, false, '全域預設值不應改變')
+    assert.equal((await sw.evaluate(() => Markloupe.loadSettings())).tocHidden, false, '全域預設值不應改變')
   })
   await check('分頁狀態重新整理後保留', async () => {
     await page.reload()
@@ -689,7 +689,7 @@ try {
     await page.click('.ml-menu-item:has-text("960 px")')
     assert.equal(await page.textContent('.ml-tool-width'), '寬度：960')
     assert.equal(await page2.textContent('.ml-tool-width'), '寬度：1200')
-    assert.equal((await sw.evaluate(() => MarkLens.loadSettings())).textWidth, 1200, '全域預設值不應改變')
+    assert.equal((await sw.evaluate(() => Markloupe.loadSettings())).textWidth, 1200, '全域預設值不應改變')
     await page.keyboard.press('w')
     assert.equal(await page.textContent('.ml-tool-width'), '寬度：滿版')
     await pageUntil(page, () => document.querySelector('.ml-toast.show')?.textContent === '寬度：滿版')
@@ -724,7 +724,7 @@ try {
     await page.mouse.click(600, 500)
     assert.equal(await page.locator('.ml-menu').count(), 0)
     // popup 設定的自訂寬度（不在預設選項中）列在最後並打勾
-    await sw.evaluate(() => MarkLens.saveSettings({ textWidth: 1400 }))
+    await sw.evaluate(() => Markloupe.saveSettings({ textWidth: 1400 }))
     const cp = await openDoc()
     try {
       await cp.click('.ml-tool-width')
@@ -732,11 +732,11 @@ try {
       assert.deepEqual(last, ['自訂：1400 px', 'true'])
     } finally {
       await cp.close()
-      await sw.evaluate(() => MarkLens.saveSettings({ textWidth: 1200 }))
+      await sw.evaluate(() => Markloupe.saveSettings({ textWidth: 1200 }))
     }
   })
   await check('主題即時同步所有分頁；版面設定不推送', async () => {
-    await sw.evaluate(() => MarkLens.saveSettings({ theme: 'dark', textWidth: 960, tocHidden: true }))
+    await sw.evaluate(() => Markloupe.saveSettings({ theme: 'dark', textWidth: 960, tocHidden: true }))
     await pageUntil(page2, () => document.documentElement.dataset.mlTheme === 'dark', 3000)
     await pageUntil(page, () => document.documentElement.dataset.mlTheme === 'dark')
     assert.equal(await page2.textContent('.ml-tool-width'), '寬度：1200')
@@ -749,7 +749,7 @@ try {
     await p3.screenshot({ path: join(shotDir, 'ml-dark.png') })
     await p3.close()
   })
-  await sw.evaluate(() => MarkLens.saveSettings({ theme: 'auto', textWidth: 1200, tocHidden: false }))
+  await sw.evaluate(() => Markloupe.saveSettings({ theme: 'auto', textWidth: 1200, tocHidden: false }))
 
   await check('字體大小：工具列選單與 +／-／0 鍵等比縮放整篇文件，所有分頁同步', async () => {
     const sizes = p =>
@@ -757,7 +757,7 @@ try {
         const px = sel => getComputedStyle(document.querySelector(`.markdown-body ${sel}`)).fontSize
         return { p: px('p'), h1: px('h1'), pre: px('.ml-code pre'), fm: px('.ml-frontmatter pre'), td: px('td') }
       })
-    const fontSize = async () => (await sw.evaluate(() => MarkLens.loadSettings())).fontSize
+    const fontSize = async () => (await sw.evaluate(() => Markloupe.loadSettings())).fontSize
     try {
       assert.deepEqual(await sizes(page), { p: '16px', h1: '32px', pre: '13.6px', fm: '13.6px', td: '16px' })
       assert.equal(await page.textContent('.ml-tool-font'), '字級：100%')
@@ -788,14 +788,14 @@ try {
       for (let i = 0; i < 20 && (await fontSize()) !== 16; i++) await page.waitForTimeout(50)
       assert.equal(await fontSize(), 16)
       // popup 設定的自訂大小（不在預設選項中）列在最後並打勾
-      await sw.evaluate(() => MarkLens.saveSettings({ fontSize: 17 }))
+      await sw.evaluate(() => Markloupe.saveSettings({ fontSize: 17 }))
       await pageUntil(page, () => document.querySelector('.ml-tool-font').textContent === '字級：106%')
       await btn.click()
       const last = await page.$$eval('.ml-menu [role="menuitemradio"]', els => els.map(e => [e.textContent, e.getAttribute('aria-checked')]).at(-1))
       assert.deepEqual(last, ['自訂：17 px', 'true'])
       await page.keyboard.press('Escape')
     } finally {
-      await sw.evaluate(() => MarkLens.saveSettings({ fontSize: 16 }))
+      await sw.evaluate(() => Markloupe.saveSettings({ fontSize: 16 }))
     }
   })
 
@@ -811,10 +811,10 @@ try {
     await pageUntil(page, () => !document.documentElement.classList.contains('ml-raw'))
     await sw.evaluate(tid => onCommand('cycle-theme', { id: tid }), id)
     try {
-      assert.equal((await sw.evaluate(() => MarkLens.loadSettings())).theme, 'light')
+      assert.equal((await sw.evaluate(() => Markloupe.loadSettings())).theme, 'light')
       await pageUntil(page2, () => document.documentElement.dataset.mlTheme === 'light', 3000)
     } finally {
-      await sw.evaluate(() => MarkLens.saveSettings({ theme: 'auto' }))
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'auto' }))
     }
   })
 
@@ -889,14 +889,14 @@ try {
     }
     const up = await sw.evaluate(([u, rt]) => HANDLERS['list-dir']({ root: rt, path: ['sub'] }, { url: u }), [deepUrl, navDir])
     assert.deepEqual(up.files.map(f => f.name), ['inner.md'])
-    await sw.evaluate(() => MarkLens.saveSettings({ fileIgnore: 'sub, *.md' }))
+    await sw.evaluate(() => Markloupe.saveSettings({ fileIgnore: 'sub, *.md' }))
     const ip = await openDoc(pathToFileURL(join(work, 'nav', '1-a.md')).href)
     await ip.click('.ml-side-tab:text("檔案")')
     await ip.waitForSelector('.ml-files-dir')
     const rows = await ip.locator('.ml-files-list > li').evaluateAll(lis => lis.map(li => li.textContent.trim()))
     assert.deepEqual(rows, ['.git', 'empty', 'node_modules'])
     await ip.close()
-    await sw.evaluate(d => MarkLens.saveSettings({ fileIgnore: d }), '.*, node_modules, target, dist, build')
+    await sw.evaluate(d => Markloupe.saveSettings({ fileIgnore: d }), '.*, node_modules, target, dist, build')
   })
   await check('檔案分頁：點進子資料夾的檔案後起點不變，可再點回上層；「上一層」可往上一層', async () => {
     const np = await openDoc(pathToFileURL(join(work, 'nav', '1-a.md')).href)
@@ -935,7 +935,7 @@ try {
   await check('用編輯器開啟：預設不顯示；選 VS Code 後跳到目前章節的行號；自訂網址不能用網頁協定', async () => {
     assert.equal(await page.locator('.ml-tool-edit').isVisible(), false)
     try {
-    await sw.evaluate(() => MarkLens.saveSettings({ editor: 'vscode' }))
+    await sw.evaluate(() => Markloupe.saveSettings({ editor: 'vscode' }))
     const ep = await openDoc()
     await ep.click('.ml-toc-list a:text("程式碼")')
     await ep.waitForFunction(() => document.querySelector('.ml-toc-list li.active')?.textContent === '程式碼')
@@ -949,14 +949,14 @@ try {
     // 沒有安裝 VS Code 的 Windows 會記一筆 scheme 沒有註冊處理程式的錯誤；Linux 不會
     errors.splice(before, Infinity, ...errors.slice(before).filter(e => !e.includes('does not have a registered handler')))
     // 檔名中的 # ? 要編碼，磁碟代號的冒號保留
-    const special = await sw.evaluate(() => MarkLens.editorUrl({ editor: 'vscode' }, 'file:///D:/a%20b/c%23d%3F.md', 3))
+    const special = await sw.evaluate(() => Markloupe.editorUrl({ editor: 'vscode' }, 'file:///D:/a%20b/c%23d%3F.md', 3))
     assert.equal(special, 'vscode://file/D:/a%20b/c%23d%3F.md:3')
-    await sw.evaluate(() => MarkLens.saveSettings({ editor: 'custom', editorUrl: 'javascript:alert("{path}")' }))
+    await sw.evaluate(() => Markloupe.saveSettings({ editor: 'custom', editorUrl: 'javascript:alert("{path}")' }))
     const bp = await openDoc()
     assert.equal(await bp.locator('.ml-tool-edit').isVisible(), false, '不合法的網址不顯示按鈕')
     await bp.close()
     } finally {
-      await sw.evaluate(() => MarkLens.saveSettings({ editor: 'none', editorUrl: '' }))
+      await sw.evaluate(() => Markloupe.saveSettings({ editor: 'none', editorUrl: '' }))
     }
   })
   await check('剛好放得下的小表格不出現水平捲軸（各種文字欄寬度）', async () => {
@@ -980,14 +980,14 @@ try {
     assert.equal(await p4.locator('.ml-side-tab:text("檔案")').isVisible(), false, '網路上的頁面沒有檔案分頁')
     assert.equal(await p4.locator('input.ml-task-box').first().getAttribute('data-ml-readonly'), 'taskReadonlyRemote')
   })
-  await check('網頁上的分頁狀態不寫進網站的儲存空間（網站無法藉此偵測 MarkLens）', async () => {
+  await check('網頁上的分頁狀態不寫進網站的儲存空間（網站無法藉此偵測 Markloupe）', async () => {
     await p4.bringToFront()
     await p4.locator('.ml-body').click({ position: { x: 5, y: 5 } })
     const before = await p4.textContent('.ml-tool-width')
     await p4.keyboard.press('w')
     assert.notEqual(await p4.textContent('.ml-tool-width'), before, '寬度仍可在本頁切換')
     const keys = await p4.evaluate(() => [...Object.keys(sessionStorage), ...Object.keys(localStorage)])
-    assert.deepEqual(keys.filter(k => k.startsWith('marklens')), [])
+    assert.deepEqual(keys.filter(k => k.startsWith('markloupe')), [])
     await p4.reload()
     await p4.waitForSelector('#ml-root .markdown-body h1')
     assert.equal(await p4.textContent('.ml-tool-width'), before, '重新整理後回到預設值')
@@ -1045,24 +1045,24 @@ try {
     } finally {
       await sp2.close()
     }
-    await sw.evaluate(() => MarkLens.saveSettings({ rememberScroll: false }))
+    await sw.evaluate(() => Markloupe.saveSettings({ rememberScroll: false }))
     try {
       const sp3 = await openDoc()
       await sp3.waitForTimeout(500)
       assert.equal(await sp3.evaluate(() => scrollY), 0)
       await sp3.close()
     } finally {
-      await sw.evaluate(() => MarkLens.saveSettings({ rememberScroll: true }))
+      await sw.evaluate(() => Markloupe.saveSettings({ rememberScroll: true }))
     }
   })
   await check('關閉「外部連結開新分頁」後連結維持原樣', async () => {
-    await sw.evaluate(() => MarkLens.saveSettings({ linkNewTab: false }))
+    await sw.evaluate(() => Markloupe.saveSettings({ linkNewTab: false }))
     try {
       const lp = await openDoc()
       assert.equal(await lp.locator('.markdown-body a[target]').count(), 0)
       await lp.close()
     } finally {
-      await sw.evaluate(() => MarkLens.saveSettings({ linkNewTab: true }))
+      await sw.evaluate(() => Markloupe.saveSettings({ linkNewTab: true }))
     }
   })
 
@@ -1077,9 +1077,9 @@ try {
   await pop.goto(`chrome-extension://${extId}/src/popup/popup.html`)
   await check('popup 載入並寫入設定', async () => {
     await pop.selectOption('[name=textWidth]', '1600')
-    await until(async () => (await sw.evaluate(() => MarkLens.loadSettings())).textWidth === 1600)
+    await until(async () => (await sw.evaluate(() => Markloupe.loadSettings())).textWidth === 1600)
     assert.equal(await pop.locator('#custom-width-row').isVisible(), false)
-    await sw.evaluate(() => MarkLens.saveSettings({ textWidth: 1200 }))
+    await sw.evaluate(() => Markloupe.saveSettings({ textWidth: 1200 }))
   })
   await pop.setViewportSize({ width: 330, height: 700 })
   await pop.screenshot({ path: join(shotDir, 'ml-popup.png') })
@@ -1135,13 +1135,13 @@ try {
   await check('Mermaid：圖表跟著字體大小等比縮放', async () => {
     const width = () => mp.evaluate(() => document.querySelector('.ml-mermaid-view svg').getBoundingClientRect().width)
     const before = await width()
-    await sw.evaluate(() => MarkLens.saveSettings({ fontSize: 20 }))
+    await sw.evaluate(() => Markloupe.saveSettings({ fontSize: 20 }))
     try {
       await mp.waitForFunction(() => document.documentElement.style.getPropertyValue('--ml-scale') === '1.25')
       const ratio = (await width()) / before
       assert.ok(Math.abs(ratio - 1.25) < 0.02, `圖表寬度比例 ${ratio}`)
     } finally {
-      await sw.evaluate(() => MarkLens.saveSettings({ fontSize: 16 }))
+      await sw.evaluate(() => Markloupe.saveSettings({ fontSize: 16 }))
       await mp.waitForFunction(() => document.documentElement.style.getPropertyValue('--ml-scale') === '1')
     }
   })
@@ -1194,34 +1194,34 @@ try {
   await check('配色：米色與高對比套用到閱讀頁，Mermaid 依配色重繪，GitHub 不設屬性', async () => {
     const bg = () => mp.evaluate(() => getComputedStyle(document.body).backgroundColor)
     try {
-      await sw.evaluate(() => MarkLens.saveSettings({ theme: 'light', palette: 'sepia' }))
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'light', palette: 'sepia' }))
       await mp.waitForFunction(() => document.documentElement.dataset.mlPalette === 'sepia')
       assert.equal(await bg(), 'rgb(246, 239, 227)')
       await mp.waitForFunction(() => [...document.querySelectorAll('.ml-mermaid[data-ml-mermaid-theme]')].every(el => el.dataset.mlMermaidTheme === 'default-sepia'))
-      await sw.evaluate(() => MarkLens.saveSettings({ theme: 'dark', palette: 'contrast' }))
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'dark', palette: 'contrast' }))
       await mp.waitForFunction(() => document.documentElement.dataset.mlPalette === 'contrast' && document.documentElement.dataset.mlTheme === 'dark')
       assert.equal(await bg(), 'rgb(0, 0, 0)')
-      await sw.evaluate(() => MarkLens.saveSettings({ palette: 'github' }))
+      await sw.evaluate(() => Markloupe.saveSettings({ palette: 'github' }))
       await mp.waitForFunction(() => !('mlPalette' in document.documentElement.dataset))
     } finally {
-      await sw.evaluate(() => MarkLens.saveSettings({ theme: 'auto', palette: 'github' }))
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'auto', palette: 'github' }))
     }
   })
   await check('Mermaid：切換主題後重繪', async () => {
-    const before = (await sw.evaluate(() => MarkLens.loadSettings())).theme
-    await sw.evaluate(() => MarkLens.saveSettings({ theme: 'dark' }))
+    const before = (await sw.evaluate(() => Markloupe.loadSettings())).theme
+    await sw.evaluate(() => Markloupe.saveSettings({ theme: 'dark' }))
     await mp.waitForFunction(() => [...document.querySelectorAll('.ml-mermaid[data-ml-mermaid-theme]')].every(el => el.dataset.mlMermaidTheme === 'dark'))
     assert.deepEqual(await mermaidThemes(), ['dark', 'dark', 'none'])
-    await sw.evaluate(t => MarkLens.saveSettings({ theme: t }), before)
+    await sw.evaluate(t => Markloupe.saveSettings({ theme: t }), before)
     await mp.waitForFunction(() => document.querySelector('.ml-mermaid').dataset.mlMermaidTheme !== 'dark')
   })
   await check('列印：深色主題改用淺色（Ctrl+P 與列印按鈕），圖表以淺色重繪，結束後還原', async () => {
-    const before = (await sw.evaluate(() => MarkLens.loadSettings())).theme
+    const before = (await sw.evaluate(() => Markloupe.loadSettings())).theme
     const themeIs = t => mp.waitForFunction(t => document.documentElement.dataset.mlTheme === t, t)
     // Mermaid 的淺色主題叫 default
     const mermaidIs = t => mp.waitForFunction(t => [...document.querySelectorAll('.ml-mermaid[data-ml-mermaid-theme]')].every(el => el.dataset.mlMermaidTheme === t), t)
     try {
-      await sw.evaluate(() => MarkLens.saveSettings({ theme: 'dark' }))
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'dark' }))
       await mermaidIs('dark')
       // Ctrl+P：瀏覽器在開啟對話框前送出 beforeprint，關閉後送出 afterprint
       await mp.evaluate(() => dispatchEvent(new Event('beforeprint')))
@@ -1234,15 +1234,15 @@ try {
       await mp.click('.ml-tool-print')
       await themeIs('dark')
       await mp.waitForFunction(() => !document.querySelector('.ml-tool-print').disabled)
-      assert.equal(await mp.evaluate(() => localStorage.getItem('marklens:theme')), 'dark', '等待畫面記住的仍是深色')
+      assert.equal(await mp.evaluate(() => localStorage.getItem('markloupe:theme')), 'dark', '等待畫面記住的仍是深色')
     } finally {
-      await sw.evaluate(t => MarkLens.saveSettings({ theme: t }), before)
+      await sw.evaluate(t => Markloupe.saveSettings({ theme: t }), before)
     }
   })
   await check('工具列主題按鈕與 d 鍵：自動 → 淺色 → 深色，圖表跟著重繪', async () => {
-    const theme = () => sw.evaluate(async () => (await MarkLens.loadSettings()).theme)
+    const theme = () => sw.evaluate(async () => (await Markloupe.loadSettings()).theme)
     const before = await theme()
-    await sw.evaluate(() => MarkLens.saveSettings({ theme: 'auto' }))
+    await sw.evaluate(() => Markloupe.saveSettings({ theme: 'auto' }))
     await mp.waitForFunction(() => document.querySelector('.ml-tool-theme').textContent.includes('自動'))
     await mp.click('.ml-tool-theme')
     assert.deepEqual(
@@ -1257,12 +1257,12 @@ try {
     await mp.waitForFunction(() => document.querySelector('.ml-tool-theme').textContent.includes('深色'))
     assert.equal(await theme(), 'dark')
     await mp.waitForFunction(() => document.querySelector('.ml-mermaid').dataset.mlMermaidTheme === 'dark')
-    await sw.evaluate(t => MarkLens.saveSettings({ theme: t }), before)
+    await sw.evaluate(t => Markloupe.saveSettings({ theme: t }), before)
   })
   await check('連按 d 與 =：每一次都切換一級，畫面不會被前一次寫入的通知蓋回去', async () => {
-    const before = await sw.evaluate(() => MarkLens.loadSettings())
+    const before = await sw.evaluate(() => Markloupe.loadSettings())
     try {
-      await sw.evaluate(() => MarkLens.saveSettings({ theme: 'auto', fontSize: 16 }))
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'auto', fontSize: 16 }))
       await mp.waitForFunction(
         () => document.querySelector('.ml-tool-theme').textContent.includes('自動') && document.querySelector('.ml-tool-font').textContent === '字級：100%',
       )
@@ -1273,20 +1273,20 @@ try {
         new MutationObserver(record).observe(document.querySelector('.ml-toolbar'), { subtree: true, childList: true, characterData: true })
         for (const key of ['d', 'd', '=', '=']) document.body.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
       })
-      const font = await sw.evaluate(() => MarkLens.stepFontSize(MarkLens.stepFontSize(16, 1), 1))
-      const label = `字級：${await sw.evaluate(px => MarkLens.fontPercent(px), font)}`
+      const font = await sw.evaluate(() => Markloupe.stepFontSize(Markloupe.stepFontSize(16, 1), 1))
+      const label = `字級：${await sw.evaluate(px => Markloupe.fontPercent(px), font)}`
       await until(async () => {
-        const s = await sw.evaluate(() => MarkLens.loadSettings())
+        const s = await sw.evaluate(() => Markloupe.loadSettings())
         return s.theme === 'dark' && s.fontSize === font
       })
       // 通知依寫入順序送達：背景程式再寫一個哨兵值，頁面套用它時，前面的通知都已處理
-      await sw.evaluate(() => MarkLens.saveSettings({ lineHeight: 1.71 }))
+      await sw.evaluate(() => Markloupe.saveSettings({ lineHeight: 1.71 }))
       await pageUntil(mp, () => document.documentElement.style.getPropertyValue('--ml-line-height') === '1.71', 3000)
       // 四次按鍵在同一個工作內，觀察者只看到最後的畫面；之後的通知不能讓它變動
       const seen = (await mp.evaluate(() => window.mlSeen)).filter((v, i, all) => v !== all[i - 1])
       assert.deepEqual(seen, [`主題：深色｜${label}`])
     } finally {
-      await sw.evaluate(s => MarkLens.saveSettings({ theme: s.theme, fontSize: s.fontSize, lineHeight: s.lineHeight }), before)
+      await sw.evaluate(s => Markloupe.saveSettings({ theme: s.theme, fontSize: s.fontSize, lineHeight: s.lineHeight }), before)
     }
   })
   await check('Mermaid：自動更新時沿用已繪製的圖，不閃爍', async () => {
@@ -1329,7 +1329,7 @@ try {
     }
   })
   await check('Mermaid：關閉設定後不繪製', async () => {
-    await sw.evaluate(() => MarkLens.saveSettings({ mermaid: false }))
+    await sw.evaluate(() => Markloupe.saveSettings({ mermaid: false }))
     try {
       const op = await openDoc(pathToFileURL(localMermaid).href)
       await op.waitForTimeout(500)
@@ -1337,7 +1337,7 @@ try {
       assert.equal(await op.locator('code.language-mermaid').count(), 3, '保留程式碼')
       await op.close()
     } finally {
-      await sw.evaluate(() => MarkLens.saveSettings({ mermaid: true }))
+      await sw.evaluate(() => Markloupe.saveSettings({ mermaid: true }))
     }
   })
 
@@ -1416,7 +1416,7 @@ try {
     assert.equal(await checked(xp), await checked(page), '勾選狀態')
     // 程式碼中英對齊的字型設定一併寫入（本機有中文字型、未裝更紗黑體時才會有）
     const codeFont = await page.evaluate(() => JSON.parse(document.documentElement.dataset.mlCodeFont || '{}'))
-    if (codeFont.loaded) assert.ok(html.includes('font-family: "MarkLens CJK Mono"; src: local('), '應含程式碼對齊字型')
+    if (codeFont.loaded) assert.ok(html.includes('font-family: "Markloupe CJK Mono"; src: local('), '應含程式碼對齊字型')
     else assert.ok(codeFont.skipped, `沒有寫入對齊字型時應記錄原因：${JSON.stringify(codeFont)}`)
     assert.deepEqual(xerr, [])
     await xp.close()
@@ -1582,9 +1582,9 @@ try {
     await page.bringToFront()
     const color = () => page.$eval('.markdown-body h1', el => getComputedStyle(el).color)
     try {
-      await sw.evaluate(() => MarkLens.saveSettings({ customCss: '.markdown-body h1 { color: rgb(1, 2, 3) }' }))
+      await sw.evaluate(() => Markloupe.saveSettings({ customCss: '.markdown-body h1 { color: rgb(1, 2, 3) }' }))
       await pageUntil(page, () => getComputedStyle(document.querySelector('.markdown-body h1')).color === 'rgb(1, 2, 3)')
-      await sw.evaluate(() => MarkLens.saveSettings({ customCss: '.markdown-body h1 { color: rgb(4, 5, 6) } </style><b id="ml-injected">x</b>' }))
+      await sw.evaluate(() => Markloupe.saveSettings({ customCss: '.markdown-body h1 { color: rgb(4, 5, 6) } </style><b id="ml-injected">x</b>' }))
       await pageUntil(page, () => getComputedStyle(document.querySelector('.markdown-body h1')).color === 'rgb(4, 5, 6)')
       const { html, file } = await exportFrom(page)
       assert.ok(html.includes('color: rgb(4, 5, 6)'), '匯出檔含自訂 CSS')
@@ -1593,55 +1593,110 @@ try {
       assert.equal(await xp.locator('#ml-injected').count(), 0, '自訂 CSS 不能跳出 <style> 產生元素')
       assert.equal(await xp.$eval('.markdown-body h1', el => getComputedStyle(el).color), 'rgb(4, 5, 6)', '匯出檔套用自訂 CSS')
       await xp.close()
-      await sw.evaluate(() => MarkLens.saveSettings({ customCss: '' }))
+      await sw.evaluate(() => Markloupe.saveSettings({ customCss: '' }))
       await pageUntil(page, () => getComputedStyle(document.querySelector('.markdown-body h1')).color !== 'rgb(4, 5, 6)')
       assert.notEqual(await color(), 'rgb(4, 5, 6)')
     } finally {
-      await sw.evaluate(() => MarkLens.saveSettings({ customCss: '' }))
+      await sw.evaluate(() => Markloupe.saveSettings({ customCss: '' }))
     }
   })
   await check('設定同步：寫入 storage.sync、套用其他電腦的變更；關閉後兩者都停止；裝置專屬設定不同步', async () => {
-    const local = () => sw.evaluate(() => MarkLens.loadSettings())
-    const remote = () => sw.evaluate(async () => (await chrome.storage.sync.get('marklens:settings'))['marklens:settings'] || {})
+    const local = () => sw.evaluate(() => Markloupe.loadSettings())
+    const remote = () => sw.evaluate(async () => (await chrome.storage.sync.get('markloupe:settings'))['markloupe:settings'] || {})
     try {
-      assert.equal(await sw.evaluate(() => MarkLens.isSyncEnabled()), true, '預設開啟')
-      await sw.evaluate(() => MarkLens.saveSettings({ lineHeight: 1.9, tocWidth: 300, editorUrl: 'vscode://file/{path}' }))
+      assert.equal(await sw.evaluate(() => Markloupe.isSyncEnabled()), true, '預設開啟')
+      await sw.evaluate(() => Markloupe.saveSettings({ lineHeight: 1.9, tocWidth: 300, editorUrl: 'vscode://file/{path}' }))
       const r = await remote()
       assert.equal(r.lineHeight, 1.9)
       assert.ok(r._from, '標示寫入的電腦')
       // 自己寫入的變更通知不會被當成其他電腦的變更：連續快速修改後本機仍是最後的值
-      for (const v of [1.8, 1.85, 1.95]) await sw.evaluate(v => MarkLens.saveSettings({ lineHeight: v }), v)
+      for (const v of [1.8, 1.85, 1.95]) await sw.evaluate(v => Markloupe.saveSettings({ lineHeight: v }), v)
       await new Promise(r => setTimeout(r, 500))
       assert.equal((await local()).lineHeight, 1.95, '自己的舊通知不會蓋回較新的設定')
       assert.ok(!('tocWidth' in r) && !('editorUrl' in r) && !('enabled' in r), `不同步的鍵：${Object.keys(r)}`)
       // 模擬其他電腦改了設定
       await sw.evaluate(async () => {
-        const k = 'marklens:settings'
+        const k = 'markloupe:settings'
         const cur = (await chrome.storage.sync.get(k))[k]
         await chrome.storage.sync.set({ [k]: { ...cur, lineHeight: 2.1, _from: 'other-computer' } })
       })
       await until(async () => (await local()).lineHeight === 2.1)
       assert.equal((await local()).tocWidth, 300, '裝置專屬設定不被覆蓋')
       // 關閉同步：本機變更不再上傳，其他電腦的變更也不再套用
-      await sw.evaluate(() => MarkLens.setSyncEnabled(false))
-      await sw.evaluate(() => MarkLens.saveSettings({ lineHeight: 1.5 }))
+      await sw.evaluate(() => Markloupe.setSyncEnabled(false))
+      await sw.evaluate(() => Markloupe.saveSettings({ lineHeight: 1.5 }))
       assert.equal((await remote()).lineHeight, 2.1, '關閉後不上傳')
       await sw.evaluate(async () => {
-        const k = 'marklens:settings'
+        const k = 'markloupe:settings'
         const cur = (await chrome.storage.sync.get(k))[k]
         await chrome.storage.sync.set({ [k]: { ...cur, lineHeight: 2.3, _from: 'other-computer' } })
       })
       await new Promise(r => setTimeout(r, 500))
       assert.equal((await local()).lineHeight, 1.5, '關閉後不套用')
       // 重新開啟：雲端已有設定，套用到這台
-      await sw.evaluate(() => MarkLens.setSyncEnabled(true))
+      await sw.evaluate(() => Markloupe.setSyncEnabled(true))
       assert.equal((await local()).lineHeight, 2.3)
     } finally {
       await sw.evaluate(async () => {
-        await MarkLens.setSyncEnabled(true)
+        await Markloupe.setSyncEnabled(true)
         await chrome.storage.sync.clear()
-        await MarkLens.saveSettings({ lineHeight: 1.7, tocWidth: 260, editorUrl: '' })
+        await Markloupe.saveSettings({ lineHeight: 1.7, tocWidth: 260, editorUrl: '' })
       })
+    }
+  })
+  await check('改名搬移：舊名稱的設定、同步資料與授權資料夾搬到新名稱並移除舊資料；新鍵已有值時保留', async () => {
+    const saved = await sw.evaluate(() => chrome.storage.local.get(null))
+    try {
+      const r = await sw.evaluate(async () => {
+        await chrome.storage.local.remove(['markloupe:settings', 'markloupe:scroll'])
+        await chrome.storage.local.set({
+          'marklens:settings': { lineHeight: 1.6 },
+          'marklens:scroll': { 'file:///a.md': 120 },
+          'marklens:device': 'old-id',
+          'markloupe:device': 'new-id',
+          'markloupe:sync': false, // 不讓 background 把搬進 storage.sync 的資料套用回本機，影響之後的測試
+        })
+        await chrome.storage.sync.clear()
+        await chrome.storage.sync.set({ 'marklens:customCss': 'p{}' })
+        // 舊資料庫：與 roots.js 相同的結構
+        for (const x of await Markloupe.Roots.list()) await Markloupe.Roots.remove(x.id)
+        const dir = await (await navigator.storage.getDirectory()).getDirectoryHandle('legacy', { create: true })
+        await new Promise((resolve, reject) => {
+          const req = indexedDB.open('marklens', 1)
+          req.onupgradeneeded = () => req.result.createObjectStore('roots', { keyPath: 'id', autoIncrement: true })
+          req.onerror = () => reject(req.error)
+          req.onsuccess = () => {
+            const db = req.result
+            const tx = db.transaction('roots', 'readwrite')
+            tx.objectStore('roots').add({ handle: dir, addedAt: 1 })
+            tx.oncomplete = () => (db.close(), resolve())
+            tx.onerror = () => reject(tx.error)
+          }
+        })
+        await migrateLegacy()
+        await migrateLegacy() // 沒有舊資料時不出錯
+        return {
+          local: await chrome.storage.local.get(null),
+          sync: await chrome.storage.sync.get(null),
+          roots: (await Markloupe.Roots.list()).map(x => x.handle.name),
+          dbs: (await indexedDB.databases()).map(d => d.name),
+        }
+      })
+      assert.equal(r.local['markloupe:settings'].lineHeight, 1.6)
+      assert.deepEqual(r.local['markloupe:scroll'], { 'file:///a.md': 120 })
+      assert.equal(r.local['markloupe:device'], 'new-id', '新鍵已有值時保留')
+      assert.equal(r.sync['markloupe:customCss'], 'p{}')
+      const left = [...Object.keys(r.local), ...Object.keys(r.sync)].filter(k => k.startsWith('marklens:'))
+      assert.deepEqual(left, [], '舊鍵應移除')
+      assert.deepEqual(r.roots, ['legacy'])
+      assert.ok(!r.dbs.includes('marklens'), `舊資料庫應刪除：${r.dbs}`)
+    } finally {
+      await sw.evaluate(async s => {
+        await chrome.storage.local.clear()
+        await chrome.storage.local.set(s)
+        await chrome.storage.sync.clear()
+        for (const x of await Markloupe.Roots.list()) await Markloupe.Roots.remove(x.id)
+      }, saved)
     }
   })
   await check('匯出 HTML：數學公式的字型內嵌，離線開啟也能顯示', async () => {
@@ -1657,7 +1712,7 @@ try {
   })
   await mt.close()
   await check('數學公式：關閉設定後不載入 KaTeX，保留 $ 原文', async () => {
-    await sw.evaluate(() => MarkLens.saveSettings({ math: false }))
+    await sw.evaluate(() => Markloupe.saveSettings({ math: false }))
     try {
       const op = await openDoc(pathToFileURL(mathFile).href)
       await op.waitForTimeout(500)
@@ -1666,7 +1721,7 @@ try {
       assert.ok((await op.textContent('.markdown-body')).includes('行內公式 $E = mc^2$'))
       await op.close()
     } finally {
-      await sw.evaluate(() => MarkLens.saveSettings({ math: true }))
+      await sw.evaluate(() => Markloupe.saveSettings({ math: true }))
     }
   })
   await check('數學公式：http(s) 頁面也繪製，字型載入成功（含嚴格 CSP 的網站）', async () => {
@@ -1696,7 +1751,7 @@ try {
       }
     }
   })
-  await check('網站無法以固定的擴充功能網址探測 MarkLens 的資源', async () => {
+  await check('網站無法以固定的擴充功能網址探測 Markloupe 的資源', async () => {
     const pp = await ctx.newPage()
     try {
       await pp.goto(`http://127.0.0.1:${port}/probe`)
@@ -1944,7 +1999,7 @@ try {
     })
     assert.deepEqual(bad, [], bad.join(' | '))
   })
-  await check('安全性：文件不能借用 MarkLens 介面的 class／id 偽造畫面', async () => {
+  await check('安全性：文件不能借用 Markloupe 介面的 class／id 偽造畫面', async () => {
     const r = await inSec(() => {
       const qa = s => Document.prototype.querySelectorAll.call(document, s)
       return {
@@ -1963,7 +2018,7 @@ try {
     const src = id => sp.evaluate(i => Document.prototype.getElementById.call(document, i)?.getAttribute('src'), id)
     assert.equal(await src('unc-host'), null)
     assert.equal(await src('unc-slashes'), null)
-    assert.equal(await src('same-host-file'), 'file:///marklens-not-exist/x.png')
+    assert.equal(await src('same-host-file'), 'file:///markloupe-not-exist/x.png')
   })
   await check('匯出 HTML：原文有不合法的網址時仍能匯出，該網址維持原樣', async () => {
     const { html } = await exportFrom(sp)
@@ -2003,7 +2058,7 @@ try {
   })
 
   /* ---------- 載入時不閃出原始文字 ---------- */
-  await check('載入中先隱藏原始文字；停用 MarkLens 時原文照常顯示', async () => {
+  await check('載入中先隱藏原始文字；停用 Markloupe 時原文照常顯示', async () => {
     // 樣式表比程式早套用：程式接手前原文是隱藏的
     const hp = await ctx.newPage()
     await hp.addInitScript(() => {
@@ -2018,7 +2073,7 @@ try {
     await hp.waitForSelector('#ml-root .markdown-body h1')
     assert.equal(await hp.evaluate(() => window.__preVis), 'hidden')
     await hp.close()
-    await sw.evaluate(() => MarkLens.saveSettings({ enabled: false }))
+    await sw.evaluate(() => Markloupe.saveSettings({ enabled: false }))
     try {
       const op = await ctx.newPage()
       await op.goto(localUrl)
@@ -2027,7 +2082,7 @@ try {
       assert.equal(await op.locator('body > pre').evaluate(el => getComputedStyle(el).visibility), 'visible')
       await op.close()
     } finally {
-      await sw.evaluate(() => MarkLens.saveSettings({ enabled: true }))
+      await sw.evaluate(() => Markloupe.saveSettings({ enabled: true }))
     }
     // 停用／啟用會重新整理所有已開啟的分頁：等主要分頁重新渲染，後面的檢查才能繼續用
     await pageUntil(page, () => !!document.querySelector('#ml-root .markdown-body h1')?.checkVisibility(), 10000)
@@ -2066,9 +2121,9 @@ try {
       await vp.close()
     }
   })
-  await check('開新分頁時，等待畫面的背景沿用上次的主題（MarkLens 深色、系統淺色）', async () => {
-    const before = (await sw.evaluate(() => MarkLens.loadSettings())).theme
-    await sw.evaluate(() => MarkLens.saveSettings({ theme: 'dark' }))
+  await check('開新分頁時，等待畫面的背景沿用上次的主題（Markloupe 深色、系統淺色）', async () => {
+    const before = (await sw.evaluate(() => Markloupe.loadSettings())).theme
+    await sw.evaluate(() => Markloupe.saveSettings({ theme: 'dark' }))
     try {
       await (await openDoc()).close() // 讓深色主題寫進本機檔案的儲存空間
       const bp = await ctx.newPage()
@@ -2084,7 +2139,7 @@ try {
       assert.equal(await bp.evaluate(() => window.__bg), 'rgb(13, 17, 23)')
       await bp.close()
     } finally {
-      await sw.evaluate(t => MarkLens.saveSettings({ theme: t }), before)
+      await sw.evaluate(t => Markloupe.saveSettings({ theme: t }), before)
     }
   })
 
@@ -2092,7 +2147,7 @@ try {
   // 資料夾選擇視窗無法自動化：改用 OPFS（瀏覽器私有檔案系統）裡同名的「work」資料夾當作已授權資料夾，
   // 網址路徑中的 work/ 會對應到它，寫回的結果從 OPFS 讀出驗證。授權視窗本身需手動測試。
   // 背景程式只寫入內容與頁面所在檔案相同的那一份：每次寫回後以 opfs.mirror() 把 OPFS 的內容同步到實體檔，兩者才會一致
-  await sw.evaluate(() => MarkLens.saveSettings({ autoRefresh: 'off' })) // 避免自動更新以實體檔覆蓋 OPFS 的寫回結果
+  await sw.evaluate(() => Markloupe.saveSettings({ autoRefresh: 'off' })) // 避免自動更新以實體檔覆蓋 OPFS 的寫回結果
   const tasksSrc = readFileSync(join(root, 'test/fixtures/tasks.md'), 'utf8')
   const crlfSrc = tasksSrc.replace(/\n/g, '\r\n')
   // 單獨的 \r 也是換行（markdown-it 與舊版 Mac 的換行）：「一」在第 2 行
@@ -2116,8 +2171,8 @@ try {
         await put('tasks.md', a)
         await put('tasks-crlf.md', new Uint8Array([0xef, 0xbb, 0xbf, ...new TextEncoder().encode(b)]))
         await put('cr.md', c)
-        for (const r of await MarkLens.Roots.list()) await MarkLens.Roots.remove(r.id)
-        await MarkLens.Roots.add(dir)
+        for (const r of await Markloupe.Roots.list()) await Markloupe.Roots.remove(r.id)
+        await Markloupe.Roots.add(dir)
       }, [tasksSrc, crlfSrc, crSrc])
     },
     /** 把 OPFS 的檔案內容寫回實體檔（模擬寫回的是頁面所在的那個檔案） */
@@ -2220,7 +2275,7 @@ try {
   })
   await check('勾選寫回：未授權時提示授權', async () => {
     await sw.evaluate(async () => {
-      for (const r of await MarkLens.Roots.list()) await MarkLens.Roots.remove(r.id)
+      for (const r of await Markloupe.Roots.list()) await Markloupe.Roots.remove(r.id)
     })
     const before = (await opfs.read('tasks.md')).text
     await box('第一項').click()
@@ -2229,7 +2284,7 @@ try {
     assert.equal((await opfs.read('tasks.md')).text, before)
   })
   await check('勾選寫回：關閉設定後勾選框唯讀，點擊時說明原因', async () => {
-    await sw.evaluate(() => MarkLens.saveSettings({ taskWrite: false }))
+    await sw.evaluate(() => Markloupe.saveSettings({ taskWrite: false }))
     try {
     const p2 = await openDoc(pathToFileURL(join(taskDir, 'tasks.md')).href)
     const before = (await opfs.read('tasks.md')).text
@@ -2242,7 +2297,7 @@ try {
     assert.equal((await opfs.read('tasks.md')).text, before, '檔案不變')
     await p2.close()
     } finally {
-      await sw.evaluate(() => MarkLens.saveSettings({ taskWrite: true, autoRefresh: 'local' }))
+      await sw.evaluate(() => Markloupe.saveSettings({ taskWrite: true, autoRefresh: 'local' }))
     }
   })
   await check('勾選寫回：非 UTF-8 檔案唯讀，點擊時說明原因', async () => {
@@ -2307,8 +2362,8 @@ try {
           const other = await (await top.getDirectoryHandle('copy', { create: true })).getDirectoryHandle('work', { create: true })
           await put(mine, a)
           await put(other, c)
-          for (const r of await MarkLens.Roots.list()) await MarkLens.Roots.remove(r.id)
-          for (const d of only ? [other] : [baseDir, mine, other]) await MarkLens.Roots.add(d)
+          for (const r of await Markloupe.Roots.list()) await Markloupe.Roots.remove(r.id)
+          for (const d of only ? [other] : [baseDir, mine, other]) await Markloupe.Roots.add(d)
         },
         [base, tasksSrc, copySrc, onlyCopy],
       )
@@ -2347,13 +2402,13 @@ try {
     } finally {
       // 回到前一項檢查之後的狀態：沒有授權資料夾
       await sw.evaluate(async () => {
-        for (const r of await MarkLens.Roots.list()) await MarkLens.Roots.remove(r.id)
+        for (const r of await Markloupe.Roots.list()) await Markloupe.Roots.remove(r.id)
       })
     }
   })
   await check('授權頁載入（沒有授權資料夾時顯示空白說明）', async () => {
     await sw.evaluate(async () => {
-      for (const r of await MarkLens.Roots.list()) await MarkLens.Roots.remove(r.id)
+      for (const r of await Markloupe.Roots.list()) await Markloupe.Roots.remove(r.id)
     })
     const g = await ctx.newPage()
     g.on('pageerror', e => errors.push(e.message))
@@ -2414,7 +2469,7 @@ try {
     assert.deepEqual(missing, [])
   })
   await check('介面語言設定：指定简体中文，閱讀頁與 popup 改為簡體中文', async () => {
-    await sw.evaluate(() => MarkLens.saveSettings({ uiLang: 'zh_CN' }))
+    await sw.evaluate(() => Markloupe.saveSettings({ uiLang: 'zh_CN' }))
     try {
       const lp = await openDoc()
       const tools = (await lp.locator('.ml-toolbar').innerText()).replace(/\s+/g, ' ')
@@ -2427,11 +2482,11 @@ try {
       assert.equal(await pp.locator('select[name="uiLang"]').inputValue(), 'zh_CN')
       await pp.close()
     } finally {
-      await sw.evaluate(() => MarkLens.saveSettings({ uiLang: 'auto' }))
+      await sw.evaluate(() => Markloupe.saveSettings({ uiLang: 'auto' }))
     }
   })
   await check('介面語言設定：中文瀏覽器下指定 English，閱讀頁、popup、引導頁改為英文', async () => {
-    await sw.evaluate(() => MarkLens.saveSettings({ uiLang: 'en' }))
+    await sw.evaluate(() => Markloupe.saveSettings({ uiLang: 'en' }))
     try {
       const lp = await openDoc()
       const tools = (await lp.locator('.ml-toolbar').innerText()).replace(/\s+/g, ' ')
@@ -2441,7 +2496,7 @@ try {
       const wp = await ctx.newPage()
       await wp.goto(`chrome-extension://${extId}/src/welcome/welcome.html`)
       await wp.waitForSelector('#file-status[data-state="ok"]')
-      await wp.waitForFunction(() => document.querySelector('h1').textContent === 'Welcome to MarkLens', null, { timeout: 3000 })
+      await wp.waitForFunction(() => document.querySelector('h1').textContent === 'Welcome to Markloupe', null, { timeout: 3000 })
       assert.equal(await wp.evaluate(() => document.documentElement.lang), 'en', 'lang')
       await wp.close()
       // popup 切回自動時立即換回中文
@@ -2451,10 +2506,10 @@ try {
       await pp.waitForFunction(() => document.querySelector('[data-i18n="secLayout"]').textContent === 'Layout defaults', null, { timeout: 3000 })
       await pp.selectOption('[name=uiLang]', 'auto')
       await pp.waitForFunction(() => document.querySelector('[data-i18n="secLayout"]').textContent === '版面預設值')
-      assert.equal((await sw.evaluate(() => MarkLens.loadSettings())).uiLang, 'auto')
+      assert.equal((await sw.evaluate(() => Markloupe.loadSettings())).uiLang, 'auto')
       await pp.close()
     } finally {
-      await sw.evaluate(() => MarkLens.saveSettings({ uiLang: 'auto' }))
+      await sw.evaluate(() => Markloupe.saveSettings({ uiLang: 'auto' }))
     }
   })
   await check('英文介面：工具列、popup 與引導頁顯示英文', async () => {

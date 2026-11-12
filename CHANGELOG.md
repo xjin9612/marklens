@@ -1,9 +1,12 @@
 # Changelog
 
-All notable changes to MarkLens are documented here.
+All notable changes to Markloupe are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+### Changed
+- MarkLens is now **Markloupe**, because other Markdown extensions in the Chrome Web Store already use the name MarkLens. The repository moves to `xjin9612/markloupe`; old GitHub links redirect. Settings, synced settings and authorized folders carry over when you update
 
 ## [1.8.0] - 2026-11-12
 
@@ -177,14 +180,14 @@ First public release.
 ### Security
 - Allow-list HTML sanitizer, minimal permissions (`storage` only), no remote code
 
-[Unreleased]: https://github.com/xjin9612/marklens/compare/v1.8.0...HEAD
-[1.8.0]: https://github.com/xjin9612/marklens/compare/v1.7.1...v1.8.0
-[1.7.1]: https://github.com/xjin9612/marklens/compare/v1.7.0...v1.7.1
-[1.7.0]: https://github.com/xjin9612/marklens/compare/v1.6.0...v1.7.0
-[1.6.0]: https://github.com/xjin9612/marklens/compare/v1.5.0...v1.6.0
-[1.5.0]: https://github.com/xjin9612/marklens/compare/v1.4.0...v1.5.0
-[1.4.0]: https://github.com/xjin9612/marklens/compare/v1.3.0...v1.4.0
-[1.3.0]: https://github.com/xjin9612/marklens/compare/v1.2.0...v1.3.0
-[1.2.0]: https://github.com/xjin9612/marklens/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/xjin9612/marklens/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/xjin9612/marklens/releases/tag/v1.0.0
+[Unreleased]: https://github.com/xjin9612/markloupe/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/xjin9612/markloupe/compare/v1.7.1...v1.8.0
+[1.7.1]: https://github.com/xjin9612/markloupe/compare/v1.7.0...v1.7.1
+[1.7.0]: https://github.com/xjin9612/markloupe/compare/v1.6.0...v1.7.0
+[1.6.0]: https://github.com/xjin9612/markloupe/compare/v1.5.0...v1.6.0
+[1.5.0]: https://github.com/xjin9612/markloupe/compare/v1.4.0...v1.5.0
+[1.4.0]: https://github.com/xjin9612/markloupe/compare/v1.3.0...v1.4.0
+[1.3.0]: https://github.com/xjin9612/markloupe/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/xjin9612/markloupe/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/xjin9612/markloupe/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/xjin9612/markloupe/releases/tag/v1.0.0

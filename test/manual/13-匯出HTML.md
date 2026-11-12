@@ -23,7 +23,7 @@
 - [ ] 匯出前勾選這一項
 - [ ] 這一項保持不勾
 
-![MarkLens icon](../../icons/icon128.png)
+![Markloupe icon](../../icons/icon128.png)
 
 ```mermaid
 flowchart LR

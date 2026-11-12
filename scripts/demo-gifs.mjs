@@ -1,7 +1,7 @@
 // 產生 README 的示範動畫（docs/screenshots/*.gif）
 // 用法：CDP_URL=http://127.0.0.1:9222 npm run gifs
-//   連到已載入 MarkLens、開啟「允許存取檔案網址」的 Chrome（--remote-debugging-port），以 CDP 錄製畫面，再用 ffmpeg 轉成 GIF
-//   需要 ffmpeg；介面一律英文，中英 README 共用。會改動該 Chrome 的 MarkLens 設定並加入一個授權資料夾，請用專用的 profile
+//   連到已載入 Markloupe、開啟「允許存取檔案網址」的 Chrome（--remote-debugging-port），以 CDP 錄製畫面，再用 ffmpeg 轉成 GIF
+//   需要 ffmpeg；介面一律英文，中英 README 共用。會改動該 Chrome 的 Markloupe 設定並加入一個授權資料夾，請用專用的 profile
 import { createRequire } from 'node:module'
 import { mkdirSync, rmSync, writeFileSync, statSync } from 'node:fs'
 import { join, dirname } from 'node:path'
@@ -69,7 +69,7 @@ function installCursor() {
 function installEditor([name, text]) {
   const style = document.createElement('style')
   style.textContent = `
-    html.marklens .ml-main { margin-right: 430px !important; }
+    html.markloupe .ml-main { margin-right: 430px !important; }
     #demo-editor { position: fixed; top: 0; right: 0; bottom: 0; width: 430px; z-index: 50; display: flex; flex-direction: column;
       background: #1e1e1e; color: #d4d4d4; font: 13px/1.7 Consolas, "DejaVu Sans Mono", monospace; border-left: 1px solid #333; }
     #demo-editor .tab { padding: 8px 14px; background: #252526; color: #fff; font-size: 12px; border-bottom: 1px solid #333; }
@@ -111,9 +111,9 @@ if (!process.env.CDP_URL) throw new Error('請設定 CDP_URL，例如 CDP_URL=ht
 const browser = await chromium.connectOverCDP(process.env.CDP_URL)
 const ctx = browser.contexts()[0]
 const sw = ctx.serviceWorkers().find(w => w.url().endsWith('/src/background.js'))
-if (!sw) throw new Error('這個 Chrome 沒有載入 MarkLens')
-const savedSettings = await sw.evaluate(() => MarkLens.loadSettings())
-await sw.evaluate(() => MarkLens.saveSettings({ theme: 'light', rememberScroll: false, textWidth: 960, uiLang: 'en' }))
+if (!sw) throw new Error('這個 Chrome 沒有載入 Markloupe')
+const savedSettings = await sw.evaluate(() => Markloupe.loadSettings())
+await sw.evaluate(() => Markloupe.saveSettings({ theme: 'light', rememberScroll: false, textWidth: 960, uiLang: 'en' }))
 
 /** 開啟文件、等畫面穩定、裝上游標，再開始錄影 */
 async function open(url) {
@@ -182,7 +182,7 @@ function toGif(frames, name) {
 const scenes = {
   // 表格：排序、篩選、拖拉欄寬
   async tables() {
-    await sw.evaluate(() => MarkLens.saveSettings({ textWidth: 0, tocHidden: true }))
+    await sw.evaluate(() => Markloupe.saveSettings({ textWidth: 0, tocHidden: true }))
     const { page, rec } = await open(fileUrl(join(root, 'docs/demo.md')))
     await page.locator('#services').evaluate(h => scrollTo({ top: h.getBoundingClientRect().top + scrollY - 50, behavior: 'smooth' }))
     await page.waitForTimeout(900)
@@ -217,9 +217,9 @@ const scenes = {
       const w = await (await dir.getFileHandle('tasks.md', { create: true })).createWritable()
       await w.write(text)
       await w.close()
-      await MarkLens.Roots.add(dir)
+      await Markloupe.Roots.add(dir)
     }, TASKS)
-    await sw.evaluate(() => MarkLens.saveSettings({ autoRefresh: 'off' })) // 避免自動更新以實體檔覆蓋 OPFS 的寫回結果
+    await sw.evaluate(() => Markloupe.saveSettings({ autoRefresh: 'off' })) // 避免自動更新以實體檔覆蓋 OPFS 的寫回結果
     const read = () =>
       sw.evaluate(async () => {
         const dir = await (await navigator.storage.getDirectory()).getDirectoryHandle('work')
@@ -277,13 +277,13 @@ const scenes = {
 
 try {
   for (const [name, play] of Object.entries(process.argv[2] ? { [process.argv[2]]: scenes[process.argv[2]] } : scenes)) {
-    await sw.evaluate(() => MarkLens.saveSettings({ textWidth: 960, tocHidden: false, autoRefresh: 'local' }))
+    await sw.evaluate(() => Markloupe.saveSettings({ textWidth: 960, tocHidden: false, autoRefresh: 'local' }))
     const { page, rec } = await play()
     const frames = await rec.stop()
     await page.close()
     toGif(frames, name)
   }
 } finally {
-  await sw.evaluate(s => MarkLens.saveSettings(s), savedSettings)
+  await sw.evaluate(s => Markloupe.saveSettings(s), savedSettings)
   await browser.close() // 只中斷連線，不會關閉使用者的 Chrome
 }

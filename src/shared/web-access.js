@@ -1,15 +1,15 @@
 'use strict'
 // 網頁上的 .md：網站權限是選用權限，安裝時不要求；使用者在 popup 或引導頁開啟後，background 才註冊網頁用的 content script
-var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
+var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
 
-MarkLens.WEB_ORIGINS = ['*://*/*']
+Markloupe.WEB_ORIGINS = ['*://*/*']
 
 /**
  * 把勾選框綁定到網站權限：勾選時向使用者請求，取消時移除；權限在別處變更（擴充功能詳細資料頁）時同步顯示
  * @param {HTMLInputElement} box
  */
-MarkLens.bindWebAccess = function (box) {
-  const perm = { origins: MarkLens.WEB_ORIGINS }
+Markloupe.bindWebAccess = function (box) {
+  const perm = { origins: Markloupe.WEB_ORIGINS }
   const refresh = async () => {
     box.checked = await chrome.permissions.contains(perm)
   }

@@ -1,16 +1,16 @@
 /*
- * MarkLens 設計變數：閱讀頁（html.marklens）與擴充功能頁面（popup、引導頁、授權頁：html.ml-ui）共用。
+ * Markloupe 設計變數：閱讀頁（html.markloupe）與擴充功能頁面（popup、引導頁、授權頁：html.ml-ui）共用。
  * 主題由 <html data-ml-theme="light|dark"> 決定：閱讀頁由 main.js 設定，擴充功能頁面由 shared/theme.js 設定。
  * 配色沿用 GitHub Primer（閱讀 Markdown 時的熟悉感）；--brand 取自圖示（icons/icon.svg）的靛藍。
  */
-:is(html.marklens, html.ml-ui) {
+:is(html.markloupe, html.ml-ui) {
   --ml-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", "Noto Sans CJK TC", sans-serif;
   /*
    * 程式碼字型：更紗黑體（有安裝才生效）中英本來就是 2:1，最優先。
-   * 否則英數與框線字元用系統等寬字型，中文用 fonts.js 依實際字寬縮放過的系統中文字型（MarkLens CJK Mono），
+   * 否則英數與框線字元用系統等寬字型，中文用 fonts.js 依實際字寬縮放過的系統中文字型（Markloupe CJK Mono），
    * 讓中文剛好兩個英數字寬，框線字元表格才能對齊。
    */
-  --ml-mono: "Sarasa Mono TC", "Sarasa Term TC", "Sarasa Mono SC", "Sarasa Term SC", "MarkLens CJK Mono", "Cascadia Code", Consolas, "SFMono-Regular", Menlo, "DejaVu Sans Mono", "Liberation Mono", "Microsoft JhengHei", "PingFang TC", "Noto Sans CJK TC", monospace;
+  --ml-mono: "Sarasa Mono TC", "Sarasa Term TC", "Sarasa Mono SC", "Sarasa Term SC", "Markloupe CJK Mono", "Cascadia Code", Consolas, "SFMono-Regular", Menlo, "DejaVu Sans Mono", "Liberation Mono", "Microsoft JhengHei", "PingFang TC", "Noto Sans CJK TC", monospace;
 
   /* 品牌色：圖示的靛藍，深淺色主題相同；白字對比 7.9:1 */
   --brand: #4338ca;
@@ -27,7 +27,7 @@
   --ml-radius-lg: 12px;
 }
 
-:is(html.marklens, html.ml-ui)[data-ml-theme="light"] {
+:is(html.markloupe, html.ml-ui)[data-ml-theme="light"] {
   color-scheme: light;
   --bg: #ffffff;
   --fg: #1f2328;
@@ -55,7 +55,7 @@
   --alert-note: #0969da; --alert-tip: var(--ok); --alert-important: #8250df; --alert-warning: var(--warn); --alert-caution: var(--danger);
 }
 
-:is(html.marklens, html.ml-ui)[data-ml-theme="dark"] {
+:is(html.markloupe, html.ml-ui)[data-ml-theme="dark"] {
   color-scheme: dark;
   --bg: #0d1117;
   --fg: #e6edf3;
@@ -87,7 +87,7 @@
  * 配色（閱讀頁）：在淺色／深色之上替換部分變數；GitHub 為預設，不設 data-ml-palette
  * sepia：米色紙張、暖色文字，長時間閱讀較不刺眼；contrast：黑白高對比，框線與次要文字加深
  */
-html.marklens[data-ml-palette="sepia"][data-ml-theme="light"] {
+html.markloupe[data-ml-palette="sepia"][data-ml-theme="light"] {
   --bg: #f6efe3;
   --fg: #3b3226;
   --muted: #65584a;
@@ -102,7 +102,7 @@ html.marklens[data-ml-palette="sepia"][data-ml-theme="light"] {
   --accent: #8a4f12;
   --accent-soft: #eadcc2;
 }
-html.marklens[data-ml-palette="sepia"][data-ml-theme="dark"] {
+html.markloupe[data-ml-palette="sepia"][data-ml-theme="dark"] {
   --bg: #1f1a14;
   --fg: #e8dcc6;
   --muted: #b3a58e;
@@ -117,7 +117,7 @@ html.marklens[data-ml-palette="sepia"][data-ml-theme="dark"] {
   --accent-soft: #3a2c1c;
   --on-accent: #1f1a14;
 }
-html.marklens[data-ml-palette="contrast"][data-ml-theme="light"] {
+html.markloupe[data-ml-palette="contrast"][data-ml-theme="light"] {
   --bg: #ffffff;
   --fg: #000000;
   --muted: #2b2b2b;
@@ -130,7 +130,7 @@ html.marklens[data-ml-palette="contrast"][data-ml-theme="light"] {
   --link: #0040b0;
   --accent: #0040b0;
 }
-html.marklens[data-ml-palette="contrast"][data-ml-theme="dark"] {
+html.markloupe[data-ml-palette="contrast"][data-ml-theme="dark"] {
   --bg: #000000;
   --fg: #ffffff;
   --muted: #dddddd;
@@ -151,7 +151,7 @@ html.marklens[data-ml-palette="contrast"][data-ml-theme="dark"] {
 }
 
 /* 線條圖示（shared/icons.js）：跟隨文字顏色 */
-:is(html.marklens, html.ml-ui) .ml-icon {
+:is(html.markloupe, html.ml-ui) .ml-icon {
   width: 16px;
   height: 16px;
   flex: none;

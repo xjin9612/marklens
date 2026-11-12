@@ -1,6 +1,6 @@
 'use strict'
 // markdown-it 設定與自訂語法：==mark==、GitHub Alert、容器區塊、定義清單、數學公式、GitHub 式自動連結、任務清單行號、front matter
-var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
+var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
 
 ;(() => {
   /* ---------- ==螢光標記== （仿 strikethrough 的分隔符號處理） ---------- */
@@ -75,7 +75,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
   function alertPlugin(md) {
     // 在 inline 解析前處理，只需改 inline token 的 content
-    md.core.ruler.after('block', 'marklens_alert', state => {
+    md.core.ruler.after('block', 'markloupe_alert', state => {
       const tokens = state.tokens
       for (let i = 0; i < tokens.length - 2; i++) {
         if (tokens[i].type !== 'blockquote_open') continue
@@ -146,7 +146,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   const GFM_AUTOLINK = /^(?:[a-z][a-z0-9+.-]*:|www\.)/i
 
   function gfmAutolinkPlugin(md) {
-    md.core.ruler.after('linkify', 'marklens_gfm_autolink', state => {
+    md.core.ruler.after('linkify', 'markloupe_gfm_autolink', state => {
       for (const block of state.tokens) {
         if (block.type !== 'inline' || !block.children) continue
         const out = []
@@ -286,7 +286,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   const TASK_MARK_RE = /^\[([ xX])\][ \u00a0]/
 
   function taskLinePlugin(md, nonce) {
-    md.core.ruler.after('block', 'marklens_task_lines', state => {
+    md.core.ruler.after('block', 'markloupe_task_lines', state => {
       const offset = state.env?.lineOffset || 0
       const tokens = state.tokens
       for (let i = 0; i < tokens.length - 2; i++) {
@@ -318,9 +318,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     'table_open', 'fence', 'code_block', 'hr', 'dl_open',
   ])
 
-  MarkLens.createMarkdown = function () {
+  Markloupe.createMarkdown = function () {
     const md = globalThis.markdownit({
-      html: true, // 允許內嵌 HTML，輸出一律經過 MarkLens.sanitize
+      html: true, // 允許內嵌 HTML，輸出一律經過 Markloupe.sanitize
       linkify: true,
       typographer: false, // 技術文件不轉換引號、破折號
       breaks: false,
@@ -335,8 +335,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     md.use(alertPlugin)
     md.use(gfmAutolinkPlugin)
     md.use(mathPlugin)
-    md.marklensNonce = Array.from(crypto.getRandomValues(new Uint8Array(8)), b => b.toString(16).padStart(2, '0')).join('')
-    md.use(taskLinePlugin, md.marklensNonce)
+    md.markloupeNonce = Array.from(crypto.getRandomValues(new Uint8Array(8)), b => b.toString(16).padStart(2, '0')).join('')
+    md.use(taskLinePlugin, md.markloupeNonce)
     return md
   }
 
@@ -344,14 +344,14 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   const FM_RE = /^\ufeff?---[ \t]*\r?\n([\s\S]*?)\r?\n(?:---|\.\.\.)[ \t]*(?:\r?\n|$)/
 
   /** 拆出 front matter；回傳 { frontMatter, body } */
-  MarkLens.splitFrontMatter = function (src) {
+  Markloupe.splitFrontMatter = function (src) {
     const m = FM_RE.exec(src)
     if (!m) return { frontMatter: null, body: src.replace(/^\ufeff/, '') }
     return { frontMatter: m[1], body: src.slice(m[0].length) }
   }
 
   /** front matter 最上層的 lang 欄位，去掉引號與行尾註解；沒有或不是語言代碼時回傳空字串 */
-  MarkLens.frontMatterLang = function (frontMatter) {
+  Markloupe.frontMatterLang = function (frontMatter) {
     const m = /^lang[ \t]*:[ \t]*(.*)$/m.exec(frontMatter || '')
     if (!m) return ''
     const value = m[1].replace(/(^|[ \t])#.*$/, '').trim()

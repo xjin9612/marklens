@@ -3,8 +3,8 @@
 //   node scripts/release.mjs check v1.2.0          檢查標籤、manifest.json、package.json、CHANGELOG 是否一致，
 //                                                  以及商店欄位長度（name、short_name、description）
 //   node scripts/release.mjs notes v1.2.0 [輸出檔]  取出 CHANGELOG 中該版本的段落（Release 說明）
-//   node scripts/release.mjs pack v1.2.0 [輸出目錄]  打包 dist/marklens-v1.2.0.zip（開發者版，內含一層資料夾）
-//                                                  與 dist/marklens-v1.2.0-store.zip（商店版，manifest.json 在根目錄），
+//   node scripts/release.mjs pack v1.2.0 [輸出目錄]  打包 dist/markloupe-v1.2.0.zip（開發者版，內含一層資料夾）
+//                                                  與 dist/markloupe-v1.2.0-store.zip（商店版，manifest.json 在根目錄），
 //                                                  只含擴充功能需要的檔案
 // 只使用 Node 標準庫；打包使用系統的 zip（Linux / macOS）或 PowerShell Compress-Archive（Windows）
 import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, existsSync, readdirSync } from 'node:fs'
@@ -111,7 +111,7 @@ function check(version) {
 
 function pack(version, outDir) {
   const dist = resolve(outDir || join(root, 'dist'))
-  const name = `marklens-v${version}`
+  const name = `markloupe-v${version}`
   const stage = join(dist, name)
   const zip = join(dist, `${name}.zip`)
   const storeZip = join(dist, `${name}-store.zip`)
@@ -123,7 +123,7 @@ function pack(version, outDir) {
     if (!existsSync(join(root, f))) fail(`找不到要打包的檔案：${f}`)
     cpSync(join(root, f), join(stage, f), { recursive: true })
   }
-  // 開發者版：zip 內含一層 marklens-vX.Y.Z/ 資料夾，解壓縮後直接「載入未封裝項目」選這個資料夾
+  // 開發者版：zip 內含一層 markloupe-vX.Y.Z/ 資料夾，解壓縮後直接「載入未封裝項目」選這個資料夾
   // 商店版：manifest.json 必須位於 zip 根目錄，Chrome Web Store 與 Edge Add-ons 才收
   if (process.platform === 'win32') {
     execFileSync('powershell', ['-NoProfile', '-Command', `Compress-Archive -Path '${stage}' -DestinationPath '${zip}'`])

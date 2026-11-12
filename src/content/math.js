@@ -1,6 +1,6 @@
 'use strict'
 // 數學公式：頁面有公式時才動態載入 KaTeX（程式約 600KB、字型約 300KB），沒有就完全不載入
-var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
+var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
 
 ;(() => {
   const ENTRY = 'vendor/katex/katex.mjs'
@@ -22,7 +22,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   }
 
   /**
-   * KaTeX 樣式。程式庫以動態網址開放給網頁（manifest 的 use_dynamic_url，網址每個工作階段不同，網站無法藉此偵測 MarkLens），
+   * KaTeX 樣式。程式庫以動態網址開放給網頁（manifest 的 use_dynamic_url，網址每個工作階段不同，網站無法藉此偵測 Markloupe），
    * 但樣式表裡的相對路徑會被解析成固定 ID 的網址而載入失敗，所以字型改為動態網址的絕對路徑；只留 woff2（vendor 只收這種）。
    * 以 constructable stylesheet 套用，不受頁面 CSP 的 style-src 限制
    */
@@ -68,7 +68,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
    * KaTeX 已載入時同步完成；第一次需要等載入
    * @returns {Promise<void>}
    */
-  MarkLens.renderMath = async function (article, enabled) {
+  Markloupe.renderMath = async function (article, enabled) {
     const els = Array.from(article.querySelectorAll(SELECTOR))
     if (!els.length) return
     if (!enabled) return showSource(els)

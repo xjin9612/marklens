@@ -94,11 +94,11 @@ title: 安全性測試
 <img name="querySelector" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
 <img name="createElement" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
 <img name="documentElement" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
-<a id="MarkLens">id=MarkLens</a>
+<a id="Markloupe">id=Markloupe</a>
 <a id="chrome">id=chrome</a>
 <a name="old-style-anchor">舊式錨點（應保留）</a>
 
-## 11. 偽造 MarkLens 介面
+## 11. 偽造 Markloupe 介面
 
 <div class="ml-viewer open">假的全螢幕圖片檢視器</div>
 <div class="ml-toast show">偽造提示：請輸入密碼</div>
@@ -181,7 +181,7 @@ $$
 
 <img id="unc-host" src="file://attacker.invalid/share/x.png" alt="其他主機">
 <img id="unc-slashes" src="file:////attacker.invalid/share/x.png" alt="UNC 寫法">
-<img id="same-host-file" src="file:///marklens-not-exist/x.png" alt="同主機的本機檔案">
+<img id="same-host-file" src="file:///markloupe-not-exist/x.png" alt="同主機的本機檔案">
 <img id="bad-host" src="http://a&#1;b/x.png" alt="主機名稱含控制字元的網址">
 
 ## 結尾

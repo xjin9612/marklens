@@ -1,12 +1,12 @@
 'use strict'
 // 渲染結果對應回原文：區塊與章節的行號範圍、檔案位置的文字格式（複製位置、複製原文、用編輯器開啟共用）
-var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
+var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
 
 ;(() => {
   const HEADING_RE = /^H[1-6]$/
 
   /** 把 markdown.js 標在區塊上的行號 class（帶 nonce）改存成 data-ml-line／data-ml-end（0 起算，結尾不含） */
-  MarkLens.applyLineRanges = function (article, nonce) {
+  Markloupe.applyLineRanges = function (article, nonce) {
     const prefix = `ml-line-${nonce}-`
     for (const el of article.querySelectorAll(`[class*="${prefix}"]`)) {
       const cls = [...el.classList].find(c => c.startsWith(prefix))
@@ -44,9 +44,9 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   /**
    * 節點所在區塊的原文範圍 [start, end)（0 起算）
    * 自訂渲染的區塊（HTML、數學公式、容器）沒有行號：取前後有行號的區塊之間的行
-   * @param {string[]} lines 原文切行（MarkLens.splitLines）
+   * @param {string[]} lines 原文切行（Markloupe.splitLines）
    */
-  MarkLens.blockRange = function (article, node, lines) {
+  Markloupe.blockRange = function (article, node, lines) {
     let el = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement
     for (let e = el; e && e !== article; e = e.parentElement) {
       const r = own(e)
@@ -80,7 +80,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
    * 文章最上層的章節延伸到下一個標題或文件結尾（含連結定義、註解等不會渲染的行）；
    * 引用、清單中的標題只到所在容器的結尾
    */
-  MarkLens.sectionRange = function (article, heading, lines) {
+  Markloupe.sectionRange = function (article, heading, lines) {
     const head = own(heading)
     if (!head) return null
     const level = +heading.dataset.mlLevel
@@ -97,12 +97,12 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     if (boundary && own(boundary)) end = own(boundary)[0]
     else if (!boundary && heading.parentElement === article) end = lines.length
     else if (!boundary) end = inner(heading.parentElement)?.[1] ?? head[1]
-    else end = MarkLens.blockRange(article, last, lines)?.[1] ?? head[1]
+    else end = Markloupe.blockRange(article, last, lines)?.[1] ?? head[1]
     return trim(lines, [head[0], Math.max(end, head[1])])
   }
 
   /** 選取範圍涵蓋的原文行；選取不在文章中時回傳 null */
-  MarkLens.selectionRange = function (article, range, lines) {
+  Markloupe.selectionRange = function (article, range, lines) {
     if (!article.contains(range.commonAncestorContainer)) return null
     const { startContainer: sc, startOffset: so, endContainer: ec, endOffset: eo } = range
     const startNode = sc.nodeType === Node.ELEMENT_NODE && sc.childNodes[so] ? sc.childNodes[so] : sc
@@ -110,8 +110,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     let endNode = ec
     if (ec.nodeType === Node.ELEMENT_NODE) endNode = eo > 0 ? ec.childNodes[eo - 1] : previousLeaf(ec, article)
     else if (eo === 0 && ec !== sc) endNode = previousLeaf(ec, article)
-    const a = MarkLens.blockRange(article, startNode, lines)
-    const b = endNode ? MarkLens.blockRange(article, endNode, lines) : null
+    const a = Markloupe.blockRange(article, startNode, lines)
+    const b = endNode ? Markloupe.blockRange(article, endNode, lines) : null
     if (!a || !b) return a || b
     return [Math.min(a[0], b[0]), Math.max(a[1], b[1])]
   }
@@ -128,7 +128,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
   }
 
   /** 目前文件的位置：本機檔案為作業系統路徑（Windows 用反斜線），網頁為網址（不含 #） */
-  MarkLens.sourcePath = function (href = location.href) {
+  Markloupe.sourcePath = function (href = location.href) {
     const url = new URL(href)
     if (url.protocol !== 'file:') return href.split('#')[0]
     let path = url.pathname
@@ -148,8 +148,8 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
    * 位置文字：本機檔案「路徑:起-迄」，網頁「網址#L起-L迄」（行號 1 起算）；有標題時附在後面
    * @param {[number, number]} [range] 0 起算、結尾不含；省略時只有路徑
    */
-  MarkLens.formatLocation = function (range, title, href = location.href) {
-    const path = MarkLens.sourcePath(href)
+  Markloupe.formatLocation = function (range, title, href = location.href) {
+    const path = Markloupe.sourcePath(href)
     let text = path
     if (range) {
       const [a, b] = [range[0] + 1, Math.max(range[0] + 1, range[1])]

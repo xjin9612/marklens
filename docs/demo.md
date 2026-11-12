@@ -1,7 +1,7 @@
 # Release Plan — v2.4
 
 > [!NOTE]
-> This page is a plain `.md` file opened straight from disk. MarkLens renders it, keeps it in sync when the file changes, and writes checkbox changes back to the file.
+> This page is a plain `.md` file opened straight from disk. Markloupe renders it, keeps it in sync when the file changes, and writes checkbox changes back to the file.
 
 The 2.4 release moves the order service to the new queue and retires the legacy batch job. Target date is **Nov 18**; anything not ==green by Nov 14== moves to 2.5.
 

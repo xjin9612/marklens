@@ -1,9 +1,9 @@
 'use strict'
 // 授權頁：新增、確認、移除可寫回的資料夾
 ;(async () => {
-  const { t } = MarkLens
-  await MarkLens.initI18n()
-  MarkLens.localize()
+  const { t } = Markloupe
+  await Markloupe.initI18n()
+  Markloupe.localize()
   const $ = sel => document.querySelector(sel)
   const list = $('#roots')
   const STATE_KEY = { granted: 'grantStateGranted', prompt: 'grantStatePrompt', denied: 'grantStateDenied' }
@@ -13,7 +13,7 @@
   }
 
   async function render() {
-    const roots = await MarkLens.Roots.list()
+    const roots = await Markloupe.Roots.list()
     list.textContent = ''
     $('#empty').hidden = roots.length > 0
     for (const r of roots) {
@@ -36,7 +36,7 @@
       }
       const remove = Object.assign(document.createElement('button'), { textContent: t('grantRemove') })
       remove.onclick = () => guard(async () => {
-        await MarkLens.Roots.remove(r.id)
+        await Markloupe.Roots.remove(r.id)
         say(t('grantRemoved', r.handle.name))
         await render()
       })
@@ -53,8 +53,8 @@
   }
 
   $('#add').onclick = () => guard(async () => {
-    const handle = await showDirectoryPicker({ mode: 'readwrite', id: 'marklens-root' })
-    await MarkLens.Roots.add(handle)
+    const handle = await showDirectoryPicker({ mode: 'readwrite', id: 'markloupe-root' })
+    await Markloupe.Roots.add(handle)
     say(t('grantAdded', handle.name))
     await render()
   })

@@ -3,10 +3,10 @@
 // 預設只讀取一層；子資料夾點開才讀取（大型資料夾不會一次掃描全部）。
 // 樹的起點（root）在同一個分頁中保持不變：從檔案分頁點進子資料夾的檔案後，仍可回到原本的資料夾；
 // 可以用「上一層」按鈕把起點往上一層，或在資料夾上按右鍵「以此資料夾為起點」。
-var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
+var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
 
 ;(() => {
-  const { h, t, icon } = MarkLens
+  const { h, t, icon } = Markloupe
   const key = segs => segs.join('/')
 
   function decodeName(s) {
@@ -21,7 +21,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
    * 資料夾清單快取（sessionStorage，只在本分頁）：同一分頁內換檔時先顯示上次的清單，
    * 背景重新讀取後再更新，側邊欄不會每次都閃一下「讀取中」。
    */
-  const CACHE_KEY = 'marklens:files'
+  const CACHE_KEY = 'markloupe:files'
   const CACHE_LIMIT = 50 // 最多記住幾個資料夾，超過時丟掉最舊的
   function readCache() {
     try {
@@ -48,7 +48,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
     return typeof root === 'string' && root.startsWith('file:///') && root.endsWith('/')
   }
 
-  MarkLens.FileTree = class {
+  Markloupe.FileTree = class {
     /**
      * @param {object} opts
      * @param {string} [opts.root] 樹的起點（file:// 資料夾網址，結尾為 /），重新整理或在分頁內切換檔案後沿用
@@ -111,7 +111,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
     /** 讀取起點，並依序還原展開的子資料夾 */
     async init() {
-      if (MarkLens.networkFile) return this.render()
+      if (Markloupe.networkFile) return this.render()
       // 起點換了之後，舊的讀取結果全部作廢
       const gen = ++this.gen
       this.nodes.clear()
@@ -193,7 +193,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
         x = r.left + 24
         y = r.bottom
       }
-      MarkLens.openMenu({
+      Markloupe.openMenu({
         anchor: row.querySelector('button') || row,
         at: { x, y },
         items: [{ label: t('filesSetRoot'), fn: () => this.setRoot(path) }],
@@ -232,7 +232,7 @@ var MarkLens = globalThis.MarkLens || (globalThis.MarkLens = {})
 
     render() {
       this.list.textContent = ''
-      if (MarkLens.networkFile) {
+      if (Markloupe.networkFile) {
         this.upBtn.hidden = true
         this.summary.textContent = this.folder
         return this.list.append(this.note(t('filesNetwork'), -1))

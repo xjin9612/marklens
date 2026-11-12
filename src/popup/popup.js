@@ -1,9 +1,9 @@
 'use strict'
 // 設定面板：表單欄位名稱與設定鍵一一對應，變更即存
 ;(async () => {
-  const { t } = MarkLens
-  await MarkLens.initI18n()
-  MarkLens.localize()
+  const { t } = Markloupe
+  await Markloupe.initI18n()
+  Markloupe.localize()
   const form = document.body
   const $ = sel => document.querySelector(sel)
   const status = $('#status')
@@ -25,7 +25,7 @@
       else el.value = String(s[key])
     }
     // 不在預設選項中的寬度視為自訂
-    const preset = MarkLens.WIDTH_PRESETS.includes(s.textWidth)
+    const preset = Markloupe.WIDTH_PRESETS.includes(s.textWidth)
     widthSel.value = preset ? String(s.textWidth) : 'custom'
     customRow.hidden = preset
     customInput.value = preset ? '' : String(s.textWidth)
@@ -38,7 +38,7 @@
     return el.value
   }
 
-  fill({ ...(await MarkLens.loadSettings()), syncEnabled: await MarkLens.isSyncEnabled() })
+  fill({ ...(await Markloupe.loadSettings()), syncEnabled: await Markloupe.isSyncEnabled() })
 
   form.addEventListener('change', async e => {
     const el = e.target
@@ -50,37 +50,37 @@
         return
       }
       customRow.hidden = true
-      await MarkLens.saveSettings({ textWidth: Number(el.value) })
+      await Markloupe.saveSettings({ textWidth: Number(el.value) })
     } else if (el.name === 'editor') {
       $('#editor-url-row').hidden = el.value !== 'custom'
-      await MarkLens.saveSettings({ editor: el.value })
+      await Markloupe.saveSettings({ editor: el.value })
     } else if (el.name === 'editorUrl') {
-      const s = await MarkLens.saveSettings({ editorUrl: el.value.trim() })
-      if (el.value.trim() && !MarkLens.editorTemplate(s)) return say(t('editorInvalid'))
+      const s = await Markloupe.saveSettings({ editorUrl: el.value.trim() })
+      if (el.value.trim() && !Markloupe.editorTemplate(s)) return say(t('editorInvalid'))
     } else if (el.name === 'uiLang') {
       // 介面語言：popup 立即換成新語言；閱讀頁重新整理後套用
-      await MarkLens.saveSettings({ uiLang: el.value })
-      await MarkLens.initI18n(el.value)
-      MarkLens.localize()
+      await Markloupe.saveSettings({ uiLang: el.value })
+      await Markloupe.initI18n(el.value)
+      Markloupe.localize()
     } else if (el.name === 'syncEnabled') {
       // 開啟時若雲端已有設定會套用到這台電腦，重新填入表單
-      await MarkLens.setSyncEnabled(el.checked)
-      fill({ ...(await MarkLens.loadSettings()), syncEnabled: el.checked })
+      await Markloupe.setSyncEnabled(el.checked)
+      fill({ ...(await Markloupe.loadSettings()), syncEnabled: el.checked })
     } else if (el.name === 'customCss') {
-      await MarkLens.saveSettings({ customCss: el.value })
-      if (MarkLens.cssBytes(el.value) > MarkLens.CUSTOM_CSS_MAX_BYTES) return say(t('customCssTooLarge'))
+      await Markloupe.saveSettings({ customCss: el.value })
+      if (Markloupe.cssBytes(el.value) > Markloupe.CUSTOM_CSS_MAX_BYTES) return say(t('customCssTooLarge'))
     } else if (el.name === 'customWidth') {
       const w = Math.min(4000, Math.max(480, Number(el.value) || 0))
-      await MarkLens.saveSettings({ textWidth: w })
+      await Markloupe.saveSettings({ textWidth: w })
     } else {
       if (el.type === 'number' && !el.checkValidity()) return say(t('statusOutOfRange'))
-      await MarkLens.saveSettings({ [el.name]: readValue(el) })
+      await Markloupe.saveSettings({ [el.name]: readValue(el) })
     }
-    say(t(MarkLens.LIVE_KEYS.includes(el.name) || ['enabled', 'syncEnabled'].includes(el.name) ? 'statusSaved' : 'statusSavedReload'))
+    say(t(Markloupe.LIVE_KEYS.includes(el.name) || ['enabled', 'syncEnabled'].includes(el.name) ? 'statusSaved' : 'statusSavedReload'))
   })
 
   // 可收合區塊的展開狀態：只是這台電腦上的介面偏好，存在 localStorage
-  const OPEN_KEY = 'marklens:popup-open'
+  const OPEN_KEY = 'markloupe:popup-open'
   let opened = []
   try {
     opened = JSON.parse(localStorage.getItem(OPEN_KEY)) || []
@@ -99,7 +99,7 @@
     })
   }
 
-  MarkLens.bindWebAccess($('#web-access'))
+  Markloupe.bindWebAccess($('#web-access'))
 
   // 本機檔案存取權限提示
   chrome.extension.isAllowedFileSchemeAccess(allowed => {

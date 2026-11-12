@@ -79,7 +79,7 @@ function promoHtml({ tagline, note }, shotBase64) {
   </style>
   <div class="text">
     <div class="icon">${ICON_SVG}</div>
-    <h1>MarkLens</h1>
+    <h1>Markloupe</h1>
     <p>${tagline}</p>
   </div>
   <div class="note">${note}</div>
@@ -109,7 +109,7 @@ function marqueeHtml({ tagline, note }, frontBase64, backBase64) {
   </style>
   <div class="text">
     <div class="icon">${ICON_SVG}</div>
-    <h1>MarkLens</h1>
+    <h1>Markloupe</h1>
     <p>${tagline}</p>
   </div>
   <div class="note">${note}</div>
@@ -156,11 +156,11 @@ for (const { lang, dir, demo, table: tableDoc, readme, text, promoText, captions
   })
   const sw = ctx.serviceWorkers()[0] || (await ctx.waitForEvent('serviceworker'))
   // 每張都從文件頂端開始，不受前一張的閱讀位置影響
-  await sw.evaluate(() => MarkLens.saveSettings({ rememberScroll: false }))
+  await sw.evaluate(() => Markloupe.saveSettings({ rememberScroll: false }))
 
   /** 以指定主題開啟文件，等字型、Mermaid、公式都畫完 */
   async function open(url, theme) {
-    await sw.evaluate(t => MarkLens.saveSettings({ theme: t }), theme)
+    await sw.evaluate(t => Markloupe.saveSettings({ theme: t }), theme)
     const page = await ctx.newPage()
     await page.goto(url)
     await page.waitForSelector('#ml-root .markdown-body h1')
@@ -192,7 +192,7 @@ for (const { lang, dir, demo, table: tableDoc, readme, text, promoText, captions
     },
     // 文件開頭：目錄、提示框、可勾選的任務清單
     '2-outline-tasks': async () => open(doc(demo), 'light'),
-    // 檔案分頁：MarkLens 自己的 README 與它所在的資料夾
+    // 檔案分頁：Markloupe 自己的 README 與它所在的資料夾
     '3-files': async () => {
       const p = await open(doc(readme), 'light')
       await p.click('.ml-side-tab:nth-child(2)')

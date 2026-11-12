@@ -11,7 +11,7 @@
 - [ ] 按工具列的「主題」或鍵盤 `d` 切換主題，圖表跟著變成深色／淺色
 - [ ] 用編輯器改一個節點文字並存檔，約 1 秒內圖更新；其他沒改的圖不閃爍
 - [ ] 按圖表的「全螢幕」：滾輪縮放、拖曳移動、雙擊重設，Esc 離開
-- [ ] 開啟 GitHub 上的 [demo.md](https://raw.githubusercontent.com/xjin9612/marklens/main/docs/demo.md)：圖表有畫出來，跟隨主題
+- [ ] 開啟 GitHub 上的 [demo.md](https://raw.githubusercontent.com/xjin9612/markloupe/main/docs/demo.md)：圖表有畫出來，跟隨主題
 - [ ] popup →「版面預設值」取消「繪製 Mermaid 圖表」，重新整理後只剩程式碼；測完記得勾回來
 - [ ] 開一份沒有 mermaid 的檔案（例如 [05-清單與表格.md](./05-清單與表格.md)），F12 → Network 篩選 `mermaid`，應該沒有任何請求
 
@@ -85,7 +85,7 @@ classDiagram
 pie title 發布檔大小
   "Mermaid" : 1300
   "其他程式庫" : 150
-  "MarkLens 本身" : 100
+  "Markloupe 本身" : 100
 ```
 
 ## 語法錯誤（預期顯示錯誤訊息）

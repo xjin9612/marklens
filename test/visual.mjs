@@ -35,9 +35,9 @@ const ctx = await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), 'm
 })
 const sw = ctx.serviceWorkers()[0] || (await ctx.waitForEvent('serviceworker'))
 const extId = sw.url().split('/')[2]
-const setTheme = theme => sw.evaluate(t => MarkLens.saveSettings({ theme: t }), theme)
+const setTheme = theme => sw.evaluate(t => Markloupe.saveSettings({ theme: t }), theme)
 // 不記住閱讀位置：同一份文件在不同畫面中都從頂端開始
-await sw.evaluate(() => MarkLens.saveSettings({ rememberScroll: false }))
+await sw.evaluate(() => Markloupe.saveSettings({ rememberScroll: false }))
 
 /** 開啟閱讀頁並等到畫面穩定：字型、Mermaid、公式都畫完 */
 async function reader(url, { theme = 'light', width = 1280, height = 800 } = {}) {
