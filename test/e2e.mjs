@@ -1207,6 +1207,55 @@ try {
       await sw.evaluate(() => Markloupe.saveSettings({ theme: 'auto', palette: 'github' }))
     }
   })
+  await check('配色對比：每組配色的文字、連結、語法標示與提示框標題都至少 4.5:1', async () => {
+    const failures = await mp.evaluate(palettes => {
+      const root = document.documentElement
+      const saved = { theme: root.dataset.mlTheme, palette: root.dataset.mlPalette }
+      const rgb = hex => {
+        const m = /^#([0-9a-f]{6})$/i.exec(hex)
+        return m && [0, 2, 4].map(i => parseInt(m[1].slice(i, i + 2), 16) / 255)
+      }
+      const lum = c => {
+        const [r, g, b] = c.map(x => (x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4))
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+      }
+      const ratio = (a, b) => {
+        const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x)
+        return (hi + 0.05) / (lo + 0.05)
+      }
+      const text = ['--fg', '--muted', '--faint', '--link']
+      const hl = ['keyword', 'string', 'number', 'comment', 'title', 'attr', 'builtin', 'meta'].map(n => `--hl-${n}`)
+      const alerts = ['note', 'tip', 'important', 'warning', 'caution'].map(n => `--alert-${n}`)
+      const pairs = [
+        ...text.flatMap(f => ['--bg', '--subtle', '--code-bg'].map(b => [f, b])),
+        ...hl.map(f => [f, '--code-bg']),
+        ...alerts.map(f => [f, '--bg']),
+        ['--on-accent', '--accent'],
+      ]
+      const out = []
+      try {
+        for (const palette of palettes) {
+          for (const theme of ['light', 'dark']) {
+            root.dataset.mlTheme = theme
+            if (palette === 'github') delete root.dataset.mlPalette
+            else root.dataset.mlPalette = palette
+            const css = getComputedStyle(root)
+            for (const [f, b] of pairs) {
+              const [fc, bc] = [f, b].map(v => rgb(css.getPropertyValue(v).trim()))
+              if (!fc || !bc) out.push(`${palette}/${theme} ${f} 或 ${b} 不是 #rrggbb`)
+              else if (ratio(fc, bc) < 4.5) out.push(`${palette}/${theme} ${f} on ${b} = ${ratio(fc, bc).toFixed(2)}`)
+            }
+          }
+        }
+      } finally {
+        root.dataset.mlTheme = saved.theme
+        if (saved.palette) root.dataset.mlPalette = saved.palette
+        else delete root.dataset.mlPalette
+      }
+      return out
+    }, await sw.evaluate(() => Markloupe.PALETTES))
+    assert.deepEqual(failures, [], failures.join('\n'))
+  })
   await check('Mermaid：切換主題後重繪', async () => {
     const before = (await sw.evaluate(() => Markloupe.loadSettings())).theme
     await sw.evaluate(() => Markloupe.saveSettings({ theme: 'dark' }))
