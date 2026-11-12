@@ -50,7 +50,7 @@
   --warn-bg: #fff8c5;
   --danger: #d1242f;
   --hl-keyword: #cf222e; --hl-string: #0a3069; --hl-number: #0550ae; --hl-comment: #59636e;
-  --hl-title: #8250df; --hl-attr: #0550ae; --hl-builtin: #953800; --hl-meta: #1f6feb;
+  --hl-title: #8250df; --hl-attr: #0550ae; --hl-builtin: #953800; --hl-meta: #1a5fd0;
   --hl-addition: #116329; --hl-addition-bg: #dafbe1; --hl-deletion: #82071e; --hl-deletion-bg: #ffebe9;
   --alert-note: #0969da; --alert-tip: var(--ok); --alert-important: #8250df; --alert-warning: var(--warn); --alert-caution: var(--danger);
 }
@@ -86,6 +86,7 @@
 /*
  * 配色（閱讀頁）：在淺色／深色之上替換部分變數；GitHub 為預設，不設 data-ml-palette
  * sepia：米色紙張、暖色文字，長時間閱讀較不刺眼；contrast：黑白高對比，框線與次要文字加深
+ * 文字、連結、語法標示與提示框標題在底色、側邊欄與程式碼底色上都至少 4.5:1
  */
 html.markloupe[data-ml-palette="sepia"][data-ml-theme="light"] {
   --bg: #f6efe3;
@@ -101,6 +102,10 @@ html.markloupe[data-ml-palette="sepia"][data-ml-theme="light"] {
   --link: #8a4f12;
   --accent: #8a4f12;
   --accent-soft: #eadcc2;
+  --ok: #176d30;
+  --warn: #855800;
+  --alert-important: #6b3fc0;
+  --hl-keyword: #b31d28; --hl-title: #6b3fc0; --hl-meta: #1a5fd0;
 }
 html.markloupe[data-ml-palette="sepia"][data-ml-theme="dark"] {
   --bg: #1f1a14;
@@ -129,6 +134,7 @@ html.markloupe[data-ml-palette="contrast"][data-ml-theme="light"] {
   --code-bg: #f2f2f2;
   --link: #0040b0;
   --accent: #0040b0;
+  --hl-meta: #1a5fd0;
 }
 html.markloupe[data-ml-palette="contrast"][data-ml-theme="dark"] {
   --bg: #000000;
