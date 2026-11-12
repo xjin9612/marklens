@@ -9,7 +9,7 @@ Markloupe.DEFAULTS = Object.freeze({
   uiLang: 'auto', // 介面語言：auto（跟隨瀏覽器）| en | zh_TW | zh_CN
   // ----- 即時同步到所有分頁 -----
   theme: 'auto', // auto | light | dark
-  palette: 'github', // 配色：github | sepia | contrast
+  palette: 'github', // 配色：github | sepia | contrast | green | graphite
   customCss: '', // 使用者自訂的 CSS，套用在閱讀頁
   fontSize: 16,
   lineHeight: 1.7,
@@ -56,7 +56,7 @@ Markloupe.fontPercent = function (px) {
   return `${Math.round((px / Markloupe.DEFAULTS.fontSize) * 100)}%`
 }
 
-Markloupe.PALETTES = ['github', 'sepia', 'contrast']
+Markloupe.PALETTES = ['github', 'sepia', 'contrast', 'green', 'graphite']
 
 /*
  * 跨裝置同步：開啟時（預設），SYNC_KEYS 另存一份到 chrome.storage.sync，由瀏覽器帳號同步到其他電腦。

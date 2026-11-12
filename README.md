@@ -104,7 +104,7 @@ Add `lang` to the front matter (for example `lang: zh-TW`) to set the document l
 - Optional **Edit** button: open the file in VS Code at the section you're reading. Other editors with a URL scheme work too
 
 **Appearance**
-- Light, dark, or follow the system; GitHub, sepia or high-contrast colors
+- Light, dark, or follow the system; GitHub, sepia, high-contrast, soft green or graphite colors
 - Add your own CSS to reading pages
 - Sync settings to your other computers through your browser account (can be turned off)
 - Text width (full, 1600, 1200, 960 or custom); tables and code can optionally grow to the right of the text column

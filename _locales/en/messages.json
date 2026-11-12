@@ -735,6 +735,12 @@
   "paletteContrast": {
     "message": "High contrast"
   },
+  "paletteGreen": {
+    "message": "Soft green"
+  },
+  "paletteGraphite": {
+    "message": "Graphite"
+  },
   "optWebAccess": {
     "message": "Also open .md files on websites"
   },

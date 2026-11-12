@@ -735,6 +735,12 @@
   "paletteContrast": {
     "message": "高对比"
   },
+  "paletteGreen": {
+    "message": "护眼绿"
+  },
+  "paletteGraphite": {
+    "message": "石墨"
+  },
   "optWebAccess": {
     "message": "也在网页上的 .md 文件启用"
   },
