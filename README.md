@@ -106,7 +106,7 @@ Add `lang` to the front matter (for example `lang: zh-TW`) to set the document l
 **Appearance**
 - Light, dark, or follow the system; GitHub, sepia, high-contrast, soft green or graphite colors, or your own
 - Add your own CSS to reading pages
-- Sync settings to your other computers through your browser account (can be turned off)
+- Sync settings to your other computers through your browser account (can be turned off), or export and import them as a JSON file
 - Text width (full, 1600, 1200, 960 or custom); tables and code can optionally grow to the right of the text column
 - Font size scales the whole document, including code, tables, math and diagrams; adjustable line height
 - Interface in English, Traditional Chinese and Simplified Chinese

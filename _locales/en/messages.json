@@ -807,6 +807,24 @@
   "colorLowContrast": {
     "message": "Low contrast, hard to read (4.5:1 or more is better): $1"
   },
+  "settingsExport": {
+    "message": "Export settings"
+  },
+  "settingsImport": {
+    "message": "Import settings…"
+  },
+  "settingsImportHint": {
+    "message": "Choose a settings file exported from Markloupe. Authorized folders and reading positions aren’t included."
+  },
+  "importDone": {
+    "message": "Imported $1 settings"
+  },
+  "importPartial": {
+    "message": "Imported $1 settings; skipped $2 invalid values"
+  },
+  "importInvalid": {
+    "message": "This isn’t a Markloupe settings file"
+  },
   "optWebAccess": {
     "message": "Also open .md files on websites"
   },

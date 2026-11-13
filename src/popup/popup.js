@@ -11,10 +11,10 @@
   const widthSel = form.querySelector('[name=textWidth]')
   const customInput = form.querySelector('[name=customWidth]')
 
-  function say(text) {
+  function say(text, ms = 1500) {
     status.textContent = text
     clearTimeout(say.t)
-    say.t = setTimeout(() => (status.textContent = ''), 1500)
+    say.t = setTimeout(() => (status.textContent = ''), ms)
   }
 
   function fill(s) {
@@ -341,6 +341,86 @@
     fillColors({ palette: 'custom', customColors: Markloupe.DEFAULTS.customColors })
     await storeColors(() => Markloupe.DEFAULTS.customColors)
     say(t('statusSaved'))
+  })
+
+  /* ---------- 設定匯出與匯入 ---------- */
+  // 與跨裝置同步的範圍相同，另含自訂編輯器網址；授權資料夾、閱讀位置與側邊欄寬度屬於這台電腦，不匯出
+  const EXPORT_KEYS = [...Markloupe.SYNC_KEYS, 'customCss', 'editorUrl']
+  const CHOICES = {
+    uiLang: ['auto', 'en', 'zh_TW', 'zh_CN'],
+    theme: ['auto', 'light', 'dark'],
+    palette: Markloupe.PALETTES,
+    tableWidth: ['text', 'full'],
+    autoRefresh: ['off', 'local', 'all'],
+    editor: ['none', 'vscode', 'custom'],
+    tocDepth: [1, 2, 3, 4, 6],
+  }
+  const RANGES = { fontSize: [10, 32], lineHeight: [1.2, 2.4], textWidth: [0, 4000], refreshInterval: [300, 10000] }
+
+  /** 匯入檔的設定逐項檢查型別、選項與範圍；不合法的略過 */
+  function importable(data) {
+    const src = data?.settings
+    if (!src || typeof src !== 'object' || data.markloupe !== 1) return null
+    const patch = {}
+    let skipped = 0
+    for (const key of EXPORT_KEYS) {
+      if (!(key in src)) continue
+      const v = src[key]
+      const def = Markloupe.DEFAULTS[key]
+      let ok = typeof v === typeof def
+      if (ok && CHOICES[key]) ok = CHOICES[key].includes(v)
+      if (ok && RANGES[key]) ok = Number.isFinite(v) && v >= RANGES[key][0] && v <= RANGES[key][1]
+      if (ok && key === 'textWidth') ok = v === 0 || v >= 480
+      if (ok && key === 'customColors') patch[key] = { light: Markloupe.customColorsFor(v, 'light'), dark: Markloupe.customColorsFor(v, 'dark') }
+      else if (ok) patch[key] = v
+      else skipped++
+    }
+    return { patch, skipped }
+  }
+
+  $('#settings-export').addEventListener('click', async () => {
+    const s = await Markloupe.loadSettings()
+    const data = { markloupe: 1, exported: new Date().toISOString(), settings: Object.fromEntries(EXPORT_KEYS.map(k => [k, s[k]])) }
+    const url = URL.createObjectURL(new Blob([`${JSON.stringify(data, null, 2)}\n`], { type: 'application/json' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'markloupe-settings.json'
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 10000)
+  })
+
+  /*
+   * 匯入直接在 popup 選檔。macOS 的 Chrome 全螢幕時，檔案選擇視窗會讓 popup 關閉、收不到選取的檔案
+   * （https://issues.chromium.org/issues/398288319），這時改在分頁中選檔。
+   * 全螢幕狀態先取好：按下按鈕後才等待查詢，檔案選擇視窗可能因為已不是使用者操作而開不起來
+   */
+  const importPage = new URLSearchParams(location.search).has('import')
+  const mac = /mac/i.test(navigator.userAgentData?.platform ?? navigator.platform)
+  let importInTab = false
+  if (mac && !importPage) chrome.windows.getCurrent().then(w => (importInTab = w.state === 'fullscreen'))
+  $('#settings-import').addEventListener('click', () => {
+    if (importInTab) chrome.tabs.create({ url: chrome.runtime.getURL('src/popup/popup.html?import') })
+    else $('#settings-file').click()
+  })
+  if (importPage) {
+    $('#settings-import-hint').hidden = false
+    $('#settings-import').scrollIntoView({ block: 'center' })
+    $('#settings-import').focus()
+  }
+  $('#settings-file').addEventListener('change', async e => {
+    const file = e.target.files[0]
+    e.target.value = '' // 同一個檔案可以再選一次
+    if (!file) return
+    let result = null
+    try {
+      result = importable(JSON.parse(await file.text()))
+    } catch {
+      // 不是 JSON
+    }
+    if (!result || !Object.keys(result.patch).length) return say(t('importInvalid'), 4000)
+    await Markloupe.saveSettings(result.patch)
+    fill({ ...(await Markloupe.loadSettings()), syncEnabled: await Markloupe.isSyncEnabled() })
+    say(t(result.skipped ? 'importPartial' : 'importDone', String(Object.keys(result.patch).length), String(result.skipped)), 4000)
   })
 
   Markloupe.bindWebAccess($('#web-access'))
