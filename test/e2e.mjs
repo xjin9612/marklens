@@ -1569,6 +1569,23 @@ try {
       await mp.waitForFunction(() => document.querySelector('.ml-mermaid').dataset.mlMermaidTheme !== 'dark' || document.documentElement.dataset.mlTheme === 'dark')
     }
   })
+  await check('Mermaid：圖表還在繪製時切換主題，畫完後依新主題重繪', async () => {
+    const before = (await sw.evaluate(() => Markloupe.loadSettings())).theme
+    const light = before === 'dark' ? 'light' : before
+    await sw.evaluate(t => Markloupe.saveSettings({ theme: t }), light)
+    const rp = await openDoc(pathToFileURL(localMermaid).href)
+    try {
+      // 開頁後立刻切換：第一張圖多半還在繪製
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'dark' }))
+      const themes = () => rp.$$eval('.ml-mermaid', els => els.map(el => el.dataset.mlMermaidTheme ?? 'none'))
+      await until(async () => (await themes()).filter(x => x.startsWith('dark')).length === 2, 15000).catch(async e => {
+        throw new Error(`${e.message}：${JSON.stringify(await themes())}`)
+      })
+    } finally {
+      await sw.evaluate(t => Markloupe.saveSettings({ theme: t }), before)
+      await rp.close()
+    }
+  })
   await check('Mermaid：一般 http 網頁不能複製圖片，選單說明原因', async () => {
     const hp = await openDoc(`http://insecure.test:${port}/docs/mermaid.md`)
     try {

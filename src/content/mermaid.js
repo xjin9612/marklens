@@ -344,6 +344,8 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       const { svg } = await mermaid.render(id, code)
       remember(key, svg)
       if (wrap.isConnected) setSvg(wrap, svg, theme)
+      // 繪製期間主題變了：rethemeMermaid 只重繪已畫好的圖，這張要自己再排一次
+      if (wrap.isConnected && themeNow() !== theme) enqueue(wrap)
     } catch (err) {
       if (wrap.isConnected) setError(wrap, err)
     } finally {
