@@ -1305,6 +1305,32 @@ try {
     assert.equal(await pop.locator('#custom-width-row').isVisible(), false)
     await sw.evaluate(() => Markloupe.saveSettings({ textWidth: 1200 }))
   })
+  await check('popup 下拉選單在三種介面語言都放得下最長的選項', async () => {
+    const too = []
+    try {
+      for (const lang of ['zh_TW', 'zh_CN', 'en']) {
+        await sw.evaluate(l => Markloupe.saveSettings({ uiLang: l }), lang)
+        await pop.reload()
+        await pop.waitForFunction(l => document.documentElement.lang === l.replace('_', '-'), lang)
+        too.push(
+          ...(await pop.evaluate(() =>
+            [...document.querySelectorAll('select')].flatMap(s => {
+              const cs = getComputedStyle(s)
+              const c = document.createElement('canvas').getContext('2d')
+              c.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
+              // 扣掉內距與右側的下拉箭頭（約 20px）
+              const room = s.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 20
+              return [...s.options].filter(o => c.measureText(o.text).width > room).map(o => `${s.name || s.dataset.font}：${o.text}`)
+            }),
+          )).map(x => `${lang} ${x}`),
+        )
+      }
+    } finally {
+      await sw.evaluate(() => Markloupe.saveSettings({ uiLang: 'auto' }))
+      await pop.reload()
+    }
+    assert.deepEqual(too, [])
+  })
   await check('popup 自訂配色：選「自訂」才顯示；色碼可省略 #、可用簡寫；不合法時不寫入；對比不足時提醒；可重設', async () => {
     const colors = async () => (await sw.evaluate(() => Markloupe.loadSettings())).customColors
     const setText = async (cc, value) => {

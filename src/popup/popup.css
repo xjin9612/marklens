@@ -32,6 +32,8 @@ select, input[type=number] {
   color: var(--fg);
   font: inherit;
 }
+/* 字型選項較長（如「By document language」「Times New Roman」），放寬才不會被截斷 */
+select[data-font] { width: 170px; }
 button {
   padding: 4px 10px;
   border: 1px solid var(--border);
