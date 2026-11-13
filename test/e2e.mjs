@@ -2578,10 +2578,11 @@ try {
     const saved = await sw.evaluate(() => chrome.storage.local.get(null))
     try {
       const r = await sw.evaluate(async () => {
-        await chrome.storage.local.remove(['markloupe:settings', 'markloupe:scroll'])
+        await chrome.storage.local.remove(['markloupe:settings'])
         await chrome.storage.local.set({
           'marklens:settings': { lineHeight: 1.6 },
-          'marklens:scroll': { 'file:///a.md': 120 },
+          // 已開的分頁隨時會寫入自己的閱讀位置（markloupe:scroll），搬移時新鍵已有值就不搬；用分頁不會寫的鍵檢查一般的搬移
+          'marklens:sample': { 'file:///a.md': 120 },
           'marklens:device': 'old-id',
           'markloupe:device': 'new-id',
           'markloupe:sync': false, // 不讓 background 把搬進 storage.sync 的資料套用回本機，影響之後的測試
@@ -2613,7 +2614,7 @@ try {
         }
       })
       assert.equal(r.local['markloupe:settings'].lineHeight, 1.6)
-      assert.deepEqual(r.local['markloupe:scroll'], { 'file:///a.md': 120 })
+      assert.deepEqual(r.local['markloupe:sample'], { 'file:///a.md': 120 })
       assert.equal(r.local['markloupe:device'], 'new-id', '新鍵已有值時保留')
       assert.equal(r.sync['markloupe:customCss'], 'p{}')
       const left = [...Object.keys(r.local), ...Object.keys(r.sync)].filter(k => k.startsWith('marklens:'))
