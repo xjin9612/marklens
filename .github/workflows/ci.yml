@@ -16,7 +16,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-26.04, macos-latest, windows-latest]
+        # 固定作業系統版本：-latest 換版時測試環境會無預警改變
+        os: [ubuntu-26.04, macos-26, windows-2025]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     defaults:
@@ -68,6 +69,13 @@ jobs:
           # apt 留下的 lock 只有 root 能讀，快取存檔時會讀不到
           sudo rm -f ~/apt-cache/lock
           sudo chmod -R a+rX ~/apt-cache
+
+      # macOS 與 Windows 的 Chromium 也存進快取；路徑是 Playwright 在各平台的預設下載位置
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        if: runner.os != 'Linux'
+        with:
+          path: ${{ runner.os == 'macOS' && '~/Library/Caches/ms-playwright' || '~/AppData/Local/ms-playwright' }}
+          key: browser-${{ matrix.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: 安裝 Chromium
         if: runner.os != 'Linux'
