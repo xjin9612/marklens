@@ -1097,10 +1097,10 @@ try {
 
       await setText('light.bg', '123')
       await until(async () => (await colors()).light?.bg === '#112233')
-      await until(async () => (await pop.inputValue('input[type=color][data-cc="light.bg"]')) === '#112233') // 取色器同步
+      assert.equal(await pop.$eval('[data-swatch="light.bg"]', el => getComputedStyle(el).backgroundColor), 'rgb(17, 34, 51)') // 色塊同步
       // 深色文字在深底上：對比不足
       assert.equal(await pop.locator('#cc-warning').isVisible(), true)
-      assert.match(await pop.textContent('#cc-warning'), /淺色 文字 1\.\d:1/)
+      assert.match(await pop.textContent('#cc-warning'), /淺色・文字 1\.\d:1/)
 
       // 連續修改兩個顏色，前一次還沒存完：兩個修改都要留下
       await pop.evaluate(() => {
@@ -1385,6 +1385,60 @@ try {
       assert.equal(await mp.evaluate(() => getComputedStyle(document.documentElement).display), 'block')
     } finally {
       await sw.evaluate(() => Markloupe.saveSettings({ theme: 'auto', palette: 'github', customColors: Markloupe.DEFAULTS.customColors, customCss: '' }))
+    }
+  })
+  await check('popup 調色區塊：調整時閱讀頁即時預覽、不存檔；完成才存檔；取消或關閉 popup 都還原', async () => {
+    const pp = await ctx.newPage()
+    const stored = async () => (await sw.evaluate(() => Markloupe.loadSettings())).customColors
+    const pageBg = rgb => mp.waitForFunction(c => getComputedStyle(document.body).backgroundColor === c, rgb)
+    // 從方塊內拖到左下角外面：飽和度與亮度都是 0（黑色）
+    const dragToBlack = async () => {
+      const box = await pp.locator('.cc-sv').boundingBox()
+      await pp.mouse.move(box.x + 10, box.y + 10)
+      await pp.mouse.down()
+      await pp.mouse.move(box.x - 20, box.y + box.height + 20)
+      await pp.mouse.up()
+    }
+    try {
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'light', palette: 'custom', customColors: Markloupe.DEFAULTS.customColors }))
+      await pageBg('rgb(255, 255, 255)')
+      await pp.goto(`chrome-extension://${extId}/src/popup/popup.html`)
+      await pp.click('[data-swatch="light.bg"]')
+      assert.equal(await pp.locator('#cc-picker').isVisible(), true)
+      assert.equal(await pp.textContent('#cc-picker-name'), '淺色・背景')
+      // 切換介面語言：調色區塊的標題跟著換
+      await pp.selectOption('[name=uiLang]', 'en')
+      await until(async () => (await pp.textContent('#cc-picker-name')) === 'Light · Background')
+      assert.equal(await pp.getAttribute('input[data-cc="light.bg"]', 'aria-label'), 'Light · Background')
+      await pp.selectOption('[name=uiLang]', 'auto')
+      await until(async () => (await pp.textContent('#cc-picker-name')) === '淺色・背景')
+      await dragToBlack()
+      assert.equal(await pp.inputValue('input[data-cc="light.bg"]'), '#000000')
+      await pageBg('rgb(0, 0, 0)')
+      assert.equal((await stored()).light.bg, '#ffffff', '預覽不存檔')
+
+      await pp.click('#cc-cancel')
+      assert.equal(await pp.locator('#cc-picker').isVisible(), false)
+      assert.equal(await pp.inputValue('input[data-cc="light.bg"]'), '#ffffff')
+      await pageBg('rgb(255, 255, 255)')
+
+      // 方向鍵：Shift 每次 10%，亮度從 100% 降到 50%
+      await pp.click('[data-swatch="light.bg"]')
+      for (let i = 0; i < 5; i++) await pp.keyboard.press('Shift+ArrowDown')
+      await pp.click('#cc-done')
+      await until(async () => (await stored()).light.bg === '#808080')
+      await pageBg('rgb(128, 128, 128)')
+
+      // 沒按完成就關閉 popup：閱讀頁回到已存的顏色
+      await pp.click('[data-swatch="light.bg"]')
+      await dragToBlack()
+      await pageBg('rgb(0, 0, 0)')
+      await pp.close()
+      await pageBg('rgb(128, 128, 128)')
+      assert.equal((await stored()).light.bg, '#808080')
+    } finally {
+      if (!pp.isClosed()) await pp.close()
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'auto', palette: 'github', uiLang: 'auto', customColors: Markloupe.DEFAULTS.customColors }))
     }
   })
   await check('Mermaid：切換主題後重繪', async () => {

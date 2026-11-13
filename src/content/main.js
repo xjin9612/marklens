@@ -156,6 +156,20 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
         if (msg?.type === 'command') this.runCommand(msg.name, true)
         reply({ ok: true })
       })
+      // popup 調色時的預覽：只改畫面、不存檔；popup 關閉（連線中斷）時回到設定中的顏色
+      chrome.runtime.onConnect.addListener(port => {
+        if (port.name !== 'ml-color-preview') return
+        port.onMessage.addListener(colors => {
+          this.previewColors = colors
+          if (colors) this.applyPalette('custom')
+          else this.applyLive()
+        })
+        port.onDisconnect.addListener(() => {
+          if (!this.previewColors) return
+          this.previewColors = null
+          this.applyLive()
+        })
+      })
 
       if (location.hash) this.scrollToHash()
       else if (this.settings.rememberScroll) this.restoreScroll()
@@ -656,7 +670,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       if (palette === 'custom') {
         const css = getComputedStyle(root)
         const base = Object.fromEntries(Markloupe.CUSTOM_BASE_VARS.map(n => [n, css.getPropertyValue(n).trim()]))
-        const colors = Markloupe.customColorsFor(this.settings.customColors, root.dataset.mlTheme)
+        const colors = Markloupe.customColorsFor(this.previewColors || this.settings.customColors, root.dataset.mlTheme)
         Markloupe.paletteCss = Markloupe.customPaletteCss(Markloupe.customPaletteVars(colors, base))
       }
       this.paletteSheet.replaceSync(Markloupe.paletteCss)

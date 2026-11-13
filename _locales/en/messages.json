@@ -753,6 +753,21 @@
   "colorAccent": {
     "message": "Accent"
   },
+  "colorSv": {
+    "message": "Saturation and brightness (arrow keys)"
+  },
+  "colorHue": {
+    "message": "Hue"
+  },
+  "colorCancel": {
+    "message": "Cancel"
+  },
+  "colorDone": {
+    "message": "Done"
+  },
+  "colorName": {
+    "message": "$1 · $2"
+  },
   "colorReset": {
     "message": "Reset colors"
   },

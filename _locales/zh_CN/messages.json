@@ -753,6 +753,21 @@
   "colorAccent": {
     "message": "强调色"
   },
+  "colorSv": {
+    "message": "饱和度与亮度（方向键调整）"
+  },
+  "colorHue": {
+    "message": "色相"
+  },
+  "colorCancel": {
+    "message": "取消"
+  },
+  "colorDone": {
+    "message": "完成"
+  },
+  "colorName": {
+    "message": "$1・$2"
+  },
   "colorReset": {
     "message": "重置颜色"
   },
