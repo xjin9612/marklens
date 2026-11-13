@@ -366,6 +366,9 @@
   "tocLabel": {
     "message": "侧边栏"
   },
+  "tocTasks": {
+    "message": "已完成 $1／$2 项任务"
+  },
   "tocStats": {
     "message": "约 $1 字 · $2 分钟"
   },

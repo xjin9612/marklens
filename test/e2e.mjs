@@ -660,11 +660,27 @@ try {
       await np.close()
     }
   })
+  await check('目錄的任務完成數：每一節含子章節，全部完成時換色，沒有任務的章節不顯示', async () => {
+    const file = join(work, 'toc-tasks.md')
+    writeFileSync(file, ['# 甲', '', '## 乙', '', '- [x] 乙一', '- [ ] 乙二', '', '## 丙', '', '- [x] 丙一', '', '# 丁', '', '沒有任務'].join('\n'))
+    const tp = await openDoc(pathToFileURL(file).href)
+    try {
+      const badge = name => tp.locator('.ml-toc-list li', { has: tp.locator(`a:text-is("${name}")`) }).locator('.ml-toc-tasks')
+      assert.equal(await badge('甲').textContent(), '2/3')
+      assert.equal(await badge('乙').textContent(), '1/2')
+      assert.equal(await badge('丙').textContent(), '1/1')
+      assert.equal(await badge('丙').evaluate(el => el.classList.contains('ml-toc-tasks-done')), true)
+      assert.equal(await badge('乙').getAttribute('title'), '已完成 1／2 項任務')
+      assert.equal(await badge('丁').count(), 0)
+    } finally {
+      await tp.close()
+    }
+  })
   await check('目錄高亮：頁尾的短章節捲不到頂端，跳轉的目標與捲到底時仍標示正確', async () => {
     const demoUrl = pathToFileURL(join(root, 'docs/demo.md')).href
     const tp = await openDoc(`${demoUrl}#glossary`)
-    const active = () => tp.locator('.ml-toc-list li.active').textContent()
-    const activeIs = text => tp.waitForFunction(t => document.querySelector('.ml-toc-list li.active')?.textContent === t, text)
+    const active = () => tp.locator('.ml-toc-list li.active > a').textContent()
+    const activeIs = text => tp.waitForFunction(t => document.querySelector('.ml-toc-list li.active > a')?.textContent === t, text)
     try {
       // 網址 #glossary 開啟：捲到底，Glossary 到不了頂端
       await activeIs('Glossary')
@@ -1067,7 +1083,7 @@ try {
     await sw.evaluate(() => Markloupe.saveSettings({ editor: 'vscode' }))
     const ep = await openDoc()
     await ep.click('.ml-toc-list a:text("程式碼")')
-    await ep.waitForFunction(() => document.querySelector('.ml-toc-list li.active')?.textContent === '程式碼')
+    await ep.waitForFunction(() => document.querySelector('.ml-toc-list li.active > a')?.textContent === '程式碼')
     const before = errors.length
     await ep.click('.ml-tool-edit')
     const href = await ep.getAttribute('.ml-tool-edit', 'data-ml-href')
@@ -2652,6 +2668,7 @@ try {
     assert.equal(await tp.locator('input.ml-task-box:not([disabled])').count(), 5)
     assert.equal(await box('HTML 寫的').isDisabled(), true)
     assert.equal(await tp.locator('pre input').count(), 0)
+    assert.equal(await tp.locator('.ml-toc-tasks').first().textContent(), '1/6', '目錄的任務完成數')
   })
   await check('勾選寫回：寫入正確的行（含 front matter 偏移）', async () => {
     await box('第一項').click()
@@ -2660,6 +2677,7 @@ try {
     assert.equal(await toast(), '已勾選並存檔復原')
     assert.equal(await box('第一項').isChecked(), true)
     assert.equal((await opfs.read('tasks.md')).text, tasksSrc.replace('- [ ] 第一項', '- [x] 第一項'))
+    assert.equal(await tp.locator('.ml-toc-tasks').first().textContent(), '2/6', '勾選後目錄的任務完成數跟著更新')
   })
   await check('勾選寫回：引用區塊、有序清單、巢狀清單', async () => {
     await box('引用中的任務').click()

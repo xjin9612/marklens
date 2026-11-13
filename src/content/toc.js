@@ -145,6 +145,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       this.activeIndex = -1
       this.applyFilter()
       this.syncFold()
+      this.syncTasks()
       // 延到下一個畫面再量位置，避免在建立目錄時強制整頁排版
       requestAnimationFrame(() => this.update())
     }
@@ -165,6 +166,42 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       }
       // 未被摺疊隱藏的標題，供 update() 二分搜尋
       this.visible = this.items.filter(it => !it.heading.dataset.mlFold)
+    }
+
+    /**
+     * 每一節（含子章節）的任務完成數，顯示在目錄項目右側；沒有任務的章節不顯示
+     * 依文件順序掃一次標題與勾選框：勾選框算進目前所有層級還沒結束的標題
+     */
+    syncTasks() {
+      const count = new Map(this.items.map(it => [it.heading, { done: 0, total: 0 }]))
+      const open = []
+      for (const el of this.app.article.querySelectorAll('h1, h2, h3, h4, h5, h6, input.ml-task-box')) {
+        if (el.tagName === 'INPUT') {
+          for (const c of open) {
+            c.total++
+            if (el.checked) c.done++
+          }
+          continue
+        }
+        const c = count.get(el)
+        if (!c) continue
+        while (open.length && open.at(-1).level >= +el.dataset.mlLevel) open.pop()
+        c.level = +el.dataset.mlLevel
+        open.push(c)
+      }
+      for (const it of this.items) {
+        const { done, total } = count.get(it.heading)
+        let badge = it.li.querySelector('.ml-toc-tasks')
+        it.li.classList.toggle('ml-toc-has-tasks', total > 0)
+        if (!total) {
+          badge?.remove()
+          continue
+        }
+        if (!badge) it.li.append((badge = h('span', { class: 'ml-toc-tasks' })))
+        badge.textContent = `${done}/${total}`
+        badge.title = t('tocTasks', String(done), String(total))
+        badge.classList.toggle('ml-toc-tasks-done', done === total)
+      }
     }
 
     setStats({ chars, minutes }) {
