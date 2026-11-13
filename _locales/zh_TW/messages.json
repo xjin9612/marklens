@@ -327,6 +327,9 @@
   "filesEmpty": {
     "message": "（沒有 Markdown）"
   },
+  "secReading": {
+    "message": "閱讀"
+  },
   "secFiles": {
     "message": "檔案列表"
   },
@@ -501,9 +504,6 @@
   "refreshInterval": {
     "message": "檢查間隔 (ms)"
   },
-  "toggleRaw": {
-    "message": "切換原始文字"
-  },
   "shortcutSettings": {
     "message": "快捷鍵設定"
   },
@@ -518,9 +518,6 @@
   },
   "statusSavedReload": {
     "message": "已儲存，重新整理分頁後套用"
-  },
-  "statusNotMarkdown": {
-    "message": "此分頁不是 Markdown 頁面"
   },
   "grantPageTitle": {
     "message": "Markloupe：檔案寫回授權"

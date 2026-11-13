@@ -8,7 +8,11 @@ body {
   color: var(--fg);
   font: 13px/1.5 var(--ml-font);
 }
-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+header { display: flex; align-items: center; gap: 2px; margin-bottom: 8px; }
+header strong { margin-right: auto; }
+header .switch { margin-left: 8px; }
+.icon-btn { display: inline-flex; padding: 4px; border-color: transparent; color: var(--muted); }
+.icon-btn:hover { color: var(--fg); }
 section, details.sec { border-top: 1px solid var(--border); padding: 8px 0; }
 section, .sec-body { display: grid; gap: 6px; }
 .sec-body { margin-top: 6px; }
@@ -28,7 +32,6 @@ select, input[type=number] {
   color: var(--fg);
   font: inherit;
 }
-footer { border-top: 1px solid var(--border); padding-top: 10px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 button {
   padding: 4px 10px;
   border: 1px solid var(--border);
@@ -39,12 +42,15 @@ button {
   cursor: pointer;
 }
 button:hover { border-color: var(--accent); }
-#status { color: var(--accent); font-size: 12px; }
+/* 區塊是 grid，按鈕預設會撐滿整列 */
+section > button, .sec-body > button, .custom-colors > button { justify-self: start; }
+/* 存檔提示浮在視窗底部：popup 捲動到哪裡都看得到，出現與消失時版面不跳動 */
+#status { position: fixed; left: 14px; right: 14px; bottom: 8px; margin: 0; padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--accent); font-size: 12px; }
+#status:empty { display: none; }
 .warning { background: var(--warn-bg); padding: 8px; border-radius: 6px; margin: 0 0 8px; }
 .warning button { margin-top: 6px; }
 h2 { margin: 0; font-size: 12px; font-weight: 600; color: var(--muted); }
 h2 small { font-weight: 400; margin-left: 4px; }
-#status { flex-basis: 100%; }
 label.stack { display: grid; gap: 4px; justify-content: stretch; }
 input[type=text],
 textarea {
@@ -79,4 +85,3 @@ textarea { resize: vertical; }
 .cc-cell input[type=text] { width: 68px; padding: 2px 4px; }
 .cc-cell input[type=text][aria-invalid=true] { border-color: var(--danger); }
 .cc-warning { color: var(--warn); }
-#cc-reset { justify-self: start; }

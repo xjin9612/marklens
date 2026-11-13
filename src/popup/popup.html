@@ -10,6 +10,8 @@
 <body>
   <header>
     <strong>Markloupe</strong>
+    <button type="button" id="help" class="icon-btn" data-i18n-label="help"></button>
+    <button type="button" id="shortcuts" class="icon-btn" data-i18n-label="shortcutSettings"></button>
     <label class="switch" data-i18n-title="popupEnableTitle">
       <input type="checkbox" name="enabled"> <span data-i18n="popupEnable"></span>
     </label>
@@ -21,6 +23,18 @@
   </p>
 
   <!-- 常用設定直接顯示，其餘可收合（展開狀態記在本機） -->
+  <!-- 介面語言只有 popup 立即套用，不放在「即時套用到所有分頁」的外觀區 -->
+  <section>
+    <label><span data-i18n="uiLang"></span>
+      <select name="uiLang">
+        <option value="auto" data-i18n="langAuto"></option>
+        <option value="en">English</option>
+        <option value="zh_TW">繁體中文</option>
+        <option value="zh_CN">简体中文</option>
+      </select>
+    </label>
+  </section>
+
   <section>
     <h2><span data-i18n="secAppearance"></span> <small data-i18n="secAppearanceNote"></small></h2>
     <label><span data-i18n="theme"></span>
@@ -70,14 +84,6 @@
       <p id="cc-warning" class="hint cc-warning" hidden></p>
       <button type="button" id="cc-reset" data-i18n="colorReset"></button>
     </div>
-    <label><span data-i18n="uiLang"></span>
-      <select name="uiLang">
-        <option value="auto" data-i18n="langAuto"></option>
-        <option value="en">English</option>
-        <option value="zh_TW">繁體中文</option>
-        <option value="zh_CN">简体中文</option>
-      </select>
-    </label>
     <label><span data-i18n="fontSize"></span>
       <input type="number" name="fontSize" min="10" max="32" step="1">
     </label>
@@ -118,52 +124,22 @@
     <label class="check"><input type="checkbox" name="tocHidden"> <span data-i18n="optTocHidden"></span></label>
     <label class="check"><input type="checkbox" name="tableWrap"> <span data-i18n="optTableWrap"></span></label>
     <label class="check"><input type="checkbox" name="codeWrap"> <span data-i18n="optCodeWrap"></span></label>
-    <label class="check"><input type="checkbox" name="rememberScroll"> <span data-i18n="optRememberScroll"></span></label>
-    <label class="check"><input type="checkbox" name="linkNewTab"> <span data-i18n="optLinkNewTab"></span></label>
-    <label class="check"><input type="checkbox" name="mermaid"> <span data-i18n="optMermaid"></span></label>
-    <label class="check"><input type="checkbox" name="math"> <span data-i18n="optMath"></span></label>
   </section>
 
   <section>
     <label class="check"><input type="checkbox" id="web-access"> <span data-i18n="optWebAccess"></span></label>
     <p class="hint" data-i18n="optWebAccessNote"></p>
-  </section>
-
-  <section>
     <label class="check"><input type="checkbox" name="syncEnabled"> <span data-i18n="optSync"></span></label>
     <p class="hint" data-i18n="optSyncNote"></p>
   </section>
 
-  <details class="sec" data-sec="css">
-    <summary><span data-i18n="secCustomCss"></span> <small data-i18n="secCustomCssNote"></small></summary>
+  <details class="sec" data-sec="reading">
+    <summary><span data-i18n="secReading"></span> <small data-i18n="secLayoutNote"></small></summary>
     <div class="sec-body">
-      <textarea name="customCss" rows="6" spellcheck="false" data-i18n-placeholder="customCssPlaceholder"></textarea>
-    </div>
-  </details>
-
-  <details class="sec" data-sec="files">
-    <summary><span data-i18n="secFiles"></span> <small data-i18n="secFilesNote"></small></summary>
-    <div class="sec-body">
-      <label class="stack"><span data-i18n="fileIgnore"></span>
-        <input type="text" name="fileIgnore" spellcheck="false" data-i18n-title="fileIgnoreTitle">
-      </label>
-    </div>
-  </details>
-
-  <details class="sec" data-sec="editor">
-    <summary><span data-i18n="secEditor"></span> <small data-i18n="secEditorNote"></small></summary>
-    <div class="sec-body">
-      <label><span data-i18n="editor"></span>
-        <select name="editor">
-          <option value="none" data-i18n="editorNone"></option>
-          <option value="vscode">VS Code</option>
-          <option value="custom" data-i18n="editorCustom"></option>
-        </select>
-      </label>
-      <label class="stack" id="editor-url-row" hidden><span data-i18n="editorUrl"></span>
-        <input type="text" name="editorUrl" spellcheck="false" placeholder="vscode-insiders://file/{path}:{line}">
-      </label>
-      <p class="hint" data-i18n="editorHint"></p>
+      <label class="check"><input type="checkbox" name="rememberScroll"> <span data-i18n="optRememberScroll"></span></label>
+      <label class="check"><input type="checkbox" name="linkNewTab"> <span data-i18n="optLinkNewTab"></span></label>
+      <label class="check"><input type="checkbox" name="mermaid"> <span data-i18n="optMermaid"></span></label>
+      <label class="check"><input type="checkbox" name="math"> <span data-i18n="optMath"></span></label>
     </div>
   </details>
 
@@ -191,16 +167,45 @@
     </div>
   </details>
 
-  <footer>
-    <button type="button" id="toggle-raw" data-i18n="toggleRaw"></button>
-    <button type="button" id="shortcuts" data-i18n="shortcutSettings"></button>
-    <button type="button" id="help" data-i18n="help"></button>
-    <span id="status"></span>
-  </footer>
+  <details class="sec" data-sec="editor">
+    <summary><span data-i18n="secEditor"></span> <small data-i18n="secEditorNote"></small></summary>
+    <div class="sec-body">
+      <label><span data-i18n="editor"></span>
+        <select name="editor">
+          <option value="none" data-i18n="editorNone"></option>
+          <option value="vscode">VS Code</option>
+          <option value="custom" data-i18n="editorCustom"></option>
+        </select>
+      </label>
+      <label class="stack" id="editor-url-row" hidden><span data-i18n="editorUrl"></span>
+        <input type="text" name="editorUrl" spellcheck="false" placeholder="vscode-insiders://file/{path}:{line}">
+      </label>
+      <p class="hint" data-i18n="editorHint"></p>
+    </div>
+  </details>
+
+  <details class="sec" data-sec="files">
+    <summary><span data-i18n="secFiles"></span> <small data-i18n="secFilesNote"></small></summary>
+    <div class="sec-body">
+      <label class="stack"><span data-i18n="fileIgnore"></span>
+        <input type="text" name="fileIgnore" spellcheck="false" data-i18n-title="fileIgnoreTitle">
+      </label>
+    </div>
+  </details>
+
+  <details class="sec" data-sec="css">
+    <summary><span data-i18n="secCustomCss"></span> <small data-i18n="secCustomCssNote"></small></summary>
+    <div class="sec-body">
+      <textarea name="customCss" rows="6" spellcheck="false" data-i18n-placeholder="customCssPlaceholder"></textarea>
+    </div>
+  </details>
+
+  <p id="status" role="status"></p>
 
   <script src="../shared/settings.js"></script>
   <script src="../shared/palette.js"></script>
   <script src="../shared/i18n.js"></script>
+  <script src="../content/icons.js"></script>
   <script src="../shared/web-access.js"></script>
   <script src="popup.js"></script>
 </body>

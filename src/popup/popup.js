@@ -355,20 +355,12 @@
   $('#manage-roots').addEventListener('click', () => {
     chrome.tabs.create({ url: chrome.runtime.getURL('src/grant/grant.html') })
   })
+  $('#help').append(Markloupe.icon('help'))
+  $('#shortcuts').append(Markloupe.icon('keyboard'))
   $('#help').addEventListener('click', () => {
     chrome.tabs.create({ url: chrome.runtime.getURL('src/welcome/welcome.html') })
   })
   $('#shortcuts').addEventListener('click', () => {
     chrome.tabs.create({ url: 'chrome://extensions/shortcuts' })
-  })
-
-  $('#toggle-raw').addEventListener('click', async () => {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-    try {
-      await chrome.tabs.sendMessage(tab.id, { type: 'command', name: 'toggle-raw' })
-      window.close()
-    } catch {
-      say(t('statusNotMarkdown'))
-    }
   })
 })()

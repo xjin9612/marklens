@@ -162,7 +162,7 @@ Markloupe doesn't ask for access to websites when installed. Turn on **Also open
 Markloupe only runs on addresses that end in `.md`, `.markdown`, `.mkd` or `.mdx`. Chrome's permission prompt ignores the part of the address after the site name, so it shows all websites. To limit it, open the extension's **Details** page and set **Site access** to *On specific sites*. Local files are not affected.
 
 **A local `.md` file shows as plain text.**<br>
-Turn on **Allow access to file URLs** on the extension's **Details** page, then reload the file. The welcome page (Markloupe icon → **Help**) walks you through it.
+Turn on **Allow access to file URLs** on the extension's **Details** page, then reload the file. The welcome page (Markloupe icon → **?**) walks you through it.
 
 **Checking a box asks for folder access.**<br>
 The first time, pick a top-level folder such as `D:\Projects` or `~/Projects`. Every `.md` under it becomes writable. After a restart, Chrome asks again unless you chose **Allow on every visit**. Manage folders from the Markloupe icon → **Manage folders**. Files that aren't UTF-8 (such as Big5) display normally, but their checkboxes are read-only.

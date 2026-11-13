@@ -327,6 +327,9 @@
   "filesEmpty": {
     "message": "(no Markdown files)"
   },
+  "secReading": {
+    "message": "Reading"
+  },
   "secFiles": {
     "message": "File list"
   },
@@ -501,9 +504,6 @@
   "refreshInterval": {
     "message": "Check interval (ms)"
   },
-  "toggleRaw": {
-    "message": "Toggle source"
-  },
   "shortcutSettings": {
     "message": "Shortcuts"
   },
@@ -518,9 +518,6 @@
   },
   "statusSavedReload": {
     "message": "Saved — reload tabs to apply"
-  },
-  "statusNotMarkdown": {
-    "message": "This tab is not a Markdown page"
   },
   "grantPageTitle": {
     "message": "Markloupe: folder access"

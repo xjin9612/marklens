@@ -37,6 +37,8 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     'arrow-up': ['M8 13.5v-11', 'M4 6.5l4-4 4 4'],
     'arrow-left': ['M13.5 8h-11', 'M6.5 4l-4 4 4 4'],
     folder: ['M2 4.5a1 1 0 0 1 1-1h3.2l1.5 1.5H13a1 1 0 0 1 1 1V12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z'],
+    help: [['circle', { cx: 8, cy: 8, r: 6 }], 'M6.2 6.3a1.8 1.8 0 1 1 2.6 1.6c-.5.25-.8.6-.8 1.1v.3', 'M8 11.4v.1'],
+    keyboard: ['M1.5 4.5h13v7h-13z', 'M4 7h.01M6.67 7h.01M9.33 7h.01M12 7h.01', 'M5 9.5h6'],
     file: ['M4 1.5h5l3.5 3.5v9a.5.5 0 0 1-.5.5H4a.5.5 0 0 1-.5-.5V2a.5.5 0 0 1 .5-.5z', 'M9 1.5V5h3.5'],
   }
 
