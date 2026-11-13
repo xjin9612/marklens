@@ -333,6 +333,30 @@
   "mermaidFullscreenTitle": {
     "message": "Fullscreen: scroll to zoom, drag to move, double-click to reset (Esc to exit)"
   },
+  "mermaidImage": {
+    "message": "Image"
+  },
+  "mermaidImageTitle": {
+    "message": "Copy or download the diagram as an image (light colors)"
+  },
+  "imageCopyPng": {
+    "message": "Copy as PNG"
+  },
+  "imageDownloadPng": {
+    "message": "Download PNG"
+  },
+  "imageDownloadSvg": {
+    "message": "Download SVG"
+  },
+  "imageCopied": {
+    "message": "Copied the diagram as an image"
+  },
+  "imageFailed": {
+    "message": "Couldn't create the image"
+  },
+  "imageCopyUnavailable": {
+    "message": "Copying images needs an https page or a local file. Download the PNG instead"
+  },
   "zoomIn": {
     "message": "Zoom in"
   },

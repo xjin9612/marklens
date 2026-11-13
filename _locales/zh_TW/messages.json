@@ -333,6 +333,30 @@
   "mermaidFullscreenTitle": {
     "message": "全螢幕檢視：滾輪縮放、拖曳移動、雙擊重設（Esc 離開）"
   },
+  "mermaidImage": {
+    "message": "圖片"
+  },
+  "mermaidImageTitle": {
+    "message": "把圖表複製或下載成圖片（淺色）"
+  },
+  "imageCopyPng": {
+    "message": "複製為 PNG"
+  },
+  "imageDownloadPng": {
+    "message": "下載 PNG"
+  },
+  "imageDownloadSvg": {
+    "message": "下載 SVG"
+  },
+  "imageCopied": {
+    "message": "已複製圖表圖片"
+  },
+  "imageFailed": {
+    "message": "無法產生圖片"
+  },
+  "imageCopyUnavailable": {
+    "message": "複製圖片需要 https 網頁或本機檔案，請改用下載 PNG"
+  },
   "zoomIn": {
     "message": "放大"
   },

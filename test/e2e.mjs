@@ -107,6 +107,8 @@ const ctx = await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), 'm
     `--load-extension=${extDir}`,
     '--disable-extensions-file-access-check', // 等同使用者開啟「允許存取檔案網址」
     '--lang=zh-TW', // 介面語言；以下檢查以繁體中文文字為準，英文另有一組檢查
+    // 127.0.0.1 算安全環境；以這個名稱連到測試伺服器，才是一般網站那種不安全的 http 頁面
+    '--host-resolver-rules=MAP insecure.test 127.0.0.1',
   ],
   viewport: { width: 1700, height: 950 },
 })
@@ -1511,6 +1513,78 @@ try {
       await wrap.evaluate(el => {
         if (el.classList.contains('ml-mermaid-full')) el.querySelector('.ml-mermaid-full-btn').click()
       })
+    }
+  })
+  await check('Mermaid：圖片選單在深色主題下也輸出淺色的 PNG 與 SVG，可複製 PNG，完成後還原深色', async () => {
+    await ctx.grantPermissions(['clipboard-read', 'clipboard-write'])
+    const before = (await sw.evaluate(() => Markloupe.loadSettings())).theme
+    const wrap = mp.locator('.ml-mermaid').first()
+    const pick = async label => {
+      await wrap.hover()
+      await wrap.locator('.ml-mermaid-image').click()
+      await mp.click(`.ml-menu-item:has-text("${label}")`)
+    }
+    try {
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'dark' }))
+      await mp.waitForFunction(() => document.querySelector('.ml-mermaid').dataset.mlMermaidTheme === 'dark')
+      assert.equal(await mp.locator('.ml-mermaid').nth(2).locator('.ml-mermaid-image').isVisible(), false, '語法錯誤的圖表沒有圖片選單')
+      const size = await wrap.evaluate(el => {
+        const box = el.querySelector('.ml-mermaid-view svg').viewBox.baseVal
+        return { w: box.width, h: box.height }
+      })
+
+      const [png] = await Promise.all([mp.waitForEvent('download'), pick('下載 PNG')])
+      assert.match(png.suggestedFilename(), /\.png$/)
+      const pngFile = join(work, `diagram-${Date.now()}.png`)
+      await png.saveAs(pngFile)
+      const bytes = readFileSync(pngFile)
+      assert.equal(bytes.subarray(1, 4).toString(), 'PNG')
+      // 兩倍解析度、四周各留白 16px
+      assert.equal(bytes.readUInt32BE(16), Math.round((size.w + 32) * 2))
+      assert.equal(bytes.readUInt32BE(20), Math.round((size.h + 32) * 2))
+      const corner = await mp.evaluate(async b64 => {
+        const bmp = await createImageBitmap(await (await fetch(`data:image/png;base64,${b64}`)).blob())
+        const c = new OffscreenCanvas(bmp.width, bmp.height)
+        const g = c.getContext('2d')
+        g.drawImage(bmp, 0, 0)
+        return [...g.getImageData(2, 2, 1, 1).data]
+      }, bytes.toString('base64'))
+      assert.ok(corner[0] > 240 && corner[1] > 240 && corner[2] > 240 && corner[3] === 255, `背景應是不透明的淺色：${corner}`)
+      assert.equal(await mp.evaluate(() => document.documentElement.dataset.mlTheme), 'dark', '取完圖還原深色')
+
+      const [svg] = await Promise.all([mp.waitForEvent('download'), pick('下載 SVG')])
+      assert.match(svg.suggestedFilename(), /\.svg$/)
+      const svgFile = join(work, `diagram-${Date.now()}.svg`)
+      await svg.saveAs(svgFile)
+      const text = readFileSync(svgFile, 'utf8')
+      assert.ok(text.startsWith('<?xml') && text.includes('<svg') && text.includes('載入程式庫'))
+      assert.ok(!/<script|foreignObject/i.test(text), 'SVG 不含腳本與 HTML')
+
+      await pick('複製為 PNG')
+      await mp.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent.includes('已複製圖表圖片'))
+      assert.ok((await mp.evaluate(async () => (await navigator.clipboard.read())[0].types)).includes('image/png'))
+      await mp.waitForFunction(() => document.querySelector('.ml-mermaid').dataset.mlMermaidTheme === 'dark')
+    } finally {
+      await sw.evaluate(t => Markloupe.saveSettings({ theme: t }), before)
+      await mp.waitForFunction(() => document.querySelector('.ml-mermaid').dataset.mlMermaidTheme !== 'dark' || document.documentElement.dataset.mlTheme === 'dark')
+    }
+  })
+  await check('Mermaid：一般 http 網頁不能複製圖片，選單說明原因', async () => {
+    const hp = await openDoc(`http://insecure.test:${port}/docs/mermaid.md`)
+    try {
+      assert.equal(await hp.evaluate(() => isSecureContext), false, '測試的前提：不安全的 http 頁面')
+      await hp.waitForSelector('.ml-mermaid-view svg', { timeout: 15000 })
+      const wrap = hp.locator('.ml-mermaid').first()
+      await wrap.hover()
+      await wrap.locator('.ml-mermaid-image').click()
+      const item = hp.locator('.ml-menu-item:has-text("複製為 PNG")')
+      assert.equal(await item.getAttribute('aria-disabled'), 'true')
+      // Playwright 不點 aria-disabled 的元素；用鍵盤選取，與使用者以鍵盤操作相同
+      await item.focus()
+      await hp.keyboard.press('Enter')
+      await hp.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent.includes('https'))
+    } finally {
+      await hp.close()
     }
   })
   await check('配色：米色、高對比、護眼綠、石墨套用到閱讀頁，Mermaid 依配色重繪，GitHub 不設屬性', async () => {

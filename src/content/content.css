@@ -977,6 +977,8 @@ html.markloupe .markdown-body .ml-mermaid .ml-mermaid-view.ml-mermaid-error {
 /* Mermaid 全螢幕：圖表填滿畫面，縮放與平移由 mermaid.js 設定的 CSS 變數控制 */
 html.markloupe .markdown-body .ml-mermaid .ml-mermaid-zoom { display: none; }
 html.markloupe .markdown-body .ml-mermaid-source .ml-mermaid-full-btn { display: none; }
+/* 語法錯誤、還沒畫好時沒有圖可以另存 */
+html.markloupe .markdown-body .ml-mermaid:not([data-ml-mermaid-theme]) .ml-mermaid-image { display: none; }
 html.markloupe .markdown-body > .ml-mermaid.ml-mermaid-full {
   position: fixed;
   inset: 0;
@@ -1051,6 +1053,7 @@ html.markloupe .ml-menu-item {
 }
 html.markloupe .ml-menu-item:is(:hover, :focus) { background: var(--hover); }
 html.markloupe .ml-menu-item > .ml-icon { color: var(--muted); }
+html.markloupe .ml-menu-item[aria-disabled="true"] { color: var(--muted); cursor: default; }
 /* 勾號欄固定寬度，有勾與沒勾的項目文字對齊 */
 html.markloupe .ml-menu-check { display: grid; place-items: center; width: 16px; flex: none; color: var(--accent); }
 html.markloupe .ml-menu-item.checked { font-weight: 600; }

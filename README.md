@@ -115,7 +115,7 @@ Add `lang` to the front matter (for example `lang: zh-TW`) to set the document l
 - Docs-site containers (`::: tip`, `::: warning`, `::: details`, Docusaurus `:::note`) and definition lists
 - Syntax highlighting with a language label, copy button and wrap toggle
 - KaTeX math (`$…$`, `$$…$$`, `` $`…`$ ``, ` ```math `), on web pages too; click a formula to copy its LaTeX
-- Mermaid diagrams; they follow the theme and can be switched back to source
+- Mermaid diagrams; they follow the theme and can be switched back to source. **Image** copies a diagram as PNG or downloads it as PNG or SVG, always in light colors
 - View a diagram fullscreen: scroll to zoom, drag to move, double-click to reset
 - Images load as you scroll; click to zoom
 

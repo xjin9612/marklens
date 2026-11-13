@@ -80,6 +80,15 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       this.tables = []
       this.refreshTimer = null
       this.darkQuery = matchMedia('(prefers-color-scheme: dark)')
+      // Mermaid 圖表另存圖片時暫時改用淺色（同列印與匯出 Word），取完圖再還原
+      Markloupe.withLightTheme = async fn => {
+        await this.setPrinting(true)
+        try {
+          return await fn()
+        } finally {
+          this.setPrinting(false)
+        }
+      }
       // 分頁狀態：以全域預設值為底，套上本分頁先前的調整
       const saved = readView()
       this.view = {

@@ -235,6 +235,69 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     return { blob: await canvas.convertToBlob({ type: 'image/png' }), width, height }
   }
 
+  /** 圖表存成 .svg 檔的內容 */
+  Markloupe.mermaidSvgFile = svg => `<?xml version="1.0" encoding="UTF-8"?>\n${svgMarkup(svg)}\n`
+
+  /*
+   * 圖表另存成圖片：一律用淺色（和匯出 Word 相同），PNG 以頁面底色為背景、四周留白。
+   * 深色主題時由 main.js 提供的 withLightTheme 暫時切到淺色、重繪後再取圖
+   */
+  const IMAGE_PADDING = 16
+
+  function imageOf(wrap, kind) {
+    const make = async () => {
+      const svg = wrap.querySelector('.ml-mermaid-view svg')
+      if (!svg) throw new Error('no diagram')
+      if (kind === 'svg') return new Blob([Markloupe.mermaidSvgFile(svg)], { type: 'image/svg+xml' })
+      const background = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()
+      return (await Markloupe.mermaidPng(svg, { background, padding: IMAGE_PADDING })).blob
+    }
+    return Markloupe.withLightTheme ? Markloupe.withLightTheme(make) : make()
+  }
+
+  function imageMenu(wrap) {
+    const name = () => Markloupe.sectionTitle(wrap) || Markloupe.docBaseName()
+    const download = async kind => {
+      try {
+        Markloupe.downloadBlob(await imageOf(wrap, kind), `${name()}.${kind}`)
+      } catch {
+        Markloupe.toast(t('imageFailed'))
+      }
+    }
+    const copy = async () => {
+      try {
+        // 圖片以 Promise 交給剪貼簿：等重繪與轉檔的期間不會失去使用者操作的授權
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': imageOf(wrap, 'png') })])
+        Markloupe.toast(t('imageCopied'))
+      } catch {
+        Markloupe.toast(t('imageFailed'))
+      }
+    }
+    const btn = h('button', {
+      class: 'ml-btn ml-mermaid-image',
+      text: t('mermaidImage'),
+      title: t('mermaidImageTitle'),
+      attrs: { 'aria-haspopup': 'menu', 'aria-expanded': 'false' },
+      on: {
+        click: () => {
+          if (Markloupe.menuOpenFor(btn)) return Markloupe.closeMenu()
+          // 一般 http 網頁沒有剪貼簿 API，無法寫入圖片
+          const canCopy = !!navigator.clipboard?.write && typeof ClipboardItem === 'function'
+          Markloupe.openMenu({
+            anchor: btn,
+            label: t('mermaidImage'),
+            items: [
+              { label: t('imageCopyPng'), fn: copy, disabled: canCopy ? undefined : t('imageCopyUnavailable') },
+              { label: t('imageDownloadPng'), fn: () => download('png') },
+              { label: t('imageDownloadSvg'), fn: () => download('svg') },
+            ],
+          })
+        },
+      },
+    })
+    return btn
+  }
+
   /** 顯示圖或原始碼 */
   function showSource(wrap, on) {
     wrap.classList.toggle('ml-mermaid-source', on)
@@ -318,7 +381,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       const lang = wrap.querySelector('.ml-code-lang')
       if (lang) lang.after(toggle)
       else wrap.querySelector('.ml-code-bar').prepend(toggle)
-      toggle.after(...fullscreenControls(wrap))
+      toggle.after(...fullscreenControls(wrap), imageMenu(wrap))
       wrap.insertBefore(view, wrap.querySelector('pre'))
       showSource(wrap, false)
       const key = `${themeNow()}\n${wrap.dataset.mlMermaidCode}`

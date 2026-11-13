@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- **Image** on a Mermaid diagram copies it as a PNG, or downloads it as a PNG or SVG file. Images always use light colors, like Word export, and the PNG has a solid background. Copying needs an https page or a local file
+
 ## [1.9.0] - 2026-11-14
 
 ### Added
