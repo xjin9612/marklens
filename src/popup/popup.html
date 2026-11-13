@@ -131,6 +131,12 @@
     <p class="hint" data-i18n="optWebAccessNote"></p>
     <label class="check"><input type="checkbox" name="syncEnabled"> <span data-i18n="optSync"></span></label>
     <p class="hint" data-i18n="optSyncNote"></p>
+    <div class="settings-file">
+      <button type="button" id="settings-export" data-i18n="settingsExport"></button>
+      <button type="button" id="settings-import" data-i18n="settingsImport"></button>
+      <input type="file" id="settings-file" accept="application/json,.json" hidden>
+    </div>
+    <p id="settings-import-hint" class="hint" data-i18n="settingsImportHint" hidden></p>
   </section>
 
   <details class="sec" data-sec="reading">

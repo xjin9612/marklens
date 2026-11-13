@@ -2058,6 +2058,51 @@ try {
       await sw.evaluate(() => Markloupe.saveSettings({ theme: 'auto', palette: 'github', customColors: Markloupe.DEFAULTS.customColors }))
     }
   })
+  await check('設定匯出與匯入：匯出同步範圍的設定；匯入直接選檔，不合法的值略過並告知', async () => {
+    const before = await sw.evaluate(() => Markloupe.loadSettings())
+    const pp = await ctx.newPage()
+    try {
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'dark', customCss: 'h1 { color: red }', editorUrl: 'vscode-insiders://file/{path}' }))
+      await pp.goto(`chrome-extension://${extId}/src/popup/popup.html`)
+      const [dl] = await Promise.all([pp.waitForEvent('download'), pp.click('#settings-export')])
+      assert.equal(dl.suggestedFilename(), 'markloupe-settings.json')
+      const file = join(work, `settings-${Date.now()}.json`)
+      await dl.saveAs(file)
+      const data = JSON.parse(readFileSync(file, 'utf8'))
+      assert.equal(data.markloupe, 1)
+      assert.equal(data.settings.theme, 'dark')
+      assert.equal(data.settings.customCss, 'h1 { color: red }')
+      assert.equal(data.settings.editorUrl, 'vscode-insiders://file/{path}')
+      for (const k of ['enabled', 'tocWidth']) assert.ok(!(k in data.settings), `${k} 屬於這台電腦，不匯出`)
+
+      // 按匯入直接開啟檔案選擇視窗，不另開分頁
+      const pages = ctx.pages().length
+      const [chooser] = await Promise.all([pp.waitForEvent('filechooser'), pp.click('#settings-import')])
+      assert.equal(ctx.pages().length, pages)
+      // 合法的值匯入，型別、選項或範圍不對的略過
+      const bad = join(work, 'settings-import.json')
+      writeFileSync(bad, JSON.stringify({ markloupe: 1, settings: { theme: 'light', fontSize: 18, palette: 'nope', lineHeight: 9, mermaid: 'yes', tocWidth: 400 } }))
+      await chooser.setFiles(bad)
+      await pp.waitForFunction(() => document.querySelector('#status').textContent.startsWith('已匯入'))
+      assert.equal(await pp.textContent('#status'), '已匯入 2 項設定，略過 3 個不合法的值')
+      const s = await sw.evaluate(() => Markloupe.loadSettings())
+      assert.deepEqual([s.theme, s.fontSize, s.palette, s.lineHeight, s.mermaid, s.tocWidth], ['light', 18, before.palette, before.lineHeight, before.mermaid, before.tocWidth])
+      assert.equal(await pp.inputValue('[name=fontSize]'), '18', '匯入後表單跟著更新')
+      // 不是 Markloupe 的設定檔
+      writeFileSync(bad, '{"theme": "dark"}')
+      await pp.setInputFiles('#settings-file', bad)
+      await pp.waitForFunction(() => document.querySelector('#status').textContent === '這不是 Markloupe 的設定檔')
+      assert.equal((await sw.evaluate(() => Markloupe.loadSettings())).theme, 'light')
+      // macOS 全螢幕時改用的分頁：顯示選檔說明
+      const tp = await ctx.newPage()
+      await tp.goto(`chrome-extension://${extId}/src/popup/popup.html?import`)
+      await tp.locator('#settings-import-hint').waitFor()
+      await tp.close()
+    } finally {
+      await pp.close()
+      await sw.evaluate(b => Markloupe.saveSettings(b), before)
+    }
+  })
   await check('設定同步：寫入 storage.sync、套用其他電腦的變更；關閉後兩者都停止；裝置專屬設定不同步', async () => {
     const local = () => sw.evaluate(() => Markloupe.loadSettings())
     const remote = () => sw.evaluate(async () => (await chrome.storage.sync.get('markloupe:settings'))['markloupe:settings'] || {})

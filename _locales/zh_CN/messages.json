@@ -807,6 +807,24 @@
   "colorLowContrast": {
     "message": "对比度不足，文字不易阅读（建议 4.5:1 以上）：$1"
   },
+  "settingsExport": {
+    "message": "导出设置"
+  },
+  "settingsImport": {
+    "message": "导入设置…"
+  },
+  "settingsImportHint": {
+    "message": "选择从 Markloupe 导出的设置文件。授权文件夹与阅读位置不在文件中。"
+  },
+  "importDone": {
+    "message": "已导入 $1 项设置"
+  },
+  "importPartial": {
+    "message": "已导入 $1 项设置，跳过 $2 个不合法的值"
+  },
+  "importInvalid": {
+    "message": "这不是 Markloupe 的设置文件"
+  },
   "optWebAccess": {
     "message": "也在网页上的 .md 文件启用"
   },

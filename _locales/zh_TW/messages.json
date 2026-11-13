@@ -807,6 +807,24 @@
   "colorLowContrast": {
     "message": "對比不足，文字不易閱讀（建議 4.5:1 以上）：$1"
   },
+  "settingsExport": {
+    "message": "匯出設定"
+  },
+  "settingsImport": {
+    "message": "匯入設定…"
+  },
+  "settingsImportHint": {
+    "message": "選擇從 Markloupe 匯出的設定檔。授權資料夾與閱讀位置不在檔案中。"
+  },
+  "importDone": {
+    "message": "已匯入 $1 項設定"
+  },
+  "importPartial": {
+    "message": "已匯入 $1 項設定，略過 $2 個不合法的值"
+  },
+  "importInvalid": {
+    "message": "這不是 Markloupe 的設定檔"
+  },
   "optWebAccess": {
     "message": "也在網頁上的 .md 檔案啟用"
   },

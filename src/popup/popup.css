@@ -44,8 +44,8 @@ button {
 button:hover { border-color: var(--accent); }
 /* 區塊是 grid，按鈕預設會撐滿整列 */
 section > button, .sec-body > button, .custom-colors > button { justify-self: start; }
-/* 存檔提示浮在視窗底部：popup 捲動到哪裡都看得到，出現與消失時版面不跳動 */
-#status { position: fixed; left: 14px; right: 14px; bottom: 8px; margin: 0; padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--accent); font-size: 12px; }
+/* 存檔提示浮在視窗底部：popup 捲動到哪裡都看得到，出現與消失時版面不跳動；寬度同設定欄，在分頁開啟時也貼著設定欄 */
+#status { position: fixed; left: 14px; bottom: 8px; box-sizing: border-box; width: 300px; margin: 0; padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--accent); font-size: 12px; }
 #status:empty { display: none; }
 .warning { background: var(--warn-bg); padding: 8px; border-radius: 6px; margin: 0 0 8px; }
 .warning button { margin-top: 6px; }
@@ -85,3 +85,4 @@ textarea { resize: vertical; }
 .cc-cell input[type=text] { width: 68px; padding: 2px 4px; }
 .cc-cell input[type=text][aria-invalid=true] { border-color: var(--danger); }
 .cc-warning { color: var(--warn); }
+.settings-file { display: flex; gap: 6px; }

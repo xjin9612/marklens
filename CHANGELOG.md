@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Hover or focus a footnote mark to read the footnote in place
 - `n` / `p` jump to the next / previous heading, skipping folded sections
 - Focus mode (`f`, or the width menu) hides the toolbar and sidebar in the current tab. Press `f` again to leave
+- Export your settings to a JSON file and import them on another browser (popup → **Export settings** / **Import settings…**). Invalid values are skipped
 - The outline shows how many tasks each section has done, such as 3/8, and updates when you check one off
 - The table **Copy** button is now a menu: copy as TSV, copy as Markdown that keeps the original formatting, or download a CSV file. All three follow the current sort and filter
 
