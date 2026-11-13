@@ -23,13 +23,26 @@ Open any `.md` file, on your computer or on the web. Read it with an outline and
 
 Markloupe works in Chrome and Edge on Windows, macOS and Linux.
 
+<a href="https://chromewebstore.google.com/detail/cahlhjjfdphafmpeeocdchlhblcidcnj"><img src="https://img.shields.io/badge/Chrome_Web_Store-Add_to_Chrome-4285F4?logo=googlechrome&logoColor=white" alt="Available in the Chrome Web Store" height="28"></a>
+
+1. Open [Markloupe in the Chrome Web Store](https://chromewebstore.google.com/detail/cahlhjjfdphafmpeeocdchlhblcidcnj) and click **Add to Chrome**. In Edge, click **Get extension**, then **Allow extensions from other stores** if Edge asks.
+2. A welcome page opens. For files on your computer, follow it to turn on **Allow access to file URLs**.
+3. To read `.md` files on websites, turn on **Also open .md files on websites** on the welcome page or in the popup.
+
+Then drag any `.md` file into the browser, or open a `.md` link on the web. The store updates Markloupe automatically. See the [changelog](CHANGELOG.md) for what's new.
+
+<details>
+<summary>Install from a release zip instead</summary>
+
 1. Download `markloupe-vX.Y.Z.zip` from the [latest release](https://github.com/xjin9612/markloupe/releases/latest) and unzip it.
 2. Open `chrome://extensions` (Edge: `edge://extensions`) and turn on **Developer mode**.
 3. Click **Load unpacked** and select the unzipped `markloupe-vX.Y.Z` folder.
 4. A welcome page opens. For files on your computer, follow it to turn on **Allow access to file URLs**.
 5. To read `.md` files on websites, turn on **Also open .md files on websites** on the welcome page or in the popup.
 
-Then drag any `.md` file into the browser, or open a `.md` link on the web. To upgrade, replace the folder with the new release. Then click the reload icon on the extensions page. See the [changelog](CHANGELOG.md) for what's new.
+To upgrade, replace the folder with the new release. Then click the reload icon on the extensions page.
+
+</details>
 
 ## Highlights
 

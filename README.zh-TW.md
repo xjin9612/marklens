@@ -23,13 +23,26 @@
 
 Markloupe 支援 Windows、macOS、Linux 上的 Chrome 與 Edge。
 
+<a href="https://chromewebstore.google.com/detail/cahlhjjfdphafmpeeocdchlhblcidcnj"><img src="https://img.shields.io/badge/Chrome_線上應用程式商店-加到_Chrome-4285F4?logo=googlechrome&logoColor=white" alt="在 Chrome 線上應用程式商店取得" height="28"></a>
+
+1. 開啟 [Chrome 線上應用程式商店的 Markloupe 頁面](https://chromewebstore.google.com/detail/cahlhjjfdphafmpeeocdchlhblcidcnj)，按「加到 Chrome」。用 Edge 時按頁面上方橫幅的安裝按鈕；Edge 詢問是否允許其他商店的擴充功能時，選「允許」。
+2. 安裝後會開啟歡迎頁。要開啟電腦上的檔案，請照著它打開「允許存取檔案網址」。
+3. 要閱讀網路上的 `.md`，在歡迎頁或 Markloupe 圖示的設定中開啟「也在網頁上的 .md 檔案啟用」。
+
+之後把 `.md` 檔拖進瀏覽器，或開啟網路上的 `.md` 連結即可。商店會自動更新 Markloupe。各版本的變更見[更新紀錄](CHANGELOG.md)（英文）。
+
+<details>
+<summary>改用 Release 的 zip 安裝</summary>
+
 1. 從[最新版本](https://github.com/xjin9612/markloupe/releases/latest)下載 `markloupe-vX.Y.Z.zip` 並解壓縮。
 2. 開啟 `chrome://extensions`（Edge：`edge://extensions`），打開「開發人員模式」。
 3. 按「載入未封裝項目」，選擇解壓縮出來的 `markloupe-vX.Y.Z` 資料夾。
 4. 安裝後會開啟歡迎頁。要開啟電腦上的檔案，請照著它打開「允許存取檔案網址」。
 5. 要閱讀網路上的 `.md`，在歡迎頁或 Markloupe 圖示的設定中開啟「也在網頁上的 .md 檔案啟用」。
 
-之後把 `.md` 檔拖進瀏覽器，或開啟網路上的 `.md` 連結即可。升級時用新版資料夾取代舊的。再到擴充功能頁按重新載入圖示。各版本的變更見[更新紀錄](CHANGELOG.md)（英文）。
+升級時用新版資料夾取代舊的。再到擴充功能頁按重新載入圖示。
+
+</details>
 
 ## 特色
 
