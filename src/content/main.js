@@ -396,12 +396,12 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       if (lang) this.article.lang = lang
       else this.article.removeAttribute('lang')
       if (frontMatter != null) {
-        this.article.append(
-          h('details', { class: 'ml-frontmatter' }, [
-            h('summary', { text: 'Front matter' }),
-            h('pre', {}, [h('code', { text: frontMatter })]),
-          ]),
-        )
+        // 單層的 key: value 以兩欄顯示；用 dl 而不是 table，才不會被當成文件裡的表格加上排序與工具列
+        const entries = Markloupe.frontMatterEntries(frontMatter)
+        const body = entries
+          ? h('dl', { class: 'ml-fm-list' }, entries.flatMap(([k, v]) => [h('dt', { text: k }), h('dd', { text: v })]))
+          : h('pre', {}, [h('code', { text: frontMatter })])
+        this.article.append(h('details', { class: 'ml-frontmatter' }, [h('summary', { text: 'Front matter' }), body]))
       }
       this.article.append(frag)
       Markloupe.groupInline(this.article)

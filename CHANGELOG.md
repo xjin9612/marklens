@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - MarkLens is now **Markloupe**, because other Markdown extensions in the Chrome Web Store already use the name MarkLens. The repository moves to `xjin9612/markloupe`; old GitHub links redirect. Settings, synced settings and authorized folders carry over when you update
 - The store description now leads with what sets Markloupe apart: tables you can sort, filter and resize, and tasks you check off in the file itself
 - The popup lists the settings you change most often first. Reading options such as Mermaid and math are in a new collapsible **Reading** section, **Help** and **Shortcut settings** are icons at the top, and the **Raw text** button is gone (use the toolbar button or `r`)
+- Front matter made of simple `key: value` lines is shown as a key–value list instead of raw YAML
 
 ### Fixed
 - Some code colors and alert titles in the GitHub, sepia and high-contrast light palettes are darker, so they reach 4.5:1 contrast
