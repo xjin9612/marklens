@@ -128,6 +128,7 @@ On a reading page (ignored while typing in a text box):
 | `/` | Search headings (Outline tab) or file names (Files tab) |
 | `[` / `]` | Fold all / unfold all |
 | `n` / `p` | Next / previous heading |
+| `f` | Focus mode: hide the toolbar and sidebar (current tab) |
 | `w` | Cycle text width |
 | `d` | Cycle theme: auto → light → dark (all tabs) |
 | `+` (or `=`) / `-` / `0` | Larger / smaller / reset font size (all tabs) |

@@ -660,6 +660,31 @@ try {
       await np.close()
     }
   })
+  await check('專注模式：f 或寬度選單進入，隱藏工具列與側邊欄；重新整理後保留，再按 f 離開', async () => {
+    const fp = await openDoc()
+    const visible = sel => fp.locator(sel).first().isVisible()
+    try {
+      await fp.bringToFront()
+      await fp.keyboard.press('f')
+      await fp.waitForFunction(() => document.documentElement.classList.contains('ml-focus'))
+      assert.equal(await visible('.ml-toolbar'), false)
+      assert.equal(await visible('.ml-toc'), false)
+      assert.ok((await fp.textContent('.ml-toast')).includes('按 f 離開'))
+      // 只影響目前分頁，重新整理後保留
+      await fp.reload()
+      await fp.waitForFunction(() => document.documentElement.classList.contains('ml-focus'))
+      await fp.keyboard.press('f')
+      await fp.waitForFunction(() => !document.documentElement.classList.contains('ml-focus'))
+      assert.equal(await visible('.ml-toolbar'), true)
+      // 寬度選單也能進入
+      await fp.click('.ml-tool-width')
+      await fp.click('.ml-menu-item:has-text("專注模式")')
+      await fp.waitForFunction(() => document.documentElement.classList.contains('ml-focus'))
+      await fp.keyboard.press('f')
+    } finally {
+      await fp.close()
+    }
+  })
   await check('目錄的任務完成數：每一節含子章節，全部完成時換色，沒有任務的章節不顯示', async () => {
     const file = join(work, 'toc-tasks.md')
     writeFileSync(file, ['# 甲', '', '## 乙', '', '- [x] 乙一', '- [ ] 乙二', '', '## 丙', '', '- [x] 丙一', '', '# 丁', '', '沒有任務'].join('\n'))
