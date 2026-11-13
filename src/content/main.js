@@ -9,6 +9,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
   const POS_LIMIT = 300
   const VIEW_KEY = 'markloupe:view' // 分頁狀態，存在 sessionStorage
   const NARROW = 900
+  const NEAR_LINE = 40 // 標題頂端在基準線下方這個距離內，視為目前的標題（px）
   const THEME_LABELS = { auto: ['auto', 'themeAuto'], light: ['sun', 'themeLight'], dark: ['moon', 'themeDark'] }
 
   /**
@@ -311,7 +312,33 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
           return Markloupe.foldAll(this.article)
         case 'unfold-all':
           return Markloupe.unfoldAll(this.article)
+        case 'next-heading':
+          return this.jumpHeading(1)
+        case 'prev-heading':
+          return this.jumpHeading(-1)
       }
+    }
+
+    /** 跳到下一個或上一個看得到的標題；被摺疊的略過，原始文字模式不動作 */
+    jumpHeading(dir) {
+      if (document.documentElement.classList.contains('ml-raw')) return
+      // 摺疊用 hidden="until-found"，被摺疊的標題仍有外框，checkVisibility() 看不出來
+      const all = [...this.article.querySelectorAll('h1, h2, h3, h4, h5, h6')].filter(el => !el.closest('[data-ml-fold]') && el.checkVisibility())
+      if (!all.length) return
+      // 標題捲到頂端時停在 scroll-margin-top 的位置，以此為「目前」的基準線
+      const line = parseFloat(getComputedStyle(all[0]).scrollMarginTop) || 0
+      const top = el => el.getBoundingClientRect().top - line
+      // 頁尾的標題捲不到基準線，依位置判斷會一直選到同一個；已捲到底且上次跳到的標題還在畫面內時，從它接著找
+      const atBottom = scrollY + innerHeight >= document.documentElement.scrollHeight - 2
+      const r = this.lastJump?.getBoundingClientRect()
+      const last = atBottom && r && r.bottom > 0 && r.top < innerHeight ? all.indexOf(this.lastJump) : -1
+      // 頁首的第一個標題比基準線低一段外距，往下找時要越過它，否則畫面只捲動幾個像素
+      const el = last >= 0 ? all[last + dir] : dir > 0 ? all.find(h => top(h) > NEAR_LINE) : all.findLast(h => top(h) < -1)
+      if (!el) return
+      el.scrollIntoView({ block: 'start' })
+      this.lastJump = el
+      if (el.id) history.replaceState(null, '', `#${encodeURIComponent(el.id)}`)
+      this.toc.setTarget(el)
     }
 
     /** 頁內單鍵快捷鍵；輸入框有焦點或按著修飾鍵時不觸發 */
@@ -331,6 +358,8 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
         d: 'cycle-theme',
         '[': 'fold-all',
         ']': 'unfold-all',
+        n: 'next-heading',
+        p: 'prev-heading',
         // 字體大小：= 與 + 同一個鍵（不必按 Shift），數字鍵盤的 + − 也可以
         '+': 'font-larger',
         '=': 'font-larger',

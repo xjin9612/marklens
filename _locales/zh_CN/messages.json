@@ -654,6 +654,9 @@
   "keyTheme": {
     "message": "切换主题：自动 → 浅色 → 深色"
   },
+  "keyHeading": {
+    "message": "下一个／上一个标题"
+  },
   "keyFold": {
     "message": "全部折叠／全部展开"
   },
