@@ -330,6 +330,9 @@ try {
     await page.locator('.ml-table').first().hover()
     await page.waitForTimeout(250)
     assert.equal(await bar.evaluate(el => getComputedStyle(el).opacity), '1')
+    // 表格比工具列寬：工具列對齊表格右緣
+    const right = await page.locator('.ml-table-inner').first().evaluate(i => [i, i.querySelector('.ml-table-bar')].map(e => Math.round(e.getBoundingClientRect().right)))
+    assert.equal(right[1], right[0])
     assert.equal(await page.locator('.ml-table').nth(1).locator('.ml-table-filter').count(), 0)
   })
   await check('表格複製選單：TSV、Markdown（沿用原文的列）、下載 CSV，都套用目前的篩選', async () => {
@@ -361,6 +364,14 @@ try {
     const src = md.split('\n').filter(l => l.startsWith('> ')).map(l => l.slice(2))
     try {
       await tp.bringToFront()
+      // 工具列比窄表格寬：對齊表格左緣往右延伸，不超出文字欄左側
+      await tbl.locator('table').hover()
+      const edge = await tbl.evaluate(w => {
+        const [i, b] = ['.ml-table-inner', '.ml-table-bar'].map(s => w.querySelector(s).getBoundingClientRect())
+        return { inner: Math.round(i.left), bar: Math.round(b.left), wider: b.width > i.width }
+      })
+      assert.ok(edge.wider, '測試的前提：工具列比表格寬')
+      assert.equal(edge.bar, edge.inner)
       await pick('複製為 TSV')
       await clipIs('項目\t金額\n粗體 連結\t1,200\n=1+1\t-5\n-x\t"引號"\n@SUM(A1)\ta,b\n其他\t0')
       // Markdown 取原文的列：保留格式，去掉引用的 >
