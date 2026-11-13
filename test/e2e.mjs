@@ -243,7 +243,8 @@ try {
   await check('刪除線與表格對齊', async () => {
     assert.equal(await page.textContent('.markdown-body s'), '刪除線')
     assert.equal(await page.$eval('.ml-table td:nth-child(2)', el => getComputedStyle(el).textAlign), 'right')
-    assert.equal(await page.locator('.markdown-body [style]:not(td):not(th):not(table)').count(), 0)
+    // 文件內容不保留 style；表格工具列的寬度上限由 table.js 寫入，不算
+    assert.equal(await page.locator('.markdown-body [style]:not(td):not(th):not(table):not(.ml-table-bar)').count(), 0)
   })
   await check('==mark== 與 Alert', async () => {
     assert.equal(await page.textContent('.markdown-body mark'), '螢光標記')
@@ -438,6 +439,38 @@ try {
       )
     } finally {
       await tp.close()
+    }
+  })
+  await check('表格工具列：欄寬比工具列窄時換行，不撐出頁面', async () => {
+    // 多層清單把欄寬壓到比工具列窄，表格本身也很窄
+    const indent = n => ' '.repeat(2 * n)
+    const md = ['# 窄欄', '', ...[1, 2, 3, 4, 5, 6, 7].map(n => `${indent(n - 1)}- ${n}`), '', ...['| a | b |', '|---|---|', '| 1 | 2 |'].map(l => indent(7) + l), ''].join('\n')
+    const file = join(work, 'table-bar-narrow.md')
+    writeFileSync(file, md)
+    const np = await openDoc(pathToFileURL(file).href)
+    try {
+      await np.setViewportSize({ width: 420, height: 800 })
+      await np.bringToFront()
+      await np.locator('.ml-table table').hover()
+      await until(() => np.evaluate(() => getComputedStyle(document.querySelector('.ml-table-bar')).opacity === '1'))
+      const r = await np.evaluate(() => {
+        const wrap = document.querySelector('.ml-table')
+        const bar = wrap.querySelector('.ml-table-bar')
+        const items = [...bar.children].filter(c => c.offsetWidth)
+        const natural = items.reduce((s, c) => s + c.offsetWidth, 0) + 4 * (items.length - 1)
+        return {
+          natural,
+          col: wrap.clientWidth,
+          barRight: Math.round(Math.max(...[bar, ...items].map(c => c.getBoundingClientRect().right))),
+          colRight: Math.round(wrap.getBoundingClientRect().right),
+          pageOverflow: document.documentElement.scrollWidth - innerWidth,
+        }
+      })
+      assert.ok(r.natural > r.col, `測試的前提：工具列（${r.natural}）比欄寬（${r.col}）寬`)
+      assert.ok(r.barRight <= r.colRight + 1, `工具列或其中的按鈕右緣 ${r.barRight} 超出欄位右緣 ${r.colRight}`)
+      assert.ok(r.pageOverflow <= 0, `整頁橫向溢出 ${r.pageOverflow}px`)
+    } finally {
+      await np.close()
     }
   })
   await check('排序圖示平常隱藏', async () => {

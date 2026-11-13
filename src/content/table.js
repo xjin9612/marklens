@@ -143,11 +143,13 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       const max = scroller.scrollWidth - scroller.clientWidth
       view.classList.toggle('ml-more-left', scroller.scrollLeft > 1)
       view.classList.toggle('ml-more-right', scroller.scrollLeft < max - 1)
-      // 工具列比表格寬時改成對齊表格左緣，往右延伸，才不會超出文字欄左側
+      // 工具列比表格寬時改成對齊表格左緣，往右延伸，才不會超出文字欄左側；最寬到 wrap（表格所在的欄寬）
+      bar.style.maxWidth = `${wrap.clientWidth}px`
       inner.classList.toggle('ml-bar-start', bar.offsetWidth > inner.offsetWidth)
     })
     scroller.addEventListener('scroll', edges, { passive: true })
     const ro = new ResizeObserver(edges)
+    ro.observe(wrap)
     ro.observe(scroller)
     ro.observe(table)
     ro.observe(bar)

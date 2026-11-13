@@ -658,8 +658,13 @@ html.markloupe .ml-table-bar {
   bottom: calc(100% - 1px);
   z-index: 5;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
   gap: 4px;
+  /* 寬度取內容所需；table.js 把 max-width 設為表格所在的欄寬，放不下時換行，不撐出頁面 */
+  width: max-content;
+  box-sizing: border-box;
   padding: 3px;
   border: 1px solid var(--border);
   border-bottom: 0;
@@ -670,12 +675,13 @@ html.markloupe .ml-table-bar {
   pointer-events: none;
   transition: opacity var(--ml-dur-fast) var(--ml-ease) .05s;
 }
-html.markloupe .ml-table-inner.ml-bar-start .ml-table-bar { left: 0; right: auto; }
+html.markloupe .ml-table-inner.ml-bar-start .ml-table-bar { left: 0; right: auto; justify-content: flex-start; }
 html.markloupe .ml-table-inner:hover .ml-table-bar,
 html.markloupe .ml-table-bar:focus-within,
 html.markloupe .ml-table.ml-filtered .ml-table-bar { opacity: 1; pointer-events: auto; }
 html.markloupe .ml-table-filter {
   width: 150px;
+  max-width: 100%;
   min-height: 24px;
   box-sizing: border-box;
   padding: 3px 8px;
@@ -787,6 +793,9 @@ html.markloupe .markdown-body > .ml-table.ml-table-full {
 html.markloupe .ml-table-full .ml-table-inner { display: flex; flex-direction: column; flex: 1; min-height: 0; width: auto; max-width: none; }
 html.markloupe .ml-table-full .ml-table-bar {
   position: static;
+  flex-wrap: nowrap;
+  width: auto;
+  max-width: none !important;
   gap: 8px;
   height: 48px;
   padding: 0 16px;
