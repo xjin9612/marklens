@@ -389,7 +389,7 @@ try {
       '> |:---|---:|',
       '> | **粗體** [連結](https://example.com) | 1,200 |',
       '> | =1+1 | -5 |',
-      '> | -x | "引號" |',
+      '> | -2+3+cmd | "引號" |',
       '> | @SUM(A1) | a,b |',
       '> | 其他 | 0 |',
       '',
@@ -417,7 +417,7 @@ try {
       assert.ok(edge.wider, '測試的前提：工具列比表格寬')
       assert.equal(edge.bar, edge.inner)
       await pick('複製為 TSV')
-      await clipIs('項目\t金額\n粗體 連結\t1,200\n=1+1\t-5\n-x\t"引號"\n@SUM(A1)\ta,b\n其他\t0')
+      await clipIs('項目\t金額\n粗體 連結\t1,200\n=1+1\t-5\n-2+3+cmd\t"引號"\n@SUM(A1)\ta,b\n其他\t0')
       // Markdown 取原文的列：保留格式，去掉引用的 >
       await pick('複製為 Markdown')
       await clipIs(src.join('\n'))
@@ -426,7 +426,7 @@ try {
       await tbl.locator('.ml-table-filter').fill('1')
       await pick('複製為 Markdown')
       await clipIs([src[0], src[1], src[2], src[3], src[5]].join('\n'))
-      // CSV：BOM、CRLF；公式開頭的儲存格前面加 '，負數不加
+      // CSV：BOM、CRLF；公式開頭的儲存格前面加 '，負數不加，- 開頭的算式要加
       await tbl.locator('.ml-table-filter').fill('')
       const [dl] = await Promise.all([tp.waitForEvent('download'), pick('下載 CSV')])
       assert.equal(dl.suggestedFilename(), '匯出表格.csv')
@@ -434,7 +434,7 @@ try {
       await dl.saveAs(csvFile)
       assert.equal(
         readFileSync(csvFile, 'utf8'),
-        '﻿項目,金額\r\n粗體 連結,"1,200"\r\n\'=1+1,-5\r\n\'-x,"""引號"""\r\n\'@SUM(A1),"a,b"\r\n其他,0\r\n',
+        '﻿項目,金額\r\n粗體 連結,"1,200"\r\n\'=1+1,-5\r\n\'-2+3+cmd,"""引號"""\r\n\'@SUM(A1),"a,b"\r\n其他,0\r\n',
       )
     } finally {
       await tp.close()

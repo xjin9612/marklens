@@ -22,6 +22,8 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     return Number.isFinite(n) ? n : null
   }
 
+  const NEGATIVE_NUMBER = /^-(?:\d[\d,]*(?:\.\d+)?|\.\d+)%?$/
+
   const DATE_RE = /^\d{4}[-/.]\d{1,2}[-/.]\d{1,2}(?:[ T]\d{1,2}:\d{2}(?::\d{2})?)?/
   function parseDate(s) {
     if (!DATE_RE.test(s)) return null
@@ -218,12 +220,13 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
 
     /**
      * CSV：加上 BOM，Excel 才會以 UTF-8 開啟；換行用 CRLF
-     * 以 = + @ 開頭（或 - 後面不是數字）的儲存格前面加 '，Excel 開啟時才不會把文件內容當成公式執行
+     * 以 = + - @ 開頭的儲存格前面加 '，Excel 開啟時才不會把文件內容當成公式執行；
+     * 只有整格是負數（-5、-1,234.5、-12%）時不加，-2+3 這類算式照樣加
      */
     function toCSV() {
       const field = c => {
         let v = c.innerText.trim()
-        if (/^[=+@\t\r]|^-(?![\d.])/.test(v)) v = `'${v}`
+        if (/^[=+@\t\r]/.test(v) || (v.startsWith('-') && !NEGATIVE_NUMBER.test(v))) v = `'${v}`
         return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v
       }
       const lines = [head, ...shownRows()].filter(Boolean).map(r => Array.from(r.cells).map(field).join(','))
