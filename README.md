@@ -63,6 +63,8 @@ Click a task checkbox in a local `.md` file. Markloupe saves `[ ]` / `[x]` strai
 
 Save the file in your editor and the page updates. Your scroll position, folded sections and table state stay as they were.
 
+Changed blocks get a colored bar, and a line marks where text was removed. Click **N changes** in the toolbar to jump to the next one. A mark goes away a few seconds after it scrolls into view. Turn this off in the popup → **Auto refresh**.
+
 ![Typing in an editor; the reading page updates after each save](docs/screenshots/liveReload.gif)
 
 ### Outline, folding and folders
@@ -98,7 +100,7 @@ Add `lang` to the front matter (for example `lang: zh-TW`) to set the document l
 **Reading**
 - Sidebar outline that highlights the section you're reading, with heading search (`/`), word count, reading time and how many tasks each section has done (3/8)
 - Fold any section, or fold and unfold everything at once; Ctrl+F still finds text in folded sections
-- Live reload for local files that keeps your scroll position, folds and table state
+- Live reload for local files that keeps your scroll position, folds and table state, and highlights what changed
 - Remembers where you stopped reading each file
 - Relative `.md` links open in the reader; external links open in a new tab (can be turned off)
 - Raw source view, one key away, with line numbers; click one to copy that line's location

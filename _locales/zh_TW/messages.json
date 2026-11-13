@@ -603,6 +603,15 @@
   "refreshInterval": {
     "message": "檢查間隔 (ms)"
   },
+  "optRefreshHighlight": {
+    "message": "自動更新後標出改動"
+  },
+  "changesCount": {
+    "message": "$1 處改動"
+  },
+  "changesCountTitle": {
+    "message": "跳到下一處改動"
+  },
   "shortcutSettings": {
     "message": "快捷鍵設定"
   },

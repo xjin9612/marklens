@@ -9,6 +9,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
   const POS_LIMIT = 300
   const VIEW_KEY = 'markloupe:view' // 分頁狀態，存在 sessionStorage
   const NARROW = 900
+  const CHANGE_SEEN_MS = 3000 // 改動的區塊進入畫面後保留標記的時間
   const NEAR_LINE = 40 // 標題頂端在基準線下方這個距離內，視為目前的標題（px）
   const THEME_LABELS = { auto: ['auto', 'themeAuto'], light: ['sun', 'themeLight'], dark: ['moon', 'themeDark'] }
 
@@ -79,6 +80,9 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       this.md = Markloupe.createMarkdown()
       this.tables = []
       this.refreshTimer = null
+      this.changeState = { base: raw, seen: Markloupe.noChanges() } // 見 Markloupe.trackChanges
+      this.changeMarks = new Map() // 標出改動的元素 → 它代表的改動（目前原文的行號）
+      this.changeSeen = null
       this.darkQuery = matchMedia('(prefers-color-scheme: dark)')
       // Mermaid 圖表另存圖片時暫時改用淺色（同列印與匯出 Word），取完圖再還原
       Markloupe.withLightTheme = async fn => {
@@ -216,10 +220,13 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       this.editBtn.hidden = !(location.protocol === 'file:' && Markloupe.editorTemplate(this.settings))
       this.topBtn = btn('ml-tool-top', 'arrow-up', t('toolTop'), t('toolTopTitle'), () => scrollTo({ top: 0 }))
       this.topBtn.classList.toggle('ml-tool-away', scrollY < 600) // 開檔時就在頂端：一開始就隱藏，不必等第一次捲動
+      this.changesBtn = btn('ml-tool-changes', 'arrow-down', '', '', () => this.nextChange())
+      this.changesBtn.hidden = true
       return h('div', { class: 'ml-toolbar', attrs: { role: 'toolbar' } }, [
         this.tocBtn,
         h('span', { class: 'ml-spacer' }),
         h('span', { class: 'ml-reading-only' }, [
+          this.changesBtn,
           (this.foldBtn = btn('ml-tool-fold', 'fold-all', t('toolFoldAll'), t('toolFoldAllTitle'), () => Markloupe.foldAll(this.article))),
           (this.unfoldBtn = btn('ml-tool-unfold', 'unfold-all', t('toolUnfoldAll'), t('toolUnfoldAllTitle'), () => Markloupe.unfoldAll(this.article))),
           this.widthBtn,
@@ -238,7 +245,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     /** 放不下時依序把按鈕改成只顯示圖示，次要的先收 */
     fitToolbar() {
       const bar = this.toolbar
-      const order = [this.unfoldBtn, this.foldBtn, this.exportBtn, this.printBtn, this.copyMdBtn, this.editBtn, this.rawBtn, this.topBtn, this.fontBtn, this.widthBtn, this.themeBtn]
+      const order = [this.unfoldBtn, this.foldBtn, this.exportBtn, this.printBtn, this.copyMdBtn, this.editBtn, this.rawBtn, this.topBtn, this.fontBtn, this.widthBtn, this.themeBtn, this.changesBtn]
       for (const b of order) b.classList.remove('ml-tool-icon')
       for (const b of order) {
         if (bar.scrollWidth <= bar.clientWidth + 1) break
@@ -452,10 +459,13 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       const tableStates = this.tables.map(t => t.getState())
       // 全螢幕表格會鎖住頁面捲動，先解除，還原狀態時再套回
       document.documentElement.classList.remove('ml-noscroll')
+      const old = this.raw
       this.raw = src
       this.rawExact = location.protocol === 'file:' // 自動更新與衝突重載都是以 UTF-8 精確讀取
       this.pre.textContent = src
       this.render(src)
+      // 表格還原排序前標記，標在列上的 class 才會跟著列移動
+      this.showChanges(old, src)
       this.syncRawView()
       this.tables.forEach((t, i) => t.setState(tableStates[i]))
       for (const id of folded) {
@@ -463,6 +473,76 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
         if (el && el.parentElement === this.article) Markloupe.toggleFold(el, true)
       }
       scrollTo(0, y)
+    }
+
+    /* ---------- 標出改動 ---------- */
+    showChanges(old, src) {
+      this.changeSeen?.disconnect()
+      const changes = this.settings.refreshHighlight ? Markloupe.trackChanges(this.changeState, old, src) : Markloupe.noChanges()
+      const marks = Markloupe.markChanges(this.article, changes, this.lines())
+      this.changeMarks = marks
+      if (!marks.size) this.restartChanges()
+      // 進入畫面幾秒後移除標記，視為已看過
+      this.changeSeen = new IntersectionObserver(entries => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue
+          this.changeSeen.unobserve(e.target)
+          setTimeout(() => this.fadeChange(e.target), CHANGE_SEEN_MS)
+        }
+      })
+      for (const el of marks.keys()) this.changeSeen.observe(el)
+      this.syncChangeCount()
+    }
+
+    fadeChange(el) {
+      const m = this.changeMarks.get(el)
+      if (!m) return
+      this.changeMarks.delete(el)
+      for (const l of m.lines) this.changeState.seen.lines.add(l)
+      for (const d of m.dels) this.changeState.seen.dels.add(d)
+      if (!this.changeMarks.size) this.restartChanges()
+      el.classList.remove(...Markloupe.CHANGE_CLASSES)
+      if (!el.classList.length) el.removeAttribute('class')
+      this.syncChangeCount()
+    }
+
+    /** 改動都看過了：以目前原文為新的比對基準 */
+    restartChanges() {
+      this.changeState = { base: this.raw, seen: Markloupe.noChanges() }
+    }
+
+    syncChangeCount() {
+      const n = this.changeMarks.size
+      const label = t('changesCount', String(n))
+      this.changesBtn.hidden = !n
+      this.changesBtn.title = t('changesCountTitle')
+      this.changesBtn.setAttribute('aria-label', `${label}. ${t('changesCountTitle')}`)
+      setTool(this.changesBtn, 'arrow-down', label)
+      this.fitToolbar()
+    }
+
+    /** 跳到目前位置之後的下一處改動，到底後從頭開始；摺疊中的先展開 */
+    nextChange() {
+      const els = [...this.changeMarks.keys()]
+        .filter(el => el.isConnected && !el.closest('tr[hidden]'))
+        .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
+      if (!els.length) return
+      const y = el => {
+        // 摺疊中的元素沒有位置，改用遮住它的標題
+        let block = el
+        while (block.parentElement !== this.article) block = block.parentElement
+        if (!block.dataset.mlFold) return el.getBoundingClientRect().top
+        while (block?.dataset.mlFold) block = block.previousElementSibling
+        return (block || el).getBoundingClientRect().top + 1
+      }
+      // 跳過去的元素會置中；捲不到中間（接近文件結尾）時，再按一次要換下一處
+      let i = els.findIndex(el => y(el) > innerHeight / 2 + 1)
+      if (i < 0) i = 0
+      if (els[i] === this.lastChange?.el && Math.abs(y(els[i]) - this.lastChange.y) < 2) i = (i + 1) % els.length
+      const target = els[i]
+      Markloupe.revealElement(this.article, target)
+      target.scrollIntoView({ block: 'center', behavior: 'instant' })
+      this.lastChange = { el: target, y: y(target) }
     }
 
     /* ---------- 設定 ---------- */
@@ -981,6 +1061,9 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
           this.raw = res.text
           this.pre.textContent = res.text
           this.syncRawView()
+          // 自己寫回的勾選不算改動
+          if (this.changeMarks.size) this.changeState.seen.lines.add(line)
+          else this.restartChanges()
           box.checked = to === 'x'
           box.dataset.mlState = to
           this.toc.syncTasks()

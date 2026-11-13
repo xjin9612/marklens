@@ -105,6 +105,7 @@
         "src/content/table.js",
         "src/content/files.js",
         "src/content/source.js",
+        "src/content/changes.js",
         "src/content/toc.js",
         "src/content/main.js"
       ],

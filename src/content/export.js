@@ -65,6 +65,10 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       delete el.dataset.mlFold
     }
     for (const el of clone.querySelectorAll('.ml-folded')) el.classList.remove('ml-folded')
+    for (const el of clone.querySelectorAll('.ml-changed, .ml-changed-del, .ml-changed-del-end')) {
+      el.classList.remove(...Markloupe.CHANGE_CLASSES)
+      if (!el.classList.length) el.removeAttribute('class')
+    }
     // 全螢幕中的圖表回到文件裡，縮放與位移不帶進匯出檔
     for (const el of clone.querySelectorAll('.ml-mermaid-full')) {
       el.classList.remove('ml-mermaid-full')

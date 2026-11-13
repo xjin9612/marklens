@@ -1086,6 +1086,30 @@ html.markloupe .ml-select-btn:is(:hover, :focus-visible) { background: var(--hov
 html.markloupe .ml-tool-caret { display: grid; margin-left: -2px; }
 html.markloupe .ml-tool-caret .ml-icon { width: 12px; height: 12px; }
 
+/* ---------- 自動更新後標出改動（changes.js）：用底色與陰影標示，不改變版面，捲動位置才不會跳；列印不顯示 ---------- */
+@media screen {
+  html.markloupe .markdown-body {
+    --ml-changed-bg: color-mix(in srgb, var(--accent) 14%, var(--bg));
+    --ml-changed-bar: -8px 0 0 var(--ml-changed-bg), -11px 0 0 var(--accent);
+  }
+  html.markloupe .markdown-body .ml-changed:not(tr) {
+    background-color: var(--ml-changed-bg);
+    box-shadow: var(--ml-changed-bar);
+  }
+  /* 清單項目的色條會壓到項目符號：改成底色往左延伸，符號改用強調色 */
+  html.markloupe .markdown-body li.ml-changed { box-shadow: -1.6em 0 0 var(--ml-changed-bg); }
+  html.markloupe .markdown-body li.ml-changed::marker { color: var(--accent); }
+  html.markloupe .markdown-body tr.ml-changed > * { background-color: var(--ml-changed-bg); }
+  html.markloupe .markdown-body tr.ml-changed > :first-child { box-shadow: inset 3px 0 var(--accent); }
+  /* 只刪除的位置：下一個區塊上緣（或文件最後一個區塊下緣）一條線 */
+  html.markloupe .markdown-body .ml-changed-del:not(tr) { box-shadow: 0 -2px 0 var(--accent); }
+  html.markloupe .markdown-body .ml-changed-del.ml-changed:not(tr, li) { box-shadow: 0 -2px 0 var(--accent), var(--ml-changed-bar); }
+  html.markloupe .markdown-body .ml-changed-del-end:not(tr) { box-shadow: 0 2px 0 var(--accent); }
+  html.markloupe .markdown-body tr.ml-changed-del > * { box-shadow: inset 0 2px var(--accent); }
+  html.markloupe .markdown-body tr.ml-changed-del-end > * { box-shadow: inset 0 -2px var(--accent); }
+}
+html.markloupe .ml-tool-changes { color: var(--accent); }
+
 /* ---------- 系統設定「減少動態效果」：關閉轉場與滑動，狀態直接切換 ---------- */
 @media (prefers-reduced-motion: reduce) {
   html.markloupe *,

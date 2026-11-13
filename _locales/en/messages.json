@@ -603,6 +603,15 @@
   "refreshInterval": {
     "message": "Check interval (ms)"
   },
+  "optRefreshHighlight": {
+    "message": "Highlight changes after auto refresh"
+  },
+  "changesCount": {
+    "message": "Changes: $1"
+  },
+  "changesCountTitle": {
+    "message": "Jump to the next change"
+  },
   "shortcutSettings": {
     "message": "Shortcuts"
   },

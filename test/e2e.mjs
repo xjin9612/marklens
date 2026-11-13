@@ -1993,6 +1993,150 @@ try {
   })
   await mt.screenshot({ path: join(shotDir, 'ml-math.png'), fullPage: true })
 
+  /* ---------- 自動更新標出改動 ---------- */
+  {
+    const filler = Array.from({ length: 60 }, (_, i) => `填充段落 ${i + 1}。\n`).join('\n')
+    const base = [
+      '# 改動標示', '', '第一段。', '', '第二段', '有兩行。', '',
+      '- 項目 A', '  - 子項目 A1', '  - 子項目 A2', '- 項目 B', '',
+      '| 名稱 | 數量 |', '|---|---|', '| 甲 | 1 |', '| 乙 | 2 |', '| 丙 | 3 |', '',
+      '```js', 'const a = 1', 'const b = 2', '```', '',
+      '$$', 'x^2', '$$', '',
+      '[ref]: https://example.com/', '',
+      '最後一段。', '', filler, '尾段。', '',
+    ].join('\n')
+    const file = join(work, 'changes.md')
+    writeFileSync(file, base)
+    const cp = await openDoc(pathToFileURL(file).href)
+    /** 寫入新內容並等畫面出現 sentinel；回傳標出的區塊 */
+    const edit = async (text, sentinel) => {
+      writeFileSync(file, text)
+      await cp.waitForFunction(s => document.querySelector('.markdown-body').textContent.includes(s), sentinel, { timeout: 8000 })
+      return cp.evaluate(() =>
+        Array.from(document.querySelectorAll('.ml-changed, .ml-changed-del, .ml-changed-del-end'), el => ({
+          tag: el.tagName,
+          cls: [...el.classList].filter(c => c.startsWith('ml-changed')).join(' '),
+          text: el.textContent.trim().split('\n')[0],
+        })),
+      )
+    }
+    const reset = async () => {
+      writeFileSync(file, base)
+      await cp.reload()
+      await cp.waitForSelector('#ml-root .markdown-body h1')
+      await cp.bringToFront()
+    }
+    const count = () => cp.evaluate(() => {
+      const b = document.querySelector('.ml-tool-changes')
+      return b.hidden ? 0 : Number(b.textContent.match(/\d+/)[0])
+    })
+
+    await check('自動更新標出改動：段落、巢狀清單只標子項、表格標到列', async () => {
+      await cp.bringToFront()
+      const marks = await edit(base.replace('第一段。', '第一段改了。').replace('子項目 A2', '子項目 A2 改').replace('| 乙 | 2 |', '| 乙 | 20 |'), '第一段改了')
+      assert.deepEqual(marks, [
+        { tag: 'P', cls: 'ml-changed', text: '第一段改了。' },
+        { tag: 'LI', cls: 'ml-changed', text: '子項目 A2 改' },
+        { tag: 'TR', cls: 'ml-changed', text: '乙' },
+      ])
+      assert.equal(await count(), 3)
+      await cp.screenshot({ path: join(shotDir, 'ml-changes.png') })
+    })
+
+    await check('自動更新標出改動：程式碼區塊與數學公式標整個區塊；連結定義不標', async () => {
+      await reset()
+      await edit(base.replace('const b = 2', 'const b = 3').replace('x^2', 'x^3').replace('example.com/', 'example.org/'), 'const b = 3')
+      const marks = await cp.evaluate(() =>
+        Array.from(document.querySelectorAll('.markdown-body .ml-changed'), el => ({ code: !!el.querySelector('code') && el.textContent.includes('const a = 1'), math: !!el.querySelector('.katex') })),
+      )
+      assert.deepEqual(marks, [{ code: true, math: false }, { code: false, math: true }])
+    })
+
+    await check('自動更新標出改動：只刪除時標在下一個區塊上緣，刪除緊鄰修改時只標修改', async () => {
+      await reset()
+      let marks = await edit(base.replace('最後一段。\n\n', '').replace('尾段。', '尾段 A。'), '尾段 A')
+      assert.deepEqual(marks, [
+        { tag: 'P', cls: 'ml-changed-del', text: '填充段落 1。' },
+        { tag: 'P', cls: 'ml-changed', text: '尾段 A。' },
+      ])
+      await reset()
+      marks = await edit(base.replace('第二段\n有兩行。\n\n', '').replace('第一段。', '第一段 B。'), '第一段 B')
+      assert.deepEqual(marks, [{ tag: 'P', cls: 'ml-changed', text: '第一段 B。' }])
+      await reset()
+      marks = await edit(base.replace('填充段落 60。\n\n', '').replace('尾段。', '尾段 C。'), '尾段 C')
+      assert.deepEqual(marks, [{ tag: 'P', cls: 'ml-changed', text: '尾段 C。' }])
+    })
+
+    await check('自動更新標出改動：沒看過的改動跨次更新保留，改回原樣就消失；換行改成 CRLF 不算改動', async () => {
+      await reset()
+      await cp.evaluate(() => scrollTo(0, 0))
+      const v1 = base.replace('填充段落 40。', '填充段落 40 改。')
+      let marks = await edit(v1, '填充段落 40 改')
+      assert.equal(marks.length, 1)
+      marks = await edit(v1.replace('填充段落 50。', '填充段落 50 改。'), '填充段落 50 改')
+      assert.deepEqual(marks.map(m => m.text), ['填充段落 40 改。', '填充段落 50 改。'])
+      marks = await edit(v1.replace('填充段落 50。', '填充段落 50 改。').replace(/\n/g, '\r\n').replace('填充段落 30。', '填充段落 30 改。'), '填充段落 30 改')
+      assert.deepEqual(marks.map(m => m.text), ['填充段落 30 改。', '填充段落 40 改。', '填充段落 50 改。'])
+      marks = await edit(base.replace('填充段落 30。', '填充段落 30 改。'), '填充段落 50。')
+      assert.deepEqual(marks.map(m => m.text), ['填充段落 30 改。'])
+      assert.equal(await count(), 1)
+    })
+
+    await check('自動更新標出改動：工具列按鈕跳到下一處、展開摺疊；看過幾秒後移除標記', async () => {
+      await reset()
+      await cp.evaluate(() => scrollTo(0, 0))
+      await edit(base.replace('填充段落 45。', '填充段落 45 改。').replace('尾段。', '尾段 D。'), '尾段 D')
+      assert.equal(await count(), 2)
+      assert.equal(await cp.textContent('.ml-tool-changes'), '2 處改動')
+      const inView = text => cp.evaluate(t => {
+        const el = [...document.querySelectorAll('.ml-changed')].find(e => e.textContent.includes(t))
+        const r = el.getBoundingClientRect()
+        return r.top >= 0 && r.bottom <= innerHeight
+      }, text)
+      await cp.click('.ml-tool-changes')
+      assert.ok(await inView('填充段落 45 改'))
+      await cp.click('.ml-tool-changes')
+      assert.ok(await inView('尾段 D'))
+      await pageUntil(cp, () => document.querySelector('.ml-tool-changes').hidden, 10000)
+      assert.equal(await cp.locator('.ml-changed').count(), 0)
+    })
+
+    await check('自動更新標出改動：摺疊章節內的改動，按鈕會展開', async () => {
+      const doc = '# 標題\n\n開頭。\n\n## 章節\n\n章節內容。\n\n' + filler
+      writeFileSync(file, doc)
+      await cp.reload()
+      await cp.waitForSelector('#ml-root .markdown-body h1')
+      await cp.bringToFront()
+      await cp.click('.markdown-body h2 .ml-fold')
+      await edit(doc.replace('填充段落 20。', '填充段落 20 改。'), '填充段落 20 改')
+      assert.equal(await count(), 1)
+      await cp.click('.ml-tool-changes')
+      assert.ok(await cp.evaluate(() => {
+        const el = document.querySelector('.ml-changed')
+        const r = el.getBoundingClientRect()
+        return !el.closest('[hidden]') && r.height > 0 && r.top >= 0 && r.bottom <= innerHeight
+      }))
+    })
+
+    await check('自動更新標出改動：匯出不帶標記；設定關閉時不標', async () => {
+      await reset()
+      await edit(base.replace('第一段。', '第一段 E。'), '第一段 E')
+      const { html } = await exportFrom(cp)
+      assert.ok(html.includes('第一段 E'))
+      assert.ok(!/class="[^"]*ml-changed/.test(html))
+      await sw.evaluate(() => Markloupe.saveSettings({ refreshHighlight: false }))
+      try {
+        await reset()
+        const marks = await edit(base.replace('第一段。', '第一段 F。'), '第一段 F')
+        assert.deepEqual(marks, [])
+        assert.equal(await count(), 0)
+      } finally {
+        await sw.evaluate(() => Markloupe.saveSettings({ refreshHighlight: true }))
+      }
+    })
+    await cp.close()
+  }
+
   /* ---------- 匯出 HTML ---------- */
   /** 按工具列的匯出並選擇模式，回傳下載的 HTML 內容與存檔路徑 */
   async function exportFrom(pg, mode = '圖片保留連結') {

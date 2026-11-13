@@ -35,6 +35,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     copy: ['M5.5 5.5h8v8h-8z', 'M3 10.5H2.5v-8h8V3'],
     edit: ['M10.5 2.5l3 3-8 8H2.5v-3z', 'M9 4l3 3'],
     'arrow-up': ['M8 13.5v-11', 'M4 6.5l4-4 4 4'],
+    'arrow-down': ['M8 2.5v11', 'M4 9.5l4 4 4-4'],
     'arrow-left': ['M13.5 8h-11', 'M6.5 4l-4 4 4 4'],
     folder: ['M2 4.5a1 1 0 0 1 1-1h3.2l1.5 1.5H13a1 1 0 0 1 1 1V12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z'],
     help: [['circle', { cx: 8, cy: 8, r: 6 }], 'M6.2 6.3a1.8 1.8 0 1 1 2.6 1.6c-.5.25-.8.6-.8 1.1v.3', 'M8 11.4v.1'],

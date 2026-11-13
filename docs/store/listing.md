@@ -47,7 +47,7 @@ READ AND NAVIGATE
 • Sidebar outline with the current section highlighted and heading search
 • Fold any section; fold or unfold everything at once
 • Files tab: browse the Markdown files and subfolders next to the document, free
-• Live reload for local files that keeps your scroll position, folds and table state
+• Live reload for local files that keeps your scroll position, folds and table state, and highlights what changed
 • Open the file in VS Code at the section you're reading
 • Text width, font size and line height; light, dark or follow the system
 
@@ -95,7 +95,7 @@ Markloupe 把你在瀏覽器中開啟的 Markdown 檔案變成清楚好讀的頁
 • 側邊欄目錄：標示目前章節，可搜尋標題
 • 任何段落都能摺疊，也能一次全部摺疊或展開
 • 檔案分頁：瀏覽同一資料夾中的 Markdown 檔案與子資料夾，完全免費
-• 本機檔案自動更新，保留捲動位置、摺疊狀態與表格設定
+• 本機檔案自動更新，保留捲動位置、摺疊狀態與表格設定，並標出改動
 • 以 VS Code 開啟檔案並跳到目前閱讀的段落
 • 可調整文字寬度、字體大小與行高；淺色、深色或跟隨系統
 
@@ -145,7 +145,7 @@ Markloupe 把你在浏览器中打开的 Markdown 文件变成清晰易读的页
 • 侧边栏目录：标出当前章节，可搜索标题
 • 任何段落都能折叠，也能一次全部折叠或展开
 • “文件”标签：浏览同一文件夹中的 Markdown 文件与子文件夹，完全免费
-• 本机文件自动更新，保留滚动位置、折叠状态与表格设置
+• 本机文件自动更新，保留滚动位置、折叠状态与表格设置，并标出改动
 • 以 VS Code 打开文件并跳到当前阅读的段落
 • 可调整文本宽度、字体大小与行高；浅色、深色或跟随系统
 
