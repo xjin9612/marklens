@@ -145,10 +145,10 @@
     "message": "Couldn't copy to the clipboard"
   },
   "toolExport": {
-    "message": "Export HTML"
+    "message": "Export"
   },
   "toolExportTitle": {
-    "message": "Download what you see as an HTML file (no scripts). Choose a single file with images embedded, or keep links to the images"
+    "message": "Download what you see as an HTML file (no scripts) or a Word document"
   },
   "toolPrint": {
     "message": "Print / PDF"
@@ -163,13 +163,58 @@
     "message": "Export failed: $1"
   },
   "exportMenu": {
-    "message": "Export HTML"
+    "message": "Export"
   },
   "exportEmbed": {
-    "message": "Single file (images embedded)"
+    "message": "HTML, single file (images embedded)"
+  },
+  "exportDocx": {
+    "message": "Word document (.docx)"
+  },
+  "secDocx": {
+    "message": "Word export"
+  },
+  "secDocxNote": {
+    "message": "fonts, size and paper of exported .docx files"
+  },
+  "docxCjkFont": {
+    "message": "Chinese / Japanese / Korean font"
+  },
+  "docxLatinFont": {
+    "message": "Latin font"
+  },
+  "docxCodeFont": {
+    "message": "Code font"
+  },
+  "docxFontAuto": {
+    "message": "By document language"
+  },
+  "fontJhengHei": {
+    "message": "Microsoft JhengHei"
+  },
+  "fontMingLiU": {
+    "message": "PMingLiU"
+  },
+  "fontKai": {
+    "message": "DFKai-SB (Kai)"
+  },
+  "fontYaHei": {
+    "message": "Microsoft YaHei"
+  },
+  "fontSimSun": {
+    "message": "SimSun"
+  },
+  "docxFontName": {
+    "message": "Font name (as shown in Word)"
+  },
+  "docxFontSize": {
+    "message": "Body size (pt)"
+  },
+  "docxPaper": {
+    "message": "Paper"
   },
   "exportLinked": {
-    "message": "Link to images"
+    "message": "HTML, link to images"
   },
   "exportMissed": {
     "message": "Exported $1. Images not embedded: $2. They keep their original addresses"

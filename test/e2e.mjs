@@ -7,6 +7,7 @@ import { readFileSync, mkdtempSync, writeFileSync, copyFileSync, mkdirSync, read
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { inflateRawSync } from 'node:zlib'
 import assert from 'node:assert/strict'
 
 // 以 require 解析，方便使用全域安裝的 playwright
@@ -2061,6 +2062,328 @@ try {
       await sw.evaluate(() => Markloupe.saveSettings({ theme: 'auto', customCss: '' }))
     }
   })
+  /* ---------- 匯出 Word ---------- */
+  /** 解開 .docx（ZIP）：檔名 → 內容（Buffer） */
+  function unzip(buf) {
+    const eocd = buf.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]))
+    const count = buf.readUInt16LE(eocd + 10)
+    const out = {}
+    let p = buf.readUInt32LE(eocd + 16)
+    for (let i = 0; i < count; i++) {
+      const method = buf.readUInt16LE(p + 10)
+      const size = buf.readUInt32LE(p + 20)
+      const [nameLen, extraLen, commentLen] = [28, 30, 32].map(o => buf.readUInt16LE(p + o))
+      const local = buf.readUInt32LE(p + 42)
+      const name = buf.toString('utf8', p + 46, p + 46 + nameLen)
+      const start = local + 30 + buf.readUInt16LE(local + 26) + buf.readUInt16LE(local + 28)
+      const data = buf.subarray(start, start + size)
+      out[name] = method === 8 ? inflateRawSync(data) : data
+      p += 46 + nameLen + extraLen + commentLen
+    }
+    return out
+  }
+  async function exportDocx(pg) {
+    await pg.click('.ml-tool-export')
+    const [dl] = await Promise.all([pg.waitForEvent('download'), pg.click('.ml-menu-item:has-text("Word")')])
+    const file = join(work, `docx-${Date.now()}-${dl.suggestedFilename()}`)
+    await dl.saveAs(file)
+    const parts = unzip(readFileSync(file))
+    // 每個 XML 都要能解析
+    const bad = await pg.evaluate(
+      xmls => Object.entries(xmls).filter(([, x]) => new DOMParser().parseFromString(x, 'application/xml').querySelector('parsererror')).map(([n]) => n),
+      Object.fromEntries(Object.entries(parts).filter(([n]) => /\.(xml|rels)$/.test(n)).map(([n, d]) => [n, d.toString('utf8')])),
+    )
+    assert.deepEqual(bad, [], `XML 格式錯誤：${bad.join(', ')}`)
+    const text = n => parts[n]?.toString('utf8')
+    // 中日韓文字的東亞字型標記另外檢查；比對結構時去掉，寫法才不必每處都帶上
+    const plain = n => text(n)?.replaceAll('<w:rFonts w:hint="eastAsia"/>', '').replaceAll('<w:rPr></w:rPr>', '')
+    return { name: dl.suggestedFilename(), file, parts, xml: plain, raw: text }
+  }
+  await check('匯出 Word：標題、文字格式、清單、程式碼、引用、表格與連結轉成 Word 的結構與樣式', async () => {
+    const md = [
+      '---',
+      'lang: zh-TW',
+      '---',
+      '',
+      '# 主標題',
+      '',
+      '**粗體** *斜體* ~~刪除~~ `行內` ==標記== [外部](https://example.com/a?b=1&c=2) [頁內](#第二節)',
+      '',
+      '- 項目一',
+      '  - 巢狀',
+      '- [x] 已完成的任務',
+      '',
+      '3. 第三',
+      '4. 第四',
+      '',
+      '<!-- -->',
+      '',
+      '- 鬆散一',
+      '',
+      '- 鬆散二',
+      '',
+      '  說明段落',
+      '',
+      '> 引用的段落',
+      '',
+      '> [!WARNING]',
+      '> 小心',
+      '',
+      '```js',
+      'const a = 1',
+      '\tif (a) {}',
+      '```',
+      '',
+      '## 第二節',
+      '',
+      '| 名稱 | 數量 |',
+      '|---|---:|',
+      '| 蘋果 | 3 |',
+      '',
+      '---',
+      '',
+    ].join('\n')
+    const file = join(work, 'docx-basic.md')
+    writeFileSync(file, md)
+    const dp = await openDoc(pathToFileURL(file).href)
+    try {
+      await dp.bringToFront()
+      const { name, xml, raw } = await exportDocx(dp)
+      assert.equal(name, 'docx-basic.docx')
+      const doc = xml('word/document.xml')
+      // 中文文字段標記東亞字型，英文文件裡的中文才不會改用西文字型的替代字
+      assert.match(raw('word/document.xml'), /<w:rPr><w:rFonts w:hint="eastAsia"\/><\/w:rPr><w:t xml:space="preserve">主標題/)
+      assert.match(raw('word/document.xml'), /<w:r><w:t xml:space="preserve">const a = 1/, '沒有中日韓文字的不標記')
+      const rels = xml('word/_rels/document.xml.rels')
+      assert.match(doc, /<w:pStyle w:val="Heading1"\/><\/w:pPr><w:bookmarkStart w:id="\d+" w:name="_ml\d+"\/><w:r><w:t xml:space="preserve">主標題/)
+      for (const re of [/<w:b\/><w:bCs\/><\/w:rPr><w:t xml:space="preserve">粗體/, /<w:i\/>/, /<w:strike\/>/, /<w:rStyle w:val="MLCodeChar"\/><\/w:rPr><w:t xml:space="preserve">行內/, /<w:highlight w:val="yellow"\/>/]) {
+        assert.match(doc, re)
+      }
+      // 外部連結是關聯，頁內連結指向標題的書籤
+      assert.match(rels, /Target="https:\/\/example\.com\/a\?b=1&amp;c=2" TargetMode="External"/)
+      const anchor = /<w:hyperlink w:anchor="(_ml\d+)">/.exec(doc)?.[1]
+      assert.ok(anchor && doc.includes(`w:name="${anchor}"/><w:r><w:t xml:space="preserve">第二節`), '頁內連結指向「第二節」的書籤')
+      // 清單：項目符號與巢狀層級；有序清單從 3 開始；任務以 ☒ 表示
+      assert.match(doc, /<w:numPr><w:ilvl w:val="1"\/><w:numId w:val="1"\/><\/w:numPr><\/w:pPr><w:r><w:t xml:space="preserve">巢狀/)
+      assert.ok(doc.includes('☒ '), '勾選的任務')
+      // 鬆散清單：項目文字就在編號那一段，沒有空的項目或空段落
+      assert.match(doc, /<w:numId w:val="1"\/><\/w:numPr><\/w:pPr><w:r><w:t xml:space="preserve">鬆散一/)
+      assert.match(doc, /<w:ind w:left="720"\/><\/w:pPr><w:r><w:t xml:space="preserve">說明段落/)
+      assert.ok(!/<w:p>(<w:pPr>(?:(?!<\/w:pPr>).)*<\/w:pPr>)?<w:r><w:t xml:space="preserve"> <\/w:t><\/w:r><\/w:p>/.test(doc), '沒有只含空白的段落')
+      assert.match(xml('word/numbering.xml'), /<w:lvlOverride w:ilvl="0"><w:startOverride w:val="3"\/>/)
+      // 程式碼保留換行與 Tab
+      assert.match(doc, /<w:pStyle w:val="MLCode"\/><\/w:pPr><w:r><w:t xml:space="preserve">const a = 1<\/w:t><w:br\/><w:tab\/>/)
+      // 引用與提示框：左側框線，提示框的標題用對應的顏色
+      assert.match(doc, /<w:left w:val="single" w:sz="18" w:space="8" w:color="D0D7DE"\/>/)
+      assert.match(doc, /<w:color w:val="9A6700"\/><\/w:rPr><w:t xml:space="preserve">Warning/)
+      // 表格：表頭列、靠右對齊、每一欄各宣告一次欄寬
+      assert.match(doc, /<w:tblHeader\/>/)
+      assert.match(doc, /<w:tblGrid>(<w:gridCol w:w="\d+"\/>){2}<\/w:tblGrid>/)
+      assert.match(doc, /<w:jc w:val="right"\/><\/w:pPr><w:r><w:t xml:space="preserve">3/)
+      // 樣式：文件語言是繁中，中文字型自動用微軟正黑體；紙張 A4
+      const styles = xml('word/styles.xml')
+      assert.match(styles, /w:eastAsia="Microsoft JhengHei"\/><w:sz w:val="24"\/>/)
+      assert.match(styles, /<w:lang w:val="zh-TW" w:eastAsia="zh-TW"\/>/)
+      assert.match(doc, /<w:pgSz w:w="11906" w:h="16838"\/>/)
+    } finally {
+      await dp.close()
+    }
+  })
+  await check('匯出 Word：圖片與 Mermaid 圖表嵌入成圖片，寬度不超過版面', async () => {
+    const file = join(work, 'export', 'docx-images.md')
+    writeFileSync(file, ['# 圖片', '', '![本機](img/pic.png)', '', '```mermaid', 'graph LR', '  A --> B', '```', ''].join('\n'))
+    const dp = await openDoc(pathToFileURL(file).href)
+    try {
+      await dp.bringToFront()
+      await dp.waitForSelector('.ml-mermaid-view svg')
+      const { parts, xml } = await exportDocx(dp)
+      const doc = xml('word/document.xml')
+      assert.equal((doc.match(/<w:drawing>/g) || []).length, 2, '圖片與圖表各一張')
+      assert.match(doc, /descr="本機"/)
+      const media = Object.keys(parts).filter(n => n.startsWith('word/media/')).sort()
+      assert.deepEqual(media, ['word/media/image1.png', 'word/media/image2.png'])
+      for (const m of media) assert.equal(parts[m].subarray(1, 4).toString(), 'PNG')
+      // 圖表以兩倍解析度繪製；顯示寬度（EMU）不超過 A4 扣掉左右邊界
+      const pngWidth = parts['word/media/image2.png'].readUInt32BE(16)
+      const [, cx] = /<wp:extent cx="(\d+)" cy="\d+"\/><wp:docPr id="2"/.exec(doc)
+      assert.equal(Math.round((Number(cx) / 9525) * 2), pngWidth)
+      assert.ok(Number(cx) <= (11906 - 1440 * 2) * 635)
+      assert.equal((xml('word/_rels/document.xml.rels').match(/relationships\/image" Target="media\/image\d\.png"/g) || []).length, 2)
+      // 匯出後回到原本的主題
+      assert.equal(await dp.evaluate(() => document.documentElement.dataset.mlTheme), 'light')
+    } finally {
+      await dp.close()
+    }
+  })
+  await check('匯出 Word：公式轉成 Word 原生公式，語法錯誤的保留 LaTeX 原文', async () => {
+    const file = join(work, 'docx-math.md')
+    writeFileSync(
+      file,
+      [
+        '# 公式',
+        '',
+        '行內 $E = mc^2$ 與 $\\sqrt[3]{x}$。',
+        '',
+        '$$',
+        '\\sum_{i=1}^{n} \\frac{1}{i^2} + \\int_0^1 x\\,dx + \\left(\\binom{n}{k}\\right) + \\hat{x} + \\overline{AB} + \\lim_{x\\to 0} \\mathrm{d}x',
+        '$$',
+        '',
+        '$$',
+        '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix} \\quad \\begin{aligned} f(x) &= x^2 \\\\ g(x) &= \\sin x \\end{aligned}',
+        '$$',
+        '',
+        '錯誤 $\\frac{1}{$ 結束',
+        '',
+      ].join('\n'),
+    )
+    const dp = await openDoc(pathToFileURL(file).href)
+    try {
+      await dp.bringToFront()
+      await dp.waitForFunction(() => document.querySelectorAll('.markdown-body :is(.katex, .katex-error)').length === 5)
+      const { xml } = await exportDocx(dp)
+      const doc = xml('word/document.xml')
+      assert.match(doc, /<m:oMath><m:r><m:t xml:space="preserve">E<\/m:t><\/m:r>.*<m:sSup><m:e><m:r><m:t xml:space="preserve">c<\/m:t><\/m:r><\/m:e><m:sup><m:r><m:t xml:space="preserve">2</)
+      assert.match(doc, /<m:rad><m:deg><m:r><m:t xml:space="preserve">3</)
+      assert.equal((doc.match(/<m:oMathPara>/g) || []).length, 2, '兩個獨立公式')
+      for (const re of [
+        /<m:nary><m:naryPr><m:chr m:val="∑"\/><m:limLoc m:val="undOvr"\/><\/m:naryPr><m:sub>/,
+        /<m:chr m:val="∫"\/><m:limLoc m:val="subSup"\/>/,
+        /<m:f><m:num>/,
+        /<m:d><m:dPr><m:begChr m:val="\("\/><m:endChr m:val="\)"\/><\/m:dPr><m:e><m:f><m:fPr><m:type m:val="noBar"\/>/,
+        /<m:acc><m:accPr><m:chr m:val="̂"\/>/,
+        /<m:bar><m:barPr><m:pos m:val="top"\/>/,
+        /<m:limLow><m:e><m:r><m:rPr><m:sty m:val="p"\/><\/m:rPr><m:t xml:space="preserve">lim/,
+        /<m:m><m:mPr><m:mcs><m:mc><m:mcPr><m:count m:val="1"\/><m:mcJc m:val="center"\/>.*<m:mr><m:e>/,
+        // 運算子把後面一項當成運算對象；函數名稱與參數合成 m:func；aligned 以 m:aln 對齊等號
+        /<\/m:sup><m:e><m:f><m:num><m:r><m:t xml:space="preserve">1</,
+        /<m:func><m:fName><m:r><m:rPr><m:sty m:val="p"\/><\/m:rPr><m:t xml:space="preserve">sin<\/m:t><\/m:r><\/m:fName><m:e><m:r><m:t xml:space="preserve">x</,
+        /<m:func><m:fName><m:limLow>/,
+        /<m:eqArr><m:e>.*<m:r><m:rPr><m:aln\/><\/m:rPr><m:t xml:space="preserve">=</,
+      ]) {
+        assert.match(doc, re)
+      }
+      // KaTeX 繪製失敗的公式沒有 MathML：保留原文
+      assert.ok(doc.includes('$\\frac{1}{$'), '語法錯誤的公式輸出 LaTeX 原文')
+    } finally {
+      await dp.close()
+    }
+  })
+  await check('匯出 Word：腳註轉成 Word 腳註；front matter 的標題、作者與日期印在開頭並寫進文件屬性', async () => {
+    const file = join(work, 'docx-notes.md')
+    writeFileSync(
+      file,
+      ['---', 'title: 季度報告', 'author: 王小明', 'date: 2026-11-13', '---', '', '## 摘要', '', '正文[^a]，再引用一次[^a]，另一個[^b]。', '', '[^a]: 第一個腳註，含[連結](https://example.com/n)。', '[^b]: 第二個腳註。', ''].join('\n'),
+    )
+    const dp = await ctx.newPage()
+    await dp.goto(pathToFileURL(file).href)
+    try {
+      await dp.bringToFront()
+      await dp.waitForSelector('.markdown-body h2')
+      const { xml } = await exportDocx(dp)
+      const doc = xml('word/document.xml')
+      const notes = xml('word/footnotes.xml')
+      // 三次引用、三個腳註；文末的腳註清單不再出現
+      assert.equal((doc.match(/<w:footnoteReference w:id="\d"\/>/g) || []).length, 3)
+      assert.equal((notes.match(/<w:footnote w:id="[123]">/g) || []).length, 3)
+      assert.ok(!doc.includes('第一個腳註') && !doc.includes('↩'), '腳註內容只在 footnotes.xml')
+      assert.match(notes, /<w:footnoteRef\/><\/w:r><w:r><w:t xml:space="preserve"> <\/w:t><\/w:r><w:r><w:t xml:space="preserve">第一個腳註/)
+      assert.ok(!notes.includes('↩'), '不含返回連結')
+      // 腳註裡的連結寫在腳註自己的關聯檔
+      assert.match(xml('word/_rels/footnotes.xml.rels'), /Target="https:\/\/example\.com\/n" TargetMode="External"/)
+      assert.match(xml('word/settings.xml'), /<w:footnotePr><w:footnote w:id="-1"\/><w:footnote w:id="0"\/><\/w:footnotePr>/)
+      // 標題區：title 與第一個標題不同時印出；author 與 date 是副標題
+      assert.match(doc, /<w:body><w:p><w:pPr><w:pStyle w:val="Title"\/><\/w:pPr><w:r><w:t xml:space="preserve">季度報告<\/w:t><\/w:r><\/w:p><w:p><w:pPr><w:pStyle w:val="Subtitle"\/><\/w:pPr><w:r><w:t xml:space="preserve">王小明 · 2026-11-13</)
+      const core = xml('docProps/core.xml')
+      assert.match(core, /<dc:title>季度報告<\/dc:title><dc:creator>王小明<\/dc:creator>/)
+      // title 與第一個標題相同：不重複印標題，副標題接在第一個標題後面
+      writeFileSync(file, ['---', 'title: 摘要', 'author: 王小明', '---', '', '## 摘要', '', '正文。', ''].join('\n'))
+      await dp.reload()
+      await dp.waitForSelector('.markdown-body h2')
+      const same = (await exportDocx(dp)).xml('word/document.xml')
+      assert.ok(!same.includes('w:val="Title"'))
+      assert.match(same, /摘要<\/w:t><\/w:r><w:bookmarkEnd w:id="\d+"\/><\/w:p><w:p><w:pPr><w:pStyle w:val="Subtitle"\/><\/w:pPr><w:r><w:t xml:space="preserve">王小明</)
+    } finally {
+      await dp.close()
+    }
+  })
+  await check('匯出 Word：腳註中的圖片、HTML 表格的跨列儲存格、運算子後接負號', async () => {
+    const file = join(work, 'export', 'docx-edge.md')
+    writeFileSync(
+      file,
+      [
+        '# 邊界',
+        '',
+        '正文[^a]。',
+        '',
+        '<table><tr><td rowspan="2">A</td><td>B</td></tr><tr><td>C</td></tr></table>',
+        '',
+        '$$',
+        '\\sum_{i=1}^{n} -x_i',
+        '$$',
+        '',
+        '[^a]: 腳註圖 ![腳註圖](img/pic.png)',
+        '',
+      ].join('\n'),
+    )
+    const dp = await openDoc(pathToFileURL(file).href)
+    try {
+      await dp.bringToFront()
+      await dp.waitForFunction(() => document.querySelector('.katex'))
+      const { xml } = await exportDocx(dp)
+      // 腳註裡的圖片：嵌入，關聯寫在腳註自己的 .rels
+      assert.match(xml('word/footnotes.xml'), /<w:drawing>.*descr="腳註圖"/)
+      assert.match(xml('word/_rels/footnotes.xml.rels'), /relationships\/image" Target="media\/image1\.png"/)
+      // 跨列：第一欄垂直合併，C 在第二欄
+      const doc = xml('word/document.xml')
+      assert.match(doc, /<w:tc><w:tcPr><w:vMerge w:val="restart"\/><\/w:tcPr><w:p>.*?A<\/w:t>.*?<\/w:tc><w:tc>.*?B<\/w:t>/)
+      assert.match(doc, /<w:tr><w:tc><w:tcPr><w:vMerge\/><\/w:tcPr><w:p[^>]*\/?>(<\/w:p>)?<\/w:tc><w:tc>.*?C<\/w:t>/)
+      // 運算子後面是負號：不吃進運算對象，負號與 x_i 都留在外面
+      assert.match(doc, /<m:nary>.*?(<m:e\/>|<m:e><\/m:e>)<\/m:nary><m:r><m:t xml:space="preserve">−<\/m:t><\/m:r><m:sSub>/)
+      // 表格的欄寬：兩欄各宣告一次
+      assert.match(doc, /<w:tblGrid>(<w:gridCol w:w="\d+"\/>){2}<\/w:tblGrid>/)
+    } finally {
+      await dp.close()
+    }
+  })
+  await check('匯出 Word：字型、字級與紙張取自設定', async () => {
+    const before = await sw.evaluate(() => Markloupe.loadSettings())
+    const dp = await openDoc()
+    try {
+      await sw.evaluate(() => Markloupe.saveSettings({ docxCjkFont: '標楷體', docxLatinFont: 'Times New Roman', docxCodeFont: 'Courier New', docxFontSize: 14, docxPaper: 'Letter' }))
+      await dp.bringToFront()
+      const { xml } = await exportDocx(dp)
+      const styles = xml('word/styles.xml')
+      assert.match(styles, /<w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" w:eastAsia="標楷體"\/><w:sz w:val="28"\/>/)
+      assert.match(styles, /<w:rFonts w:ascii="Courier New"/)
+      assert.match(xml('word/document.xml'), /<w:pgSz w:w="12240" w:h="15840"\/>/)
+    } finally {
+      await dp.close()
+      await sw.evaluate(b => Markloupe.saveSettings(b), before)
+    }
+  })
+  await check('popup 匯出 Word：清單外的字型名稱顯示為自訂並可修改', async () => {
+    const before = await sw.evaluate(() => Markloupe.loadSettings())
+    const pp = await ctx.newPage()
+    try {
+      await sw.evaluate(() => Markloupe.saveSettings({ docxCjkFont: '思源黑體' }))
+      await pp.goto(`chrome-extension://${extId}/src/popup/popup.html`)
+      await pp.click('details[data-sec="docx"] > summary')
+      const custom = pp.locator('[data-font-custom="docxCjkFont"]')
+      await custom.waitFor()
+      assert.equal(await pp.inputValue('select[data-font="docxCjkFont"]'), '')
+      assert.equal(await custom.inputValue(), '思源黑體')
+      await pp.selectOption('select[data-font="docxCjkFont"]', 'PMingLiU')
+      await until(async () => (await sw.evaluate(() => Markloupe.loadSettings())).docxCjkFont === 'PMingLiU')
+      assert.equal(await custom.isVisible(), false)
+      await pp.selectOption('select[data-font="docxLatinFont"]', '')
+      await pp.fill('[data-font-custom="docxLatinFont"]', 'Georgia')
+      await pp.press('[data-font-custom="docxLatinFont"]', 'Enter')
+      await until(async () => (await sw.evaluate(() => Markloupe.loadSettings())).docxLatinFont === 'Georgia')
+    } finally {
+      await pp.close()
+      await sw.evaluate(b => Markloupe.saveSettings(b), before)
+    }
+  })
   await check('匯出 HTML：自訂配色帶進匯出檔', async () => {
     await page.bringToFront()
     try {
@@ -3023,7 +3346,7 @@ try {
     try {
       const lp = await openDoc()
       const tools = (await lp.locator('.ml-toolbar').innerText()).replace(/\s+/g, ' ')
-      assert.ok(tools.includes('全部折叠') && tools.includes('导出 HTML'), tools)
+      assert.ok(tools.includes('全部折叠') && tools.includes('导出'), tools)
       assert.equal(await lp.locator('.ml-toc-search').getAttribute('placeholder'), '搜索标题')
       await lp.close()
       const pp = await ctx.newPage()
@@ -3040,7 +3363,7 @@ try {
     try {
       const lp = await openDoc()
       const tools = (await lp.locator('.ml-toolbar').innerText()).replace(/\s+/g, ' ')
-      assert.ok(tools.includes('Fold all') && tools.includes('Export HTML'), tools)
+      assert.ok(tools.includes('Fold all') && tools.includes('Export'), tools)
       assert.equal(await lp.locator('.ml-toc-search').getAttribute('placeholder'), 'Search headings', 'placeholder')
       await lp.close()
       const wp = await ctx.newPage()

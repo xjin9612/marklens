@@ -36,6 +36,12 @@ Markloupe.DEFAULTS = Object.freeze({
   taskWrite: true, // 本機檔案的任務清單可直接勾選並存回原檔（需先授權資料夾）
   mermaid: true, // mermaid 區塊繪製成圖表
   math: true, // $…$ 數學公式以 KaTeX 繪製
+  // ----- 匯出 Word（字型名稱照 Word 的寫法；收件人沒有這個字型時，Word 改用同語系的替代字型） -----
+  docxCjkFont: 'auto', // auto：依文件語言（繁中 Microsoft JhengHei、簡中 Microsoft YaHei、日文 Yu Gothic、韓文 Malgun Gothic）
+  docxLatinFont: 'Calibri',
+  docxCodeFont: 'Consolas',
+  docxFontSize: 12, // pt
+  docxPaper: 'A4', // A4 | Letter
 })
 
 // 會即時同步到所有已開分頁的設定
@@ -72,7 +78,7 @@ Markloupe.SYNC_FLAG_KEY = 'markloupe:sync'
 Markloupe.SYNC_KEYS = [
   'uiLang', 'theme', 'palette', 'customColors', 'fontSize', 'lineHeight', 'textWidth', 'tableWidth', 'tocHidden', 'tocDepth',
   'tableWrap', 'codeWrap', 'autoRefresh', 'refreshInterval', 'rememberScroll', 'linkNewTab', 'fileIgnore',
-  'editor', 'taskWrite', 'mermaid', 'math',
+  'editor', 'taskWrite', 'mermaid', 'math', 'docxCjkFont', 'docxLatinFont', 'docxCodeFont', 'docxFontSize', 'docxPaper',
 ]
 // storage.sync 單一項目上限 8192 bytes（含鍵名），自訂 CSS 另存一項
 Markloupe.SYNC_CSS_KEY = 'markloupe:customCss'

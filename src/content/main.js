@@ -680,8 +680,25 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
         items: [
           { label: t('exportEmbed'), icon: 'file', fn: () => this.exportHtml(true) },
           { label: t('exportLinked'), icon: 'download', fn: () => this.exportHtml(false) },
+          { label: t('exportDocx'), icon: 'file', fn: () => this.exportDocx() },
         ],
       })
+    }
+
+    async exportDocx() {
+      if (!Markloupe.alive()) return this.onOrphaned()
+      this.exportBtn.disabled = true
+      try {
+        // 和列印一樣改用淺色：Mermaid 圖表以淺色重繪後再轉成圖片
+        await this.setPrinting(true)
+        const { name } = await Markloupe.exportDocx(this.article, await Markloupe.loadSettings())
+        Markloupe.toast(t('exportDone', name))
+      } catch (err) {
+        Markloupe.toast(t('exportFailed', err.message))
+      } finally {
+        this.setPrinting(false)
+        this.exportBtn.disabled = false
+      }
     }
 
     async exportHtml(embed) {

@@ -31,6 +31,31 @@
     customInput.value = preset ? '' : String(s.textWidth)
     $('#editor-url-row').hidden = s.editor !== 'custom'
     fillColors(s)
+    fillFonts(s)
+  }
+
+  /* ---------- 匯出 Word 的字型：清單裡沒有的字型名稱視為自訂 ---------- */
+  const customRowOf = key => form.querySelector(`[data-font-custom="${key}"]`).closest('label')
+  function fillFonts(s) {
+    for (const sel of form.querySelectorAll('select[data-font]')) {
+      const key = sel.dataset.font
+      const listed = [...sel.options].some(o => o.value && o.value === s[key])
+      sel.value = listed ? s[key] : ''
+      customRowOf(key).hidden = listed
+      form.querySelector(`[data-font-custom="${key}"]`).value = listed ? '' : s[key]
+    }
+  }
+  async function saveFont(el) {
+    const key = el.dataset.font || el.dataset.fontCustom
+    if (el.dataset.font && !el.value) {
+      customRowOf(key).hidden = false
+      return form.querySelector(`[data-font-custom="${key}"]`).focus()
+    }
+    const value = el.value.trim()
+    if (!value) return
+    if (el.dataset.font) customRowOf(key).hidden = true
+    await Markloupe.saveSettings({ [key]: value })
+    say(t('statusSaved'))
   }
 
   /* ---------- 自訂配色 ---------- */
@@ -275,6 +300,7 @@
   form.addEventListener('change', async e => {
     const el = e.target
     if (el.dataset.cc) return saveColor(el)
+    if (el.dataset.font || el.dataset.fontCustom) return saveFont(el)
     if (!el.name) return
     if (el.name === 'palette') {
       if (picker.cc) cancelPicker()
@@ -354,8 +380,9 @@
     autoRefresh: ['off', 'local', 'all'],
     editor: ['none', 'vscode', 'custom'],
     tocDepth: [1, 2, 3, 4, 6],
+    docxPaper: ['A4', 'Letter'],
   }
-  const RANGES = { fontSize: [10, 32], lineHeight: [1.2, 2.4], textWidth: [0, 4000], refreshInterval: [300, 10000] }
+  const RANGES = { fontSize: [10, 32], lineHeight: [1.2, 2.4], textWidth: [0, 4000], refreshInterval: [300, 10000], docxFontSize: [10, 14] }
 
   /** 匯入檔的設定逐項檢查型別、選項與範圍；不合法的略過 */
   function importable(data) {

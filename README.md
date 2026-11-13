@@ -64,11 +64,13 @@ The sidebar outline highlights the section you're reading. Fold any section, or 
 
 ![Dark theme with a Mermaid flowchart, a formula and a box-drawing table](docs/screenshots/en/4-dark-mermaid.png)
 
-### Print, PDF and HTML export
+### Print, PDF, HTML and Word export
 
-**Print / PDF** prints the whole document in light colors, with every section expanded. The margins show only a page number. **Export HTML** saves what you see as an HTML file. **Single file** embeds the images, so the file works on its own when you share it. **Link to images** keeps the file small.
+**Print / PDF** prints the whole document in light colors, with every section expanded. The margins show only a page number. **Export** saves what you see as an HTML file or a Word document. **Single file** embeds the images, so the file works on its own when you share it. **Link to images** keeps the file small.
 
 In a **Single file** export, links to local files keep their relative paths, and links to `.md` files point to `.html`. Export the linked documents into the same folder, and the links work between the exported files. Heading anchors match only between files that Markloupe exported. **Link to images** turns local links into absolute `file://` addresses, which work only on your computer.
+
+**Word document** turns headings, lists, tables, code, images and diagrams into Word's own styles, and formulas into Word equations you can edit, so you can change the font of the whole document in one place. Choose the fonts, size and paper in the popup → **Word export**. With *By document language*, Chinese text uses Microsoft JhengHei (Traditional) or Microsoft YaHei (Simplified), Japanese uses Yu Gothic and Korean uses Malgun Gothic. Footnotes become Word footnotes, and the front matter `title`, `author` and `date` go at the top and into the document properties. Fonts aren't embedded; if the reader's computer lacks one, Word substitutes a similar font.
 
 Add `lang` to the front matter (for example `lang: zh-TW`) to set the document language for the reader and the exported file.
 
@@ -113,6 +115,7 @@ Add `lang` to the front matter (for example `lang: zh-TW`) to set the document l
 
 **Sharing**
 - Print or save as PDF, with sections expanded and only page numbers in the margins
+- Export as a Word document with your choice of fonts, size and paper; images and diagrams are embedded, and formulas become editable Word equations
 - Export as HTML with styles, diagrams and math fonts embedded and no scripts. **Single file** also embeds the images. An image on a website is embedded only if that site allows it, or if **Also open .md files on websites** is on. Images that can't be read keep their address, and Markloupe tells you how many
 - The **Copy** menu has two modes. **Copy content** copies the Markdown source with HTML formatting attached, so apps that accept formatted text keep the formatting. **Copy location** copies the path and line range, such as `D:\notes\report.md:142-168 (Causes)` on Windows or `/Users/you/notes/report.md:142-168 (Causes)` on macOS, so you can point an AI tool at the exact lines
 - **Copy** in the toolbar works on the whole document; the copy button next to a heading works on that section
