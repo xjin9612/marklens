@@ -346,6 +346,11 @@ html.markloupe .ml-toc-list li.ml-toc-folded > a::before {
   transform: rotate(-45deg);
 }
 html.markloupe .ml-toc-list li.ml-toc-inside-fold > a { color: var(--faint); }
+/* 章節的任務完成數（3/8）：靠右，標題文字讓出位置 */
+html.markloupe .ml-toc-list li.ml-toc-has-tasks { position: relative; }
+html.markloupe .ml-toc-list li.ml-toc-has-tasks > a { padding-right: 48px; }
+html.markloupe .ml-toc-tasks { position: absolute; top: 4px; right: 10px; font-size: 11px; line-height: 1.4; color: var(--muted); font-variant-numeric: tabular-nums; pointer-events: none; }
+html.markloupe .ml-toc-tasks.ml-toc-tasks-done { color: var(--ok); }
 html.markloupe .ml-toc-l1 > a { font-weight: 600; color: var(--fg) !important; }
 html.markloupe .ml-toc-l2 > a { padding-left: 24px !important; }
 html.markloupe .ml-toc-l3 > a { padding-left: 36px !important; }

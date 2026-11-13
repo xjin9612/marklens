@@ -75,7 +75,7 @@ Add `lang` to the front matter (for example `lang: zh-TW`) to set the document l
 ## All features
 
 **Reading**
-- Sidebar outline that highlights the section you're reading, with heading search (`/`), word count and reading time
+- Sidebar outline that highlights the section you're reading, with heading search (`/`), word count, reading time and how many tasks each section has done (3/8)
 - Fold any section, or fold and unfold everything at once; Ctrl+F still finds text in folded sections
 - Live reload for local files that keeps your scroll position, folds and table state
 - Remembers where you stopped reading each file

@@ -939,6 +939,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
           this.syncRawView()
           box.checked = to === 'x'
           box.dataset.mlState = to
+          this.toc.syncTasks()
           Markloupe.toast(t(to === 'x' ? 'taskChecked' : 'taskUnchecked'), [{ label: t('undo'), fn: () => this.toggleTask(line) }])
           break
         }
