@@ -89,7 +89,7 @@ Markloupe 支援 Windows、macOS、Linux 上的 Chrome 與 Edge。
 - 複製為以 Tab 分隔的文字（可直接貼到試算表），或保留原文格式的 Markdown；下載為 CSV。三者都套用目前的排序與篩選
 
 **Markdown**
-- CommonMark 與 GitHub Flavored Markdown：表格、任務清單、腳註、自動連結
+- CommonMark 與 GitHub Flavored Markdown：表格、任務清單、腳註（滑過上標即可就地閱讀）、自動連結
 - GitHub 提示框（`> [!NOTE]`）、`==螢光標記==`、Emoji 短碼（`:tada:`）、可收合的 front matter（其中的 `lang` 設定文件語言）
 - 文件網站的容器區塊（`::: tip`、`::: warning`、`::: details`、Docusaurus 的 `:::note`）與定義清單
 - 程式碼語法高亮，附語言標籤、複製按鈕與換行切換

@@ -617,6 +617,25 @@ html.markloupe .markdown-body .markdown-alert-caution .markdown-alert-title { co
 /* 腳註 */
 html.markloupe .markdown-body .footnotes { font-size: 85%; color: var(--muted); }
 html.markloupe .markdown-body .footnotes-sep { margin-top: 32px; }
+/* 腳註預覽（enhance.js）：放在 body 下，不在文章裡，所以字型與行高要自己設定 */
+html.markloupe .ml-fn-pop {
+  position: fixed;
+  z-index: 60;
+  box-sizing: border-box;
+  max-width: min(420px, calc(100vw - 16px));
+  max-height: 50vh;
+  overflow: auto;
+  padding: 10px 14px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: var(--ml-radius-md);
+  box-shadow: var(--shadow);
+  font: calc(var(--ml-font-size) * .85) / var(--ml-line-height) var(--ml-font);
+}
+html.markloupe .ml-fn-pop > * { max-width: none; margin-inline: 0; }
+html.markloupe .ml-fn-pop > :last-child { margin-bottom: 0; }
+@media print { html.markloupe .ml-fn-pop { display: none !important; } }
 
 /* ---------- 表格 ---------- */
 html.markloupe .ml-table-inner { position: relative; width: fit-content; max-width: 100%; }
