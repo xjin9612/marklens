@@ -84,6 +84,16 @@
       <p id="cc-warning" class="hint cc-warning" hidden></p>
       <button type="button" id="cc-reset" data-i18n="colorReset"></button>
     </div>
+    <label><span data-i18n="bodyFont"></span>
+      <select data-font="bodyFont">
+        <option value="sans" data-i18n="bodyFontSans"></option>
+        <option value="serif" data-i18n="bodyFontSerif"></option>
+        <option value="" data-i18n="custom"></option>
+      </select>
+    </label>
+    <label class="stack" hidden><span data-i18n="bodyFontName"></span>
+      <input type="text" data-font-custom="bodyFont" maxlength="128" spellcheck="false" placeholder="LXGW WenKai, Georgia">
+    </label>
     <label><span data-i18n="fontSize"></span>
       <input type="number" name="fontSize" min="10" max="32" step="1">
     </label>

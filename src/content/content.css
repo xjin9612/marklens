@@ -381,7 +381,7 @@ html.markloupe.ml-toc-hidden .ml-main { margin-left: 0; }
 html.markloupe .ml-body {
   box-sizing: border-box;
   padding: 24px 40px 96px;
-  font-family: var(--ml-font);
+  font-family: var(--ml-body-font, var(--ml-font)); /* 內文字型（設定）；介面元件仍用 --ml-font */
   font-size: var(--ml-font-size);
   line-height: var(--ml-line-height);
   word-wrap: break-word;
@@ -643,7 +643,7 @@ html.markloupe .ml-fn-pop {
   border: 1px solid var(--border);
   border-radius: var(--ml-radius-md);
   box-shadow: var(--shadow);
-  font: calc(var(--ml-font-size) * .85) / var(--ml-line-height) var(--ml-font);
+  font: calc(var(--ml-font-size) * .85) / var(--ml-line-height) var(--ml-body-font, var(--ml-font));
 }
 html.markloupe .ml-fn-pop > * { max-width: none; margin-inline: 0; }
 html.markloupe .ml-fn-pop > :last-child { margin-bottom: 0; }

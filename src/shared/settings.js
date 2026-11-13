@@ -18,6 +18,7 @@ Markloupe.DEFAULTS = Object.freeze({
   customCss: '', // 使用者自訂的 CSS，套用在閱讀頁
   fontSize: 16,
   lineHeight: 1.7,
+  bodyFont: 'sans', // 內文字型：sans（系統預設）| serif | 其他字串為使用者輸入的字型名稱
   // ----- 新分頁的預設值（已開的分頁不受影響） -----
   textWidth: 1200, // 文字欄最大寬度 px；0 = 滿版
   tableWidth: 'text', // text：跟隨文字欄，太寬時橫向捲動 | full：可往右超出文字欄
@@ -45,7 +46,7 @@ Markloupe.DEFAULTS = Object.freeze({
 })
 
 // 會即時同步到所有已開分頁的設定
-Markloupe.LIVE_KEYS = ['theme', 'palette', 'customColors', 'customCss', 'fontSize', 'lineHeight']
+Markloupe.LIVE_KEYS = ['theme', 'palette', 'customColors', 'customCss', 'fontSize', 'lineHeight', 'bodyFont']
 
 // 文字寬度循環順序（快捷鍵與工具列使用）
 Markloupe.WIDTH_PRESETS = [0, 1600, 1200, 960]
@@ -67,6 +68,24 @@ Markloupe.fontPercent = function (px) {
   return `${Math.round((px / Markloupe.DEFAULTS.fontSize) * 100)}%`
 }
 
+// 襯線字型：西文用 Georgia，中日韓用各系統的明體／宋體
+const SERIF_STACK = 'Georgia, "Times New Roman", "Noto Serif CJK TC", "Source Han Serif TC", "Songti TC", PMingLiU, "Noto Serif CJK SC", SimSun, serif'
+
+/**
+ * 內文字型設定轉成 font-family；sans 回傳空字串（沿用介面字型）。
+ * 自訂時可用逗號列出多個字型，每個名稱去掉引號與 CSS 語法字元後加上引號，最後接介面字型當備援
+ */
+Markloupe.bodyFontStack = function (value) {
+  if (!value || value === 'sans') return ''
+  if (value === 'serif') return SERIF_STACK
+  const names = String(value)
+    .slice(0, 128)
+    .split(',')
+    .map(n => n.replace(/["'\\;{}<>()]/g, '').trim())
+    .filter(Boolean)
+  return names.length ? `${names.map(n => `"${n}"`).join(', ')}, var(--ml-font)` : ''
+}
+
 Markloupe.PALETTES = ['github', 'sepia', 'contrast', 'green', 'graphite', 'custom']
 
 /*
@@ -76,7 +95,7 @@ Markloupe.PALETTES = ['github', 'sepia', 'contrast', 'green', 'graphite', 'custo
  */
 Markloupe.SYNC_FLAG_KEY = 'markloupe:sync'
 Markloupe.SYNC_KEYS = [
-  'uiLang', 'theme', 'palette', 'customColors', 'fontSize', 'lineHeight', 'textWidth', 'tableWidth', 'tocHidden', 'tocDepth',
+  'uiLang', 'theme', 'palette', 'customColors', 'fontSize', 'lineHeight', 'bodyFont', 'textWidth', 'tableWidth', 'tocHidden', 'tocDepth',
   'tableWrap', 'codeWrap', 'autoRefresh', 'refreshInterval', 'rememberScroll', 'linkNewTab', 'fileIgnore',
   'editor', 'taskWrite', 'mermaid', 'math', 'docxCjkFont', 'docxLatinFont', 'docxCodeFont', 'docxFontSize', 'docxPaper',
 ]

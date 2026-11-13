@@ -468,6 +468,9 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       // 縮放倍率（以預設字體大小為 100%）：給無法用 em 表示大小的內容（Mermaid 圖表）等比縮放
       rs.setProperty('--ml-scale', String(s.fontSize / Markloupe.DEFAULTS.fontSize))
       rs.setProperty('--ml-line-height', String(s.lineHeight))
+      const body = Markloupe.bodyFontStack(s.bodyFont)
+      if (body) rs.setProperty('--ml-body-font', body)
+      else rs.removeProperty('--ml-body-font')
       const dark = s.theme === 'dark' || (s.theme === 'auto' && this.darkQuery.matches)
       // 列印時一律淺色：紙張不印背景，深色主題的淺色文字印出來看不清楚
       document.documentElement.dataset.mlTheme = dark && !this.printing ? 'dark' : 'light'

@@ -2025,6 +2025,29 @@ try {
       await page.click('.ml-toolbar button:has-text("全部展開")')
     }
   })
+  await check('內文字型：襯線與自訂字型即時套用到內文，介面不受影響；自訂名稱不能注入樣式', async () => {
+    const pp = await ctx.newPage()
+    const font = sel => page.evaluate(s => getComputedStyle(document.querySelector(s)).fontFamily, sel)
+    const ui = await font('.ml-toolbar')
+    try {
+      await pp.goto(`chrome-extension://${extId}/src/popup/popup.html`)
+      await pp.selectOption('select[data-font="bodyFont"]', 'serif')
+      await pageUntil(page, () => getComputedStyle(document.querySelector('.ml-body')).fontFamily.startsWith('Georgia'))
+      assert.equal(await font('.ml-toolbar'), ui, '介面元件維持原字型')
+      await pp.selectOption('select[data-font="bodyFont"]', '')
+      await pp.fill('[data-font-custom="bodyFont"]', 'LXGW WenKai, "Bad"; } .ml-body { color: red')
+      await pp.press('[data-font-custom="bodyFont"]', 'Enter')
+      await pageUntil(page, () => getComputedStyle(document.querySelector('.ml-body')).fontFamily.startsWith('"LXGW WenKai"'))
+      // 引號、分號與大括號都被去掉，整段變成一個無害的字型名稱
+      assert.match(await font('.ml-body'), /^"LXGW WenKai", "Bad  \.ml-body  color: red", /)
+      assert.notEqual(await page.evaluate(() => getComputedStyle(document.querySelector('.ml-body')).color), 'rgb(255, 0, 0)')
+      await pp.selectOption('select[data-font="bodyFont"]', 'sans')
+      await pageUntil(page, () => getComputedStyle(document.querySelector('.ml-body')).fontFamily === getComputedStyle(document.querySelector('.ml-toolbar')).fontFamily)
+    } finally {
+      await pp.close()
+      await sw.evaluate(() => Markloupe.saveSettings({ bodyFont: 'sans' }))
+    }
+  })
   await check('自訂 CSS：即時套用到閱讀頁，匯出檔也帶上，且不能提前結束 <style>', async () => {
     await page.bringToFront()
     const color = () => page.$eval('.markdown-body h1', el => getComputedStyle(el).color)

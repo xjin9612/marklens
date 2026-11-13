@@ -110,7 +110,7 @@ Add `lang` to the front matter (for example `lang: zh-TW`) to set the document l
 - Add your own CSS to reading pages
 - Sync settings to your other computers through your browser account (can be turned off), or export and import them as a JSON file
 - Text width (full, 1600, 1200, 960 or custom); tables and code can optionally grow to the right of the text column
-- Font size scales the whole document, including code, tables, math and diagrams; adjustable line height
+- Font size scales the whole document, including code, tables, math and diagrams; adjustable line height; sans-serif, serif or your own body font
 - Interface in English, Traditional Chinese and Simplified Chinese
 
 **Sharing**
@@ -150,7 +150,7 @@ Browser-wide, changeable at `chrome://extensions/shortcuts`:
 
 Open the Markloupe icon in the toolbar for all settings.
 
-- **Theme, colors, custom CSS, font size and line height** apply to every open tab right away.
+- **Theme, colors, custom CSS, font size, line height and body font** apply to every open tab right away.
 - **Sidebar, its width, and text width** apply to the current tab only, so you can compare documents side by side. They're kept when you reload or open another file in the same tab.
 - **Everything else** is the default for new tabs; open tabs pick it up after a reload.
 

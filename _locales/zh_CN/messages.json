@@ -213,6 +213,18 @@
   "docxPaper": {
     "message": "纸张"
   },
+  "bodyFont": {
+    "message": "正文字体"
+  },
+  "bodyFontSans": {
+    "message": "系统默认（无衬线）"
+  },
+  "bodyFontSerif": {
+    "message": "衬线（宋体）"
+  },
+  "bodyFontName": {
+    "message": "字体名称，可用逗号列出多个"
+  },
   "exportLinked": {
     "message": "HTML（图片保留链接）"
   },

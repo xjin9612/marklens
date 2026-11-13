@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Soft green** and **Graphite** palettes (popup → **Colors**), for both light and dark themes. The dark Graphite is based on the colors of JetBrains Islands Dark
 - **Custom** colors: pick the background, text and accent colors for the light and dark themes (popup → **Colors** → *Custom*). Markloupe works out the other colors, and warns when the text or accent color has less than 4.5:1 contrast. Open reading pages preview the colors while you adjust them; click **Done** to keep them
 - **Export → Word document (.docx)**: headings, lists, tables, code, images and Mermaid diagrams become Word styles and pictures, formulas become editable Word equations, and footnotes become Word footnotes. Choose the Chinese, Latin and code fonts, the body size and the paper in the popup → **Word export**
+- Choose the body font of reading pages: system sans-serif, serif, or your own font names (popup → **Appearance**)
 - Click a formula to copy its LaTeX source
 - Hover or focus a footnote mark to read the footnote in place
 - `n` / `p` jump to the next / previous heading, skipping folded sections
