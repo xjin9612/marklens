@@ -327,6 +327,9 @@
   "filesEmpty": {
     "message": "（没有 Markdown）"
   },
+  "secReading": {
+    "message": "阅读"
+  },
   "secFiles": {
     "message": "文件列表"
   },
@@ -501,9 +504,6 @@
   "refreshInterval": {
     "message": "检查间隔 (ms)"
   },
-  "toggleRaw": {
-    "message": "切换原始文本"
-  },
   "shortcutSettings": {
     "message": "快捷键设置"
   },
@@ -518,9 +518,6 @@
   },
   "statusSavedReload": {
     "message": "已保存，刷新标签页后应用"
-  },
-  "statusNotMarkdown": {
-    "message": "此标签页不是 Markdown 页面"
   },
   "grantPageTitle": {
     "message": "Markloupe：文件写回授权"
