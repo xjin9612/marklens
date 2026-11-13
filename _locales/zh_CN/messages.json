@@ -145,10 +145,10 @@
     "message": "无法复制到剪贴板"
   },
   "toolExport": {
-    "message": "导出 HTML"
+    "message": "导出"
   },
   "toolExportTitle": {
-    "message": "把当前画面下载成 HTML 文件（不含代码）。可选择内嵌图片成单一文件，或保留图片链接"
+    "message": "把当前页面下载为 HTML 文件（不含代码）或 Word 文档"
   },
   "toolPrint": {
     "message": "打印／PDF"
@@ -163,13 +163,58 @@
     "message": "导出失败：$1"
   },
   "exportMenu": {
-    "message": "导出 HTML"
+    "message": "导出"
   },
   "exportEmbed": {
-    "message": "单一文件（内嵌图片）"
+    "message": "HTML 单一文件（内嵌图片）"
+  },
+  "exportDocx": {
+    "message": "Word 文档（.docx）"
+  },
+  "secDocx": {
+    "message": "导出 Word"
+  },
+  "secDocxNote": {
+    "message": "导出 .docx 的字体、字号与纸张"
+  },
+  "docxCjkFont": {
+    "message": "中文字体"
+  },
+  "docxLatinFont": {
+    "message": "西文字体"
+  },
+  "docxCodeFont": {
+    "message": "代码字体"
+  },
+  "docxFontAuto": {
+    "message": "按文档语言"
+  },
+  "fontJhengHei": {
+    "message": "微软正黑体"
+  },
+  "fontMingLiU": {
+    "message": "新细明体"
+  },
+  "fontKai": {
+    "message": "标楷体"
+  },
+  "fontYaHei": {
+    "message": "微软雅黑"
+  },
+  "fontSimSun": {
+    "message": "宋体"
+  },
+  "docxFontName": {
+    "message": "字体名称（与 Word 中显示的相同）"
+  },
+  "docxFontSize": {
+    "message": "正文字号（pt）"
+  },
+  "docxPaper": {
+    "message": "纸张"
   },
   "exportLinked": {
-    "message": "图片保留链接"
+    "message": "HTML（图片保留链接）"
   },
   "exportMissed": {
     "message": "已导出 $1；$2 张图片无法内嵌，保留原网址"

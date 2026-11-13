@@ -145,10 +145,10 @@
     "message": "無法複製到剪貼簿"
   },
   "toolExport": {
-    "message": "匯出 HTML"
+    "message": "匯出"
   },
   "toolExportTitle": {
-    "message": "把目前畫面下載成 HTML 檔（不含程式碼）。可選擇內嵌圖片成單一檔，或保留圖片連結"
+    "message": "把目前畫面下載成 HTML 檔（不含程式碼）或 Word 文件"
   },
   "toolPrint": {
     "message": "列印／PDF"
@@ -163,13 +163,58 @@
     "message": "匯出失敗：$1"
   },
   "exportMenu": {
-    "message": "匯出 HTML"
+    "message": "匯出"
   },
   "exportEmbed": {
-    "message": "單一檔（內嵌圖片）"
+    "message": "HTML 單一檔（內嵌圖片）"
+  },
+  "exportDocx": {
+    "message": "Word 文件（.docx）"
+  },
+  "secDocx": {
+    "message": "匯出 Word"
+  },
+  "secDocxNote": {
+    "message": "匯出 .docx 的字型、字級與紙張"
+  },
+  "docxCjkFont": {
+    "message": "中文字型"
+  },
+  "docxLatinFont": {
+    "message": "西文字型"
+  },
+  "docxCodeFont": {
+    "message": "程式碼字型"
+  },
+  "docxFontAuto": {
+    "message": "依文件語言"
+  },
+  "fontJhengHei": {
+    "message": "微軟正黑體"
+  },
+  "fontMingLiU": {
+    "message": "新細明體"
+  },
+  "fontKai": {
+    "message": "標楷體"
+  },
+  "fontYaHei": {
+    "message": "微軟雅黑"
+  },
+  "fontSimSun": {
+    "message": "宋体"
+  },
+  "docxFontName": {
+    "message": "字型名稱（與 Word 中顯示的相同）"
+  },
+  "docxFontSize": {
+    "message": "內文字級（pt）"
+  },
+  "docxPaper": {
+    "message": "紙張"
   },
   "exportLinked": {
-    "message": "圖片保留連結"
+    "message": "HTML（圖片保留連結）"
   },
   "exportMissed": {
     "message": "已匯出 $1；$2 張圖片無法內嵌，保留原網址"
