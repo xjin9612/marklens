@@ -180,10 +180,12 @@ Markdown 支持
 | 欄位 | 區域 | 檔案 |
 |---|---|---|
 | 商店圖示 128×128 | 不分語言 | `icons/icon128.png` |
-| 通用螢幕截圖 1280×800（最多 5 張，依序上傳） | 通用 | `docs/store/en/1-tables.png` … `5-table-fullscreen.png` |
+| 通用螢幕截圖 1280×800（最多 5 張，依序上傳） | 通用 | `docs/store/en/1-tables.png` … `5-palettes.png` |
 | 小型宣傳圖塊 440×280 | 通用 | `docs/store/en/promo-440x280.png` |
 | 跑馬燈宣傳圖塊 1400×560（選填） | 通用 | `docs/store/en/marquee-1400x560.png` |
-| 在地化螢幕截圖 | zh_TW、zh_CN 各上傳一次 | `docs/store/zh-TW/1-tables.png` … `5-table-fullscreen.png` |
+| 在地化螢幕截圖 | zh_TW、zh_CN 各上傳一次 | `docs/store/zh-TW/1-tables.png` … `5-palettes.png` |
+
+`6-table-fullscreen.png` 只給 Edge Add-ons 用（最多 6 張）；Chrome 只收 5 張。
 
 宣傳圖塊沒有在地化欄位，各語言都顯示英文版。宣傳影片留空。
 
@@ -284,7 +286,7 @@ Websites (optional): in the Markloupe popup turn on "Also open .md files on webs
 - 隱私權政策網址：必填，用同一個
 - 詳細說明：每個語言必填，250～10,000 字元。英文約 3,200 字元、繁中與簡中約 1,400 字元，都符合
 - 擴充功能標誌（Extension logo）：每個語言必填，1:1，最小 128×128。用 `icons/icon128.png`，上傳後按 Duplicate 套用到所有語言
-- 螢幕截圖：最多 6 張，1280×800 可用；沿用上面 5 張
+- 螢幕截圖：最多 6 張，1280×800 可用；上傳 `1-tables.png` … `6-table-fullscreen.png`
 - 搜尋關鍵字（Search terms，選填，最多 7 個、每個 30 字元、合計 21 個字）：markdown, md, reader, viewer, table, mermaid, preview
 - 類別：Developer tools（[Edge Add-ons 的類別頁面](https://microsoftedge.microsoft.com/addons/category/Developer-Tools)）
 - 認證備註（Notes for certification，選填）：
