@@ -32,8 +32,9 @@ select, input[type=number] {
   color: var(--fg);
   font: inherit;
 }
-/* 字型選項較長（如「By document language」「Times New Roman」），放寬才不會被截斷 */
-select[data-font] { width: 170px; }
+/* 字型選項較長（如「By document language」「Times New Roman」），字寬又隨作業系統不同：選單放在標籤下一行，佔滿整欄 */
+label:has(> select[data-font]) { display: grid; gap: 4px; justify-content: stretch; }
+select[data-font] { width: 100%; }
 button {
   padding: 4px 10px;
   border: 1px solid var(--border);
