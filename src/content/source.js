@@ -19,7 +19,8 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     }
   }
 
-  const own = el => (el?.dataset?.mlLine != null ? [+el.dataset.mlLine, +el.dataset.mlEnd] : null)
+  // 任務清單的勾選框只記了任務所在的行（data-ml-line，供勾選寫回），沒有範圍，不能當成區塊
+  const own = el => (el?.dataset?.mlLine != null && el.dataset.mlEnd != null ? [+el.dataset.mlLine, +el.dataset.mlEnd] : null)
 
   /** 元素本身或其中的區塊所涵蓋的範圍；都沒有行號時回傳 null */
   function inner(el) {
@@ -27,7 +28,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     if (r) return r
     let start = Infinity
     let end = -Infinity
-    for (const d of el.querySelectorAll?.('[data-ml-line]') || []) {
+    for (const d of el.querySelectorAll?.('[data-ml-line][data-ml-end]') || []) {
       start = Math.min(start, +d.dataset.mlLine)
       end = Math.max(end, +d.dataset.mlEnd)
     }

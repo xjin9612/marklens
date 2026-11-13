@@ -2284,6 +2284,30 @@ try {
       await np.close()
     }
   })
+  await check('複製：選取從任務的勾選框開始（例如三連擊選取一行），位置是那一行', async () => {
+    const file = join(work, 'task-select.md')
+    writeFileSync(file, '# 任務\n\n- [ ] 第一項\n- [x] 第二項\n')
+    const tp = await openDoc(pathToFileURL(file).href)
+    try {
+      await tp.bringToFront()
+      await tp.evaluate(() => {
+        const li = document.querySelector('.task-list-item')
+        const r = document.createRange()
+        r.setStart(li, 0) // 起點是勾選框
+        r.setEnd(li.lastChild, li.lastChild.textContent.length)
+        getSelection().removeAllRanges()
+        getSelection().addRange(r)
+        document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+      })
+      await tp.waitForSelector('.ml-select-bar:not([hidden])')
+      await tp.evaluate(() => document.querySelector('.ml-toast')?.classList.remove('show'))
+      await tp.click('.ml-select-btn:has-text("複製位置")')
+      await tp.waitForSelector('.ml-toast.show')
+      assert.equal(await clip(tp), `${file}:3`)
+    } finally {
+      await tp.close()
+    }
+  })
   await check('原始文字：顯示行號，點行號複製該行位置，選取時只能複製位置', async () => {
     const np = await openDoc(pathToFileURL(nestedMd).href)
     try {
