@@ -2,7 +2,7 @@
 
 English | [繁體中文](PRIVACY.zh-TW.md)
 
-*Last updated: 2026-11-11*
+*Last updated: 2026-11-13*
 
 Markloupe is a browser extension that displays Markdown files. **It does not collect, sell or send your data to anyone.** It has no account, no analytics, no ads and no server of its own. Everything described below stays in your browser on your computer.
 
@@ -24,15 +24,15 @@ Uninstalling Markloupe deletes all of this data from your computer.
 Markloupe never sends your data anywhere. It makes network requests on its own in only two cases:
 
 - **Auto refresh** of a Markdown file opened from a website reloads that same address from that same website, the way pressing Reload would. No other site is contacted.
-- **Export HTML** as a **Single file** downloads the images the document shows from wherever they are hosted, to embed them in the exported file. This happens only when you choose that option.
+- **Export** as an HTML **Single file** or as a **Word document** downloads the images the document shows from wherever they are hosted, to embed them in the exported file. This happens only when you choose one of these options.
 - **Images and links** inside a document are loaded from wherever the document points, as with any web page. Apart from the export above, Markloupe does not add requests of its own.
 - **Mermaid diagrams and math** are drawn with libraries packaged inside the extension. No code or data is downloaded from elsewhere.
 
 ## Your files
 
-- Markloupe reads a local file only when you open it in the browser, and only that file. When you export a local document as a **Single file**, it also reads the local images the document shows, to embed them. The **Files** tab lists the names of Markdown files and folders next to it; it does not read their contents until you open one.
+- Markloupe reads a local file only when you open it in the browser, and only that file. When you export a local document as a **Single file** or a **Word document**, it also reads the local images the document shows, to embed them. The **Files** tab lists the names of Markdown files and folders next to it; it does not read their contents until you open one.
 - Markloupe changes a file only when you check or uncheck a task box in a folder you allowed, and then only that one line. You can turn task check-off off in the popup.
-- **Export HTML** and **Copy** only happen when you click them; the file goes where you choose to save it, and copied text goes to your clipboard.
+- **Export** and **Copy** only happen when you click them; the file goes where you choose to save it, and copied text goes to your clipboard.
 - **Open in your editor** passes the file's path and line number to the editor installed on your computer.
 
 ## Permissions
