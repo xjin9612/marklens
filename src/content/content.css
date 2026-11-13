@@ -639,6 +639,7 @@ html.markloupe .ml-table-bar {
   pointer-events: none;
   transition: opacity var(--ml-dur-fast) var(--ml-ease) .05s;
 }
+html.markloupe .ml-table-inner.ml-bar-start .ml-table-bar { left: 0; right: auto; }
 html.markloupe .ml-table-inner:hover .ml-table-bar,
 html.markloupe .ml-table-bar:focus-within,
 html.markloupe .ml-table.ml-filtered .ml-table-bar { opacity: 1; pointer-events: auto; }

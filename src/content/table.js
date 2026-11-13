@@ -133,18 +133,22 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       h('span', { class: 'ml-table-esc', attrs: { 'aria-hidden': 'true' } }), // 文字由 CSS 產生，不算進字數與頁內搜尋
     ])
     // inner 的寬度貼齊表格本身，工具列才會對齊表格右緣（wrap 可能比表格寬）
-    wrap.append(h('div', { class: 'ml-table-inner' }, [bar, view]))
+    const inner = h('div', { class: 'ml-table-inner' }, [bar, view])
+    wrap.append(inner)
 
     // 橫向捲動時，還有內容的一側顯示陰影；欄寬拖拉與視窗縮放都會改變可捲動的範圍
     const edges = Markloupe.rafThrottle(() => {
       const max = scroller.scrollWidth - scroller.clientWidth
       view.classList.toggle('ml-more-left', scroller.scrollLeft > 1)
       view.classList.toggle('ml-more-right', scroller.scrollLeft < max - 1)
+      // 工具列比表格寬時改成對齊表格左緣，往右延伸，才不會超出文字欄左側
+      inner.classList.toggle('ml-bar-start', bar.offsetWidth > inner.offsetWidth)
     })
     scroller.addEventListener('scroll', edges, { passive: true })
     const ro = new ResizeObserver(edges)
     ro.observe(scroller)
     ro.observe(table)
+    ro.observe(bar)
 
     /** 表格所在章節的標題文字；沒有標題時是文件標題 */
     function sectionTitle() {
