@@ -103,6 +103,14 @@ Markloupe.docBaseName = function () {
   return base.replace(Markloupe.MD_EXT, '')
 }
 
+/** 元素所在章節的標題文字（往前找文章最上層的標題）；沒有標題時是文件標題 */
+Markloupe.sectionTitle = function (el) {
+  let n = el
+  while (n.parentElement && !n.parentElement.classList.contains('markdown-body')) n = n.parentElement
+  while ((n = n.previousElementSibling) && !/^H[1-6]$/.test(n.tagName));
+  return n?.dataset.mlText || document.title
+}
+
 /** 複製文字；非安全環境（一般 http）退回 execCommand */
 Markloupe.copyText = async function (text) {
   try {

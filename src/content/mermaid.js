@@ -195,6 +195,46 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     return [fullBtn, ...zoomBtns]
   }
 
+  /** 圖表的大小（CSS px）：取自 viewBox，沒有時取 width／height 屬性 */
+  function svgSize(svg) {
+    const box = svg.viewBox?.baseVal
+    return {
+      w: box?.width || Number.parseFloat(svg.getAttribute('width')) || 600,
+      h: box?.height || Number.parseFloat(svg.getAttribute('height')) || 400,
+    }
+  }
+
+  /** 可獨立開啟的 SVG：寫明寬高，拿掉頁面上用來縮放的 style */
+  function svgMarkup(svg) {
+    const { w, h } = svgSize(svg)
+    const copy = svg.cloneNode(true)
+    copy.setAttribute('width', w)
+    copy.setAttribute('height', h)
+    copy.removeAttribute('style')
+    return new XMLSerializer().serializeToString(copy)
+  }
+
+  /**
+   * 圖表畫成 PNG；文字標籤是 SVG 文字、沒有 foreignObject，畫到 canvas 不會被汙染
+   * @param {{scale?: number, background?: string, padding?: number}} [opts] background 省略時透明；padding 以 CSS px 計
+   * @returns {Promise<{blob: Blob, width: number, height: number}>} width、height 是乘上 scale 之前的大小（含 padding）
+   */
+  Markloupe.mermaidPng = async function (svg, { scale = 2, background, padding = 0 } = {}) {
+    const { w, h } = svgSize(svg)
+    const img = new Image()
+    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgMarkup(svg))}`
+    await img.decode()
+    const [width, height] = [w + padding * 2, h + padding * 2]
+    const canvas = new OffscreenCanvas(Math.max(1, Math.round(width * scale)), Math.max(1, Math.round(height * scale)))
+    const g = canvas.getContext('2d')
+    if (background) {
+      g.fillStyle = background
+      g.fillRect(0, 0, canvas.width, canvas.height)
+    }
+    g.drawImage(img, padding * scale, padding * scale, w * scale, h * scale)
+    return { blob: await canvas.convertToBlob({ type: 'image/png' }), width, height }
+  }
+
   /** 顯示圖或原始碼 */
   function showSource(wrap, on) {
     wrap.classList.toggle('ml-mermaid-source', on)
