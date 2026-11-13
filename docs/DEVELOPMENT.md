@@ -192,7 +192,7 @@ flowchart LR
 npm test
 ```
 
-以 Chromium 載入擴充功能，開啟本機與 http 的測試文件。push 到 `main` 與 pull request 時由 CI 在 Linux、macOS、Windows 上執行。截圖輸出到 `SHOT_DIR`，預設為系統暫存目錄。涵蓋：
+以 Chromium 載入擴充功能，開啟本機與 http 的測試文件。pull request 時由 CI 在 Linux、macOS、Windows 上執行；push 到 `main` 與發版時只在 Linux 上執行（main 只能經由 PR 合併，合併前要與 main 同步）。截圖輸出到 `SHOT_DIR`，預設為系統暫存目錄。涵蓋：
 
 - 渲染：GFM、任務清單（緊湊／鬆散清單）、腳註（滑過或聚焦上標時預覽，Esc 收起）、Alert、front matter（單層 key: value 以鍵值清單顯示，巢狀時顯示原文）、程式碼高亮、Emoji 短碼、比照 GitHub 的自動連結
 - 載入：換檔時保留舊畫面到新頁排好版、載入中背景沿用上次的主題、停用 Markloupe 時原文照常顯示、非 Markdown 網址不接管
@@ -308,7 +308,7 @@ chrome.exe --remote-debugging-port=9222 --user-data-dir="$env:TEMP\markloupe-cdp
 
 1. 確認標籤、`manifest.json`、`package.json`、`CHANGELOG.md` 的版本一致。
 2. 確認名稱與說明符合商店的長度上限。
-3. 跑測試，打包擴充功能的檔案。
+3. 在 Linux 上跑測試（三個平台已在 PR 測過），打包擴充功能的檔案。
 4. 為兩個 zip 產生建置來源證明。
 5. 以該版 CHANGELOG 段落為說明，發布 GitHub Release，附兩個 zip：
    - `markloupe-vX.Y.Z.zip`：內含 `markloupe-vX.Y.Z/` 資料夾，供「載入未封裝項目」使用

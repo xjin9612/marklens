@@ -1,4 +1,5 @@
-# 端對端測試：每次 push 到 main、每個 pull request；也供 release.yml 重複使用
+# 端對端測試：pull request 在 Linux、macOS、Windows 上執行；push 到 main 與 release.yml 呼叫時只跑 Linux
+# main 只能經由 PR 合併，且合併前要與 main 同步，合併後的內容已在三個平台測過；Linux 這輪確認合併與發版的 commit 本身
 name: Tests
 
 on:
@@ -10,6 +11,11 @@ on:
 permissions:
   contents: read
 
+# 同一個 PR 有新推送時，取消舊 commit 還在跑或排隊的測試；其他事件每次執行各自一組，互不影響
+concurrency:
+  group: tests-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   # 路徑、字型與檔名規則隨作業系統不同；只在 Linux 做與平台無關的檢查與套件快取
   e2e:
@@ -17,7 +23,7 @@ jobs:
       fail-fast: false
       matrix:
         # 固定作業系統版本：-latest 換版時測試環境會無預警改變
-        os: [ubuntu-26.04, macos-26, windows-2025]
+        os: ${{ github.event_name == 'pull_request' && fromJSON('["ubuntu-26.04", "macos-26", "windows-2025"]') || fromJSON('["ubuntu-26.04"]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     defaults:
