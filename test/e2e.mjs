@@ -1896,6 +1896,8 @@ try {
       assert.equal(await ip.locator('.ml-toast.show').textContent(), '已匯出 images.html；2 張圖片無法內嵌，保留原網址')
       const xp = await ctx.newPage()
       await xp.goto(pathToFileURL(file).href)
+      // 檢查前先等圖片解碼完：只等 load 事件時，偶爾還讀到寬度 0
+      await xp.$eval('img[alt="本機"]', img => img.decode().catch(() => {}))
       assert.equal(await xp.$eval('img[alt="本機"]', img => img.naturalWidth), 1, '匯出檔的內嵌圖片應能顯示')
       await xp.close()
       // 保留連結：圖片一律是絕對網址
