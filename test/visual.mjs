@@ -40,8 +40,9 @@ const setTheme = theme => sw.evaluate(t => Markloupe.saveSettings({ theme: t }),
 await sw.evaluate(() => Markloupe.saveSettings({ rememberScroll: false }))
 
 /** 開啟閱讀頁並等到畫面穩定：字型、Mermaid、公式都畫完 */
-async function reader(url, { theme = 'light', width = 1280, height = 800 } = {}) {
+async function reader(url, { theme = 'light', palette = 'github', width = 1280, height = 800 } = {}) {
   await setTheme(theme)
+  await sw.evaluate(p => Markloupe.saveSettings({ palette: p }), palette)
   const page = await ctx.newPage()
   await page.setViewportSize({ width, height })
   await page.goto(url)
@@ -56,6 +57,7 @@ async function reader(url, { theme = 'light', width = 1280, height = 800 } = {})
 
 async function extPage(name, { scheme = 'light', width = 900, height = 900 } = {}) {
   await setTheme('auto')
+  await sw.evaluate(() => Markloupe.saveSettings({ palette: 'github' }))
   const page = await ctx.newPage()
   await page.emulateMedia({ colorScheme: scheme })
   await page.setViewportSize({ width, height })
@@ -97,6 +99,22 @@ const SCENES = {
   },
   'mermaid-dark': async () => {
     const p = await reader(doc('test/manual/08-Mermaid.md'), { theme: 'dark', height: 1400 })
+    return [p, await p.screenshot()]
+  },
+  // 新增的配色：同一份文件，各取一個主題
+  'palette-green': async () => {
+    const p = await reader(doc('docs/demo.md'), { palette: 'green' })
+    return [p, await p.screenshot()]
+  },
+  'palette-graphite-dark': async () => {
+    const p = await reader(doc('docs/demo.md'), { theme: 'dark', palette: 'graphite' })
+    return [p, await p.screenshot()]
+  },
+  'palette-custom': async () => {
+    await sw.evaluate(() =>
+      Markloupe.saveSettings({ customColors: { light: { bg: '#fbf7f0', fg: '#3b3530', accent: '#b4532a' }, dark: Markloupe.DEFAULTS.customColors.dark } }),
+    )
+    const p = await reader(doc('docs/demo.md'), { palette: 'custom' })
     return [p, await p.screenshot()]
   },
   'popup-light': async () => {
