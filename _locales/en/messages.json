@@ -654,6 +654,9 @@
   "keyTheme": {
     "message": "Cycle theme: auto → light → dark"
   },
+  "keyHeading": {
+    "message": "Next / previous heading"
+  },
   "keyFold": {
     "message": "Fold all / unfold all"
   },

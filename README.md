@@ -127,6 +127,7 @@ On a reading page (ignored while typing in a text box):
 | `t` | Show / hide the sidebar |
 | `/` | Search headings (Outline tab) or file names (Files tab) |
 | `[` / `]` | Fold all / unfold all |
+| `n` / `p` | Next / previous heading |
 | `w` | Cycle text width |
 | `d` | Cycle theme: auto → light → dark (all tabs) |
 | `+` (or `=`) / `-` / `0` | Larger / smaller / reset font size (all tabs) |

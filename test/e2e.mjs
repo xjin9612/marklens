@@ -531,6 +531,48 @@ try {
     assert.ok((await page.locator('.ml-toc-folded').count()) >= 3)
     assert.ok((await page.locator('.ml-toc-inside-fold').count()) >= 1)
   })
+  await check('快捷鍵 n／p：跳到下一個或上一個標題，略過被摺疊的標題', async () => {
+    const np = await openDoc(`${pathToFileURL(join(root, 'docs/demo.md')).href}#capacity`)
+    // 停在頂端（scroll-margin-top 的位置）的標題
+    const atTop = () =>
+      np.evaluate(() => {
+        const hs = [...document.querySelectorAll('.markdown-body :is(h1, h2, h3, h4, h5, h6)')]
+        const line = parseFloat(getComputedStyle(hs[0]).scrollMarginTop)
+        return hs.find(h => Math.abs(h.getBoundingClientRect().top - line) < 2)?.id ?? null
+      })
+    const press = async (key, id) => {
+      await np.keyboard.press(key)
+      await np.waitForFunction(i => location.hash === `#${i}`, id, { timeout: 3000 }).catch(async () => {
+        throw new Error(`按 ${key} 應跳到 #${id}，實際是 ${await np.evaluate(() => location.hash)}`)
+      })
+    }
+    try {
+      await np.bringToFront()
+      // 圖表畫完、字型載入後版面才固定，之前跳到的標題會被往下推
+      await np.waitForFunction(() => !document.querySelector('.ml-mermaid-pending') && document.querySelector('.ml-mermaid svg'))
+      await np.evaluate(() => document.fonts.ready)
+      await np.evaluate(() => document.getElementById('capacity').scrollIntoView({ block: 'start' }))
+      await press('n', 'rollback')
+      assert.equal(await atTop(), 'rollback')
+      await press('p', 'capacity')
+      assert.equal(await atTop(), 'capacity')
+      await press('n', 'rollback')
+      await press('n', 'risks')
+      // 摺疊 Risks：底下的兩個小節看不到，下一個是 Timeline
+      await np.click('#risks .ml-fold')
+      await press('n', 'timeline')
+      // 頁尾的標題捲不到頂端，連按 n 仍逐一往下，不會停在同一個
+      await press('n', 'appendix')
+      await press('n', 'contacts')
+      await press('n', 'glossary')
+      await press('p', 'contacts')
+      // 在頁首按 n：第一個標題已在眼前，直接到第二個
+      await np.evaluate(() => scrollTo(0, 0))
+      await press('n', 'checklist')
+    } finally {
+      await np.close()
+    }
+  })
   await check('目錄高亮：頁尾的短章節捲不到頂端，跳轉的目標與捲到底時仍標示正確', async () => {
     const demoUrl = pathToFileURL(join(root, 'docs/demo.md')).href
     const tp = await openDoc(`${demoUrl}#glossary`)
