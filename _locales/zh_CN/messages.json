@@ -531,6 +531,9 @@
   "optCodeWrap": {
     "message": "代码自动换行"
   },
+  "optCodeLineNumbers": {
+    "message": "代码块显示行号"
+  },
   "optRememberScroll": {
     "message": "记住阅读位置"
   },

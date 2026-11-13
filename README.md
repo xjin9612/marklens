@@ -116,7 +116,7 @@ Add `lang` to the front matter (for example `lang: zh-TW`) to set the document l
 - GitHub alerts (`> [!NOTE]`), `==highlight==`, emoji shortcodes (`:tada:`), collapsible front matter, shown as a key–value list when it has only simple `key: value` lines (its `lang` sets the document language)
 - Docs-site containers (`::: tip`, `::: warning`, `::: details`, Docusaurus `:::note`) and definition lists
 - Obsidian wikilinks (`[[Note]]`, `[[Note#Heading|text]]`), image embeds (`![[pic.png]]`) and callouts with custom titles that can fold (`> [!faq]- Title`). A wikilink points to the file in the same folder as the document; Markloupe does not search other folders for it. Other `![[…]]` embeds show as links
-- Syntax highlighting with a language label, copy button and wrap toggle
+- Syntax highlighting with a language label, copy button and wrap toggle. Line numbers can be turned on in the popup → **Layout defaults**. ```` ```js {1,3-5} ```` highlights lines, and `showLineNumbers` or `:line-numbers` after the language shows line numbers for that block
 - KaTeX math (`$…$`, `$$…$$`, `` $`…`$ ``, ` ```math `), on web pages too; click a formula to copy its LaTeX
 - Mermaid diagrams; they follow the theme and can be switched back to source. **Image** copies a diagram as PNG or downloads it as PNG or SVG, always in light colors
 - View a diagram fullscreen: scroll to zoom, drag to move, double-click to reset

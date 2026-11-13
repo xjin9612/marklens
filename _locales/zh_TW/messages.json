@@ -531,6 +531,9 @@
   "optCodeWrap": {
     "message": "程式碼自動換行"
   },
+  "optCodeLineNumbers": {
+    "message": "程式碼區塊顯示行號"
+  },
   "optRememberScroll": {
     "message": "記住閱讀位置"
   },

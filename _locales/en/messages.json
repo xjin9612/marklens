@@ -531,6 +531,9 @@
   "optCodeWrap": {
     "message": "Wrap code"
   },
+  "optCodeLineNumbers": {
+    "message": "Show line numbers in code blocks"
+  },
   "optRememberScroll": {
     "message": "Remember reading position"
   },

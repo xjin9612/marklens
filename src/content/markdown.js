@@ -210,10 +210,65 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     }
   }
 
-  /* ---------- highlight.js ---------- */
+  /* ---------- highlight.js、程式碼行號與標示行 ---------- */
+  // 語言後的 {1,3-5} 標示指定行（VitePress、Docusaurus 寫法）；showLineNumbers、:line-numbers 強制顯示行號，:no-line-numbers 強制不顯示
+  const META_LINES_RE = /\{([\d,\s-]+)\}/
+  const MAX_MARKED_LINES = 10000
+
+  /** "1,3-5" → Set{1,3,4,5}（1 起算）；範圍超過 MAX_MARKED_LINES 的部分略過 */
+  function lineSet(spec) {
+    const out = new Set()
+    for (const part of spec.split(',')) {
+      const m = /^\s*(\d+)\s*(?:-\s*(\d+))?\s*$/.exec(part)
+      if (!m) continue
+      const a = +m[1]
+      const b = Math.min(m[2] ? +m[2] : a, a + MAX_MARKED_LINES)
+      for (let n = a; n <= b; n++) out.add(n)
+    }
+    return out
+  }
+
+  /**
+   * 把 highlight.js 的輸出切成每行一個 <span class="code-line">；跨行的 <span> 在行尾關閉、下一行重開。
+   * 換行字元留在 span 之間，textContent 與原始碼相同（複製、Mermaid、匯出 Word 都讀 textContent）
+   */
+  function wrapLines(html, marked) {
+    const lines = []
+    let cur = ''
+    const open = []
+    for (const [t] of html.matchAll(/<span[^>]*>|<\/span>|\n|[^<\n]+/g)) {
+      if (t === '\n') {
+        lines.push(cur + '</span>'.repeat(open.length))
+        cur = open.join('')
+      } else {
+        if (t === '</span>') open.pop()
+        else if (t.startsWith('<span')) open.push(t)
+        cur += t
+      }
+    }
+    const line = (l, i) => `<span class="code-line${marked.has(i + 1) ? ' code-line-hl' : ''}">${l}</span>`
+    // 最後一行沒有換行字元（檔案結尾沒有關閉的 ```）時照樣不加
+    const tail = cur.replace(/<[^>]*>/g, '') ? line(cur, lines.length) : ''
+    return lines.map((l, i) => `${line(l, i)}\n`).join('') + tail
+  }
+
+  function codeClass(lang, meta, count) {
+    const cls = ['hljs']
+    if (lang) cls.push(`language-${lang}`)
+    if (/(?:^|\s)(?:showLineNumbers|:line-numbers)\b/.test(meta)) cls.push('code-numbers')
+    else if (/(?:^|\s):no-line-numbers\b/.test(meta)) cls.push('code-no-numbers')
+    // 行號欄寬：預設容納三位數
+    const digits = String(count).length
+    if (digits > 3) cls.push(`code-digits-${Math.min(digits, 6)}`)
+    return cls.join(' ')
+  }
+
   function highlight(md) {
-    return (code, info) => {
-      const lang = (info || '').trim().split(/\s+/)[0].toLowerCase()
+    return (code, name, attrs) => {
+      // ```js{1,3} 的語言與大括號之間沒有空白
+      const brace = (name || '').indexOf('{')
+      const meta = `${brace < 0 ? '' : name.slice(brace)} ${attrs || ''}`
+      const lang = (brace < 0 ? name || '' : name.slice(0, brace)).trim().toLowerCase()
       let body = null
       if (lang && globalThis.hljs && hljs.getLanguage(lang)) {
         try {
@@ -223,8 +278,19 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
         }
       }
       if (body == null) body = md.utils.escapeHtml(code)
-      const cls = lang ? ` language-${md.utils.escapeHtml(lang.replace(/[^\w+#.-]/g, ''))}` : ''
-      return `<pre><code class="hljs${cls}">${body}</code></pre>`
+      const marked = lineSet(META_LINES_RE.exec(meta)?.[1] || '')
+      const count = code.split('\n').length - (code.endsWith('\n') ? 1 : 0)
+      const cls = codeClass(md.utils.escapeHtml(lang.replace(/[^\w+#.-]/g, '')), meta, count)
+      return `<pre><code class="${cls}">${wrapLines(body, marked)}</code></pre>`
+    }
+  }
+
+  /** 縮排式程式碼區塊也切成每行一個 span，行號設定才會一致 */
+  function codeBlockPlugin(md) {
+    md.renderer.rules.code_block = (tokens, i, options, env, self) => {
+      const code = tokens[i].content
+      const count = code.split('\n').length - (code.endsWith('\n') ? 1 : 0)
+      return `<pre${self.renderAttrs(tokens[i])}><code class="${codeClass('', '', count)}">${wrapLines(md.utils.escapeHtml(code), new Set())}</code></pre>\n`
     }
   }
 
@@ -421,6 +487,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     md.use(markPlugin)
     md.use(alertPlugin)
     md.use(wikilinkPlugin)
+    md.use(codeBlockPlugin)
     md.use(gfmAutolinkPlugin)
     md.use(mathPlugin)
     md.markloupeNonce = Array.from(crypto.getRandomValues(new Uint8Array(8)), b => b.toString(16).padStart(2, '0')).join('')

@@ -267,19 +267,13 @@ try {
   await check('程式碼區塊中英對齊（框線字元表格每列等寬）', async () => {
     await pageUntil(page, () => document.documentElement.dataset.mlCodeFont)
     const info = JSON.parse(await page.evaluate(() => document.documentElement.dataset.mlCodeFont))
-    const widths = await page.$eval('.ml-code code.language-text', code => {
-      const node = code.firstChild
-      const lines = node.textContent.split('\n').filter(Boolean)
-      let pos = 0
-      return lines.map(line => {
-        const start = node.textContent.indexOf(line, pos)
-        pos = start + line.length
+    const widths = await page.$eval('.ml-code code.language-text', code =>
+      [...code.querySelectorAll('.code-line')].map(line => {
         const r = document.createRange()
-        r.setStart(node, start)
-        r.setEnd(node, pos)
+        r.selectNodeContents(line)
         return r.getBoundingClientRect().width
-      })
-    })
+      }),
+    )
     const spread = Math.max(...widths) - Math.min(...widths)
     assert.ok(spread < 0.5, `各列寬度差 ${spread.toFixed(2)}px：${widths.map(w => w.toFixed(1)).join(', ')}；${JSON.stringify(info)}`)
   })
@@ -3018,6 +3012,54 @@ try {
       await op.screenshot({ path: join(shotDir, 'ml-obsidian.png'), fullPage: true })
     } finally {
       await op.close()
+    }
+  })
+
+  await check('程式碼行號：{2,4-5} 標示指定行、跨行的語法標色每行各自完整；行號依設定與區塊標記顯示，複製不含行號', async () => {
+    const md = [
+      '# 程式碼行號', '',
+      '```js {2,4-5}', 'const a = 1', 'const b = 2', '/* 跨行', '註解 */', 'const c = 3', '```', '',
+      '```py showLineNumbers', 'print(1)', '```', '',
+      '```txt :no-line-numbers', 'x', '```', '',
+      '    indented', '    code', '',
+      '```', ...Array.from({ length: 1000 }, (_, i) => `line ${i + 1}`), '```', '',
+    ].join('\n')
+    const file = join(work, 'code-lines.md')
+    writeFileSync(file, md)
+    const numbers = pg => pg.$$eval('.markdown-body pre > code', els => els.map(c => getComputedStyle(c.querySelector('.code-line'), '::before').content !== 'none'))
+    let lp = await openDoc(pathToFileURL(file).href)
+    try {
+      const first = await lp.$eval('.markdown-body pre > code', c => ({
+        text: c.textContent,
+        lines: c.querySelectorAll(':scope > .code-line').length,
+        hl: [...c.querySelectorAll(':scope > .code-line')].flatMap((l, i) => (l.classList.contains('code-line-hl') ? [i + 1] : [])),
+        comments: [...c.querySelectorAll(':scope > .code-line')].map(l => l.querySelector('.hljs-comment')?.textContent ?? null),
+      }))
+      assert.deepEqual(first, {
+        text: 'const a = 1\nconst b = 2\n/* 跨行\n註解 */\nconst c = 3\n',
+        lines: 5,
+        hl: [2, 4, 5],
+        comments: [null, null, '/* 跨行', '註解 */', null],
+      })
+      assert.ok(await lp.$eval('.markdown-body pre > code', c => c.classList.contains('language-js')), '語言後的 {…} 不影響語言辨識')
+      assert.deepEqual(await numbers(lp), [false, true, false, false, false])
+      assert.ok(await lp.$eval('.markdown-body .ml-code:last-of-type code', c => c.classList.contains('code-digits-4')))
+      await ctx.grantPermissions(['clipboard-read', 'clipboard-write'])
+      await lp.bringToFront()
+      await lp.click('.ml-code >> nth=0 >> .ml-btn:has-text("複製")')
+      await until(async () => (await lp.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/g, '\n') === 'const a = 1\nconst b = 2\n/* 跨行\n註解 */\nconst c = 3\n')
+    } finally {
+      await lp.close()
+    }
+    await sw.evaluate(() => Markloupe.saveSettings({ codeLineNumbers: true }))
+    lp = await openDoc(pathToFileURL(file).href)
+    try {
+      assert.deepEqual(await numbers(lp), [true, true, false, true, true])
+      const gutter = await lp.$$eval('.markdown-body pre > code', els => els.map(c => getComputedStyle(c).getPropertyValue('--ml-gutter').trim()))
+      assert.equal(gutter[4], '4ch')
+    } finally {
+      await lp.close()
+      await sw.evaluate(() => Markloupe.saveSettings({ codeLineNumbers: false }))
     }
   })
 

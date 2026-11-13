@@ -27,6 +27,7 @@ Markloupe.DEFAULTS = Object.freeze({
   tocWidth: 260,
   tableWrap: true, // 表格儲存格是否換行
   codeWrap: false, // 程式碼是否自動換行
+  codeLineNumbers: false, // 程式碼區塊顯示行號
   autoRefresh: 'local', // off | local（僅 file://）| all
   refreshInterval: 1000,
   refreshHighlight: true, // 自動更新時標出改動的區塊
@@ -97,7 +98,7 @@ Markloupe.PALETTES = ['github', 'sepia', 'contrast', 'green', 'graphite', 'custo
 Markloupe.SYNC_FLAG_KEY = 'markloupe:sync'
 Markloupe.SYNC_KEYS = [
   'uiLang', 'theme', 'palette', 'customColors', 'fontSize', 'lineHeight', 'bodyFont', 'textWidth', 'tableWidth', 'tocHidden', 'tocDepth',
-  'tableWrap', 'codeWrap', 'autoRefresh', 'refreshInterval', 'refreshHighlight', 'rememberScroll', 'linkNewTab', 'fileIgnore',
+  'tableWrap', 'codeWrap', 'codeLineNumbers', 'autoRefresh', 'refreshInterval', 'refreshHighlight', 'rememberScroll', 'linkNewTab', 'fileIgnore',
   'editor', 'taskWrite', 'mermaid', 'math', 'docxCjkFont', 'docxLatinFont', 'docxCodeFont', 'docxFontSize', 'docxPaper',
 ]
 // storage.sync 單一項目上限 8192 bytes（含鍵名），自訂 CSS 另存一項

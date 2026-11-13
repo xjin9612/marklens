@@ -116,7 +116,7 @@ Markloupe 支援 Windows、macOS、Linux 上的 Chrome 與 Edge。
 - GitHub 提示框（`> [!NOTE]`）、`==螢光標記==`、Emoji 短碼（`:tada:`）、可收合的 front matter，只有單層 `key: value` 時以鍵值清單顯示（其中的 `lang` 設定文件語言）
 - 文件網站的容器區塊（`::: tip`、`::: warning`、`::: details`、Docusaurus 的 `:::note`）與定義清單
 - Obsidian 的 wikilink（`[[筆記]]`、`[[筆記#標題|文字]]`）、圖片嵌入（`![[pic.png]]`），以及可自訂標題、可摺疊的提示框（`> [!faq]- 標題`）。wikilink 連到與文件同一資料夾的檔案，Markloupe 不會到其他資料夾尋找。其他 `![[…]]` 嵌入顯示成連結
-- 程式碼語法高亮，附語言標籤、複製按鈕與換行切換
+- 程式碼語法高亮，附語言標籤、複製按鈕與換行切換。可在 popup →「版面預設值」開啟行號。```` ```js {1,3-5} ```` 標示指定行，語言後加 `showLineNumbers` 或 `:line-numbers` 讓該區塊顯示行號
 - KaTeX 數學公式（`$…$`、`$$…$$`、`` $`…`$ ``、` ```math `），網頁上也能繪製；點公式即可複製 LaTeX 原文
 - Mermaid 圖表；圖表跟隨主題，也能切回原始碼。「圖片」可把圖表複製成 PNG，或下載成 PNG、SVG，一律是淺色
 - 圖表可全螢幕檢視：滾輪縮放、拖曳移動、雙擊重設
