@@ -205,6 +205,10 @@ html.markloupe .ml-toc {
   box-sizing: border-box;
 }
 html.markloupe.ml-toc-hidden .ml-toc { display: none; }
+/* 專注模式：只留內文；標題捲到頂端時不必再讓出工具列的高度 */
+html.markloupe.ml-focus :is(.ml-toc, .ml-toolbar, .ml-backdrop) { display: none !important; }
+html.markloupe.ml-focus .ml-main { margin-left: 0; }
+html.markloupe.ml-focus .markdown-body :is(h1, h2, h3, h4, h5, h6) { scroll-margin-top: 16px; }
 /* 標題列：選單 ｜ 目錄 檔案 ｜ 搜尋，高度與工具列相同 */
 html.markloupe .ml-toc-head {
   display: flex;

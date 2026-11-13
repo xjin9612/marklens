@@ -666,6 +666,18 @@
   "keyTheme": {
     "message": "切換主題：自動 → 淺色 → 深色"
   },
+  "focusMode": {
+    "message": "專注模式（f）"
+  },
+  "focusOn": {
+    "message": "專注模式：已隱藏工具列與側邊欄，按 f 離開"
+  },
+  "focusOff": {
+    "message": "已離開專注模式"
+  },
+  "keyFocus": {
+    "message": "專注模式：隱藏工具列與側邊欄"
+  },
   "keyHeading": {
     "message": "下一個／上一個標題"
   },

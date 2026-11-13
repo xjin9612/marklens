@@ -86,6 +86,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
         tocHidden: saved.tocHidden ?? settings.tocHidden,
         tocWidth: saved.tocWidth ?? settings.tocWidth,
         textWidth: saved.textWidth ?? settings.textWidth,
+        focus: saved.focus ?? false, // 專注模式：隱藏工具列與側邊欄
         sideTab: saved.sideTab ?? 'toc', // 側邊欄分頁：toc | files
         filesRoot: saved.filesRoot ?? null, // 檔案分頁的起點資料夾（同一分頁內切換檔案時沿用）
         filesOpen: saved.filesOpen ?? [], // 檔案分頁已展開的子資料夾（相對起點）
@@ -251,6 +252,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       }))
       // popup 設定的自訂寬度不在預設選項裡：列在最後並打勾
       if (!Markloupe.WIDTH_PRESETS.includes(cur)) items.push({ label: t('widthCustomItem', cur), checked: true, fn: () => {} })
+      items.push({ label: t('focusMode'), fn: () => this.toggleFocus(true) })
       Markloupe.openMenu({ anchor: this.widthBtn, items, radio: true, label: t('widthMenu') })
     }
 
@@ -313,11 +315,20 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
           return Markloupe.foldAll(this.article)
         case 'unfold-all':
           return Markloupe.unfoldAll(this.article)
+        case 'toggle-focus':
+          return this.toggleFocus()
         case 'next-heading':
           return this.jumpHeading(1)
         case 'prev-heading':
           return this.jumpHeading(-1)
       }
+    }
+
+    /** 專注模式只影響目前分頁；工具列藏起來後只能按 f 離開，所以進入時提示 */
+    toggleFocus(force) {
+      const on = force ?? !this.view.focus
+      this.setView({ focus: on })
+      Markloupe.toast(t(on ? 'focusOn' : 'focusOff'), [], on ? 4000 : 1500)
     }
 
     /** 跳到下一個或上一個看得到的標題；被摺疊的略過，原始文字模式不動作 */
@@ -359,6 +370,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
         d: 'cycle-theme',
         '[': 'fold-all',
         ']': 'unfold-all',
+        f: 'toggle-focus',
         n: 'next-heading',
         p: 'prev-heading',
         // 字體大小：= 與 + 同一個鍵（不必按 Shift），數字鍵盤的 + − 也可以
@@ -494,6 +506,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       rs.setProperty('--ml-text-min', v.textWidth ? `min(100%, ${v.textWidth}px)` : '100%')
       rs.setProperty('--ml-toc-width', `${v.tocWidth}px`)
       root.classList.toggle('ml-toc-hidden', v.tocHidden)
+      root.classList.toggle('ml-focus', v.focus)
       root.classList.toggle('ml-code-wrap', this.settings.codeWrap)
       root.classList.toggle('ml-wide-blocks', this.settings.tableWidth !== 'text')
       setTool(this.widthBtn, 'width', t('toolWidth', Markloupe.widthLabel(v.textWidth)))

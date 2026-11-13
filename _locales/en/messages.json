@@ -666,6 +666,18 @@
   "keyTheme": {
     "message": "Cycle theme: auto → light → dark"
   },
+  "focusMode": {
+    "message": "Focus mode (f)"
+  },
+  "focusOn": {
+    "message": "Focus mode: toolbar and sidebar hidden. Press f to leave"
+  },
+  "focusOff": {
+    "message": "Focus mode off"
+  },
+  "keyFocus": {
+    "message": "Focus mode: hide the toolbar and sidebar"
+  },
   "keyHeading": {
     "message": "Next / previous heading"
   },
