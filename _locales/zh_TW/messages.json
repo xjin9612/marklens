@@ -540,6 +540,12 @@
   "optLinkNewTab": {
     "message": "外部連結在新分頁開啟"
   },
+  "optLinkCheck": {
+    "message": "標出指向不存在本機檔案的連結"
+  },
+  "linkBroken": {
+    "message": "找不到這個檔案"
+  },
   "optMermaid": {
     "message": "繪製 Mermaid 圖表"
   },

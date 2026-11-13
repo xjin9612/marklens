@@ -1152,6 +1152,8 @@ html.markloupe .ml-tool-caret .ml-icon { width: 12px; height: 12px; }
   html.markloupe .markdown-body tr.ml-changed-del-end > * { box-shadow: inset 0 -2px var(--accent); }
 }
 html.markloupe .ml-tool-changes { color: var(--accent); }
+/* 指向不存在的本機檔案的連結 */
+html.markloupe .markdown-body a.ml-link-broken { text-decoration: underline wavy var(--alert-caution); text-underline-offset: 3px; }
 
 /* ---------- 系統設定「減少動態效果」：關閉轉場與滑動，狀態直接切換 ---------- */
 @media (prefers-reduced-motion: reduce) {

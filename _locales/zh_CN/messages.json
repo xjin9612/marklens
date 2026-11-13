@@ -540,6 +540,12 @@
   "optLinkNewTab": {
     "message": "外部链接在新标签页打开"
   },
+  "optLinkCheck": {
+    "message": "标出指向不存在本地文件的链接"
+  },
+  "linkBroken": {
+    "message": "找不到这个文件"
+  },
   "optMermaid": {
     "message": "绘制 Mermaid 图表"
   },

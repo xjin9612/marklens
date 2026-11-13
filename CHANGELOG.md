@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 - **Image** on a Mermaid diagram copies it as a PNG, or downloads it as a PNG or SVG file. Images always use light colors, like Word export, and the PNG has a solid background. Copying needs an https page or a local file
+- In local documents, links to files or folders that do not exist get a wavy underline and a tooltip. Markloupe checks only the names in the linked folders and never reads those files. Turn it off in the popup → **Layout defaults**
 - Line numbers for code blocks (popup → **Layout defaults**). Copying code never includes them. ```` ```js {1,3-5} ```` highlights lines, and `showLineNumbers` or `:line-numbers` after the language turns on line numbers for one block (`:no-line-numbers` turns them off)
 - Obsidian syntax: `[[Note]]`, `[[Note#Heading|text]]` and `[[#Heading]]` become links to the file in the same folder, `![[pic.png]]` shows the image, and callouts accept Obsidian types, a custom title and folding (`> [!faq]- Title`). Other `![[…]]` embeds show as links
 - Live reload highlights what changed: changed blocks get a colored bar, and a line marks removed text. **N changes** in the toolbar jumps to the next one, opening folded sections. A mark goes away a few seconds after you see it; changes you have not seen stay marked through later saves, and disappear if you undo them. Turn it off in the popup → **Auto refresh**

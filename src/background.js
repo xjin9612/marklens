@@ -149,38 +149,61 @@ const HANDLERS = {
       return { status: 'error', error: 'invalid path' }
     }
     const dir = root + segs.map(s => `${encodeURIComponent(s)}/`).join('')
-    let html
-    try {
-      html = await (await fetch(dir)).text()
-    } catch {
-      return { status: 'error' }
-    }
+    const entries = await dirEntries(dir)
+    if (!entries) return { status: 'error' }
     const ignore = ignorePatterns((await Markloupe.loadSettings()).fileIgnore)
-    const decode = s => {
-      try {
-        return decodeURIComponent(s)
-      } catch {
-        return s
-      }
-    }
-    // addRow("顯示名稱", "編碼後的網址", 是否為資料夾, …)；非 ASCII 檔名的顯示名稱可能是空字串，所以用網址欄位
     const dirs = []
     const files = []
-    for (const m of html.matchAll(/addRow\("(?:[^"\\]|\\.)*","((?:[^"\\]|\\.)*)",([01]),/g)) {
-      let href
-      try {
-        href = JSON.parse(`"${m[1]}"`)
-      } catch {
-        continue
-      }
-      const name = decode(href.replace(/\/$/, ''))
-      if (!name || name === '..' || ignore.some(re => re.test(name))) continue
-      if (m[2] === '1') dirs.push(name)
+    for (const { name, href, isDir } of entries) {
+      if (ignore.some(re => re.test(name))) continue
+      if (isDir) dirs.push(name)
       else if (MD_FILE_RE.test(name)) files.push({ name, url: dir + href })
     }
     dirs.sort(NATURAL.compare)
     files.sort((a, b) => NATURAL.compare(a.name, b.name))
     return { status: 'ok', dirs, files }
+  },
+
+  /**
+   * 標出失效的相對連結：回傳指向的本機檔案或資料夾不存在的網址。
+   * 只讀連結所在資料夾的清單頁（檔名），不讀檔案內容；資料夾讀不到時再看上一層有沒有它，
+   * 上一層也讀不到就當成存在，不標示
+   */
+  async 'check-links'(msg, sender) {
+    const page = (sender.url || '').split(/[?#]/)[0]
+    if (!page.startsWith('file:') || !isLocalFile(page)) return { status: 'unsupported' }
+    const urls = (Array.isArray(msg.urls) ? msg.urls : []).filter(u => typeof u === 'string').slice(0, LINK_CHECK_MAX)
+    // Windows 與 macOS 的檔案系統預設不分大小寫
+    const os = (await chrome.runtime.getPlatformInfo()).os
+    const fold = os === 'win' || os === 'mac' ? s => s.toLowerCase() : s => s
+    const listings = new Map()
+    const names = dir => {
+      if (!listings.has(dir)) {
+        listings.set(
+          dir,
+          listings.size >= LINK_CHECK_DIRS || !isLocalFolder(dir)
+            ? Promise.resolve(null)
+            : dirEntries(dir).then(list => list && new Set(list.map(e => fold(e.name)))),
+        )
+      }
+      return listings.get(dir)
+    }
+    const exists = async path => {
+      const cut = path.replace(/\/$/, '').lastIndexOf('/') + 1
+      const dir = path.slice(0, cut)
+      const name = fold(decodeName(path.slice(cut).replace(/\/$/, '')))
+      if (!name || dir === 'file:///') return true
+      const list = await names(dir)
+      if (list) return list.has(name)
+      return exists(dir)
+    }
+    const missing = []
+    for (const u of urls) {
+      const path = u.split(/[?#]/)[0]
+      if (!path.startsWith('file:///') || !isLocalFile(path)) continue
+      if (!(await exists(path))) missing.push(u)
+    }
+    return { status: 'ok', missing }
   },
 
   /** content script 透過這裡取得整份語系檔（content script 無權直接讀取擴充功能內的檔案） */
@@ -338,6 +361,41 @@ function isLocalFolder(root) {
 }
 
 const MD_FILE_RE = /\.(md|markdown|mkd|mdx)$/i
+const LINK_CHECK_MAX = 500 // 一份文件最多檢查的連結數
+const LINK_CHECK_DIRS = 50 // 最多讀取的資料夾清單數
+
+function decodeName(s) {
+  try {
+    return decodeURIComponent(s)
+  } catch {
+    return s
+  }
+}
+
+/**
+ * 讀取 Chrome 對 file:// 資料夾產生的清單頁，回傳 [{ name, href, isDir }]；讀不到時回傳 null。
+ * 清單頁每一列是 addRow("顯示名稱", "編碼後的網址", 是否為資料夾, …)；非 ASCII 檔名的顯示名稱可能是空字串，所以用網址欄位
+ */
+async function dirEntries(dir) {
+  let html
+  try {
+    html = await (await fetch(dir)).text()
+  } catch {
+    return null
+  }
+  const out = []
+  for (const m of html.matchAll(/addRow\("(?:[^"\\]|\\.)*","((?:[^"\\]|\\.)*)",([01]),/g)) {
+    let href
+    try {
+      href = JSON.parse(`"${m[1]}"`)
+    } catch {
+      continue
+    }
+    const name = decodeName(href.replace(/\/$/, ''))
+    if (name && name !== '..') out.push({ name, href, isDir: m[2] === '1' })
+  }
+  return out
+}
 
 /** 「檔案列表略過」設定：逗號或換行分隔，* 為萬用字元，不分大小寫（.* 代表以 . 開頭的名稱） */
 function ignorePatterns(text) {

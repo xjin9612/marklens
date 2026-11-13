@@ -33,6 +33,7 @@ Markloupe.DEFAULTS = Object.freeze({
   refreshHighlight: true, // 自動更新時標出改動的區塊
   rememberScroll: true,
   linkNewTab: true, // 外部 http(s) 連結在新分頁開啟
+  linkCheck: true, // 本機文件標出指向不存在檔案的相對連結
   fileIgnore: '.*, node_modules, target, dist, build', // 側邊欄檔案列表略過的名稱（逗號分隔，* 為萬用字元）
   editor: 'none', // 用編輯器開啟：none | vscode | custom
   editorUrl: '', // editor 為 custom 時的網址範本，{path} 為檔案路徑、{line} 為行號
@@ -98,7 +99,7 @@ Markloupe.PALETTES = ['github', 'sepia', 'contrast', 'green', 'graphite', 'custo
 Markloupe.SYNC_FLAG_KEY = 'markloupe:sync'
 Markloupe.SYNC_KEYS = [
   'uiLang', 'theme', 'palette', 'customColors', 'fontSize', 'lineHeight', 'bodyFont', 'textWidth', 'tableWidth', 'tocHidden', 'tocDepth',
-  'tableWrap', 'codeWrap', 'codeLineNumbers', 'autoRefresh', 'refreshInterval', 'refreshHighlight', 'rememberScroll', 'linkNewTab', 'fileIgnore',
+  'tableWrap', 'codeWrap', 'codeLineNumbers', 'autoRefresh', 'refreshInterval', 'refreshHighlight', 'rememberScroll', 'linkNewTab', 'linkCheck', 'fileIgnore',
   'editor', 'taskWrite', 'mermaid', 'math', 'docxCjkFont', 'docxLatinFont', 'docxCodeFont', 'docxFontSize', 'docxPaper',
 ]
 // storage.sync 單一項目上限 8192 bytes（含鍵名），自訂 CSS 另存一項

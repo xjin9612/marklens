@@ -103,6 +103,7 @@ Add `lang` to the front matter (for example `lang: zh-TW`) to set the document l
 - Live reload for local files that keeps your scroll position, folds and table state, and highlights what changed
 - Remembers where you stopped reading each file
 - Relative `.md` links open in the reader; external links open in a new tab (can be turned off)
+- In local documents, links to files or folders that do not exist get a wavy underline (can be turned off). Markloupe checks only the file names in the linked folders
 - Raw source view, one key away, with line numbers; click one to copy that line's location
 
 **Tables**

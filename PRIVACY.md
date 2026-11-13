@@ -2,7 +2,7 @@
 
 English | [繁體中文](PRIVACY.zh-TW.md)
 
-*Last updated: 2026-11-13*
+*Last updated: 2026-11-14*
 
 Markloupe is a browser extension that displays Markdown files. **It does not collect, sell or send your data to anyone.** It has no account, no analytics, no ads and no server of its own. Everything described below stays in your browser on your computer.
 
@@ -30,7 +30,7 @@ Markloupe never sends your data anywhere. It makes network requests on its own i
 
 ## Your files
 
-- Markloupe reads a local file only when you open it in the browser, and only that file. When you export a local document as a **Single file** or a **Word document**, it also reads the local images the document shows, to embed them. The **Files** tab lists the names of Markdown files and folders next to it; it does not read their contents until you open one.
+- Markloupe reads a local file only when you open it in the browser, and only that file. When you export a local document as a **Single file** or a **Word document**, it also reads the local images the document shows, to embed them. The **Files** tab lists the names of Markdown files and folders next to it; it does not read their contents until you open one. To mark links to missing local files, Markloupe lists the names in the folders those links point to, without reading any file. You can turn this off in the popup.
 - Markloupe changes a file only when you check or uncheck a task box in a folder you allowed, and then only that one line. You can turn task check-off off in the popup.
 - **Export** and **Copy** only happen when you click them; the file goes where you choose to save it, and copied text goes to your clipboard.
 - **Open in your editor** passes the file's path and line number to the editor installed on your computer.

@@ -540,6 +540,12 @@
   "optLinkNewTab": {
     "message": "Open external links in a new tab"
   },
+  "optLinkCheck": {
+    "message": "Mark links to missing local files"
+  },
+  "linkBroken": {
+    "message": "File not found"
+  },
   "optMermaid": {
     "message": "Draw Mermaid diagrams"
   },

@@ -83,6 +83,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       this.changeState = { base: raw, seen: Markloupe.noChanges() } // 見 Markloupe.trackChanges
       this.changeMarks = new Map() // 標出改動的元素 → 它代表的改動（目前原文的行號）
       this.changeSeen = null
+      this.linkGen = 0 // 每次渲染加一；檢查連結的結果回來時已重新渲染就丟棄
       this.darkQuery = matchMedia('(prefers-color-scheme: dark)')
       // Mermaid 圖表另存圖片時暫時改用淺色（同列印與匯出 Word），取完圖再還原
       Markloupe.withLightTheme = async fn => {
@@ -443,6 +444,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       Markloupe.renderMath(this.article, this.settings.math)
       Markloupe.processImages(this.article)
       Markloupe.processLinks(this.article, this.settings.linkNewTab)
+      this.checkLinks()
       this.tables = Array.from(this.article.querySelectorAll('table'), t => Markloupe.enhanceTable(t, this.settings, this.lines()))
 
       this.toc.build(headings, this.settings.tocDepth)
@@ -473,6 +475,42 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
         if (el && el.parentElement === this.article) Markloupe.toggleFold(el, true)
       }
       scrollTo(0, y)
+    }
+
+    /** 本機文件裡指向不存在的本機檔案或資料夾的連結，加上 ml-link-broken 與提示 */
+    async checkLinks() {
+      const gen = ++this.linkGen
+      if (!this.settings.linkCheck || location.protocol !== 'file:' || Markloupe.networkFile) return
+      const here = location.href.split(/[?#]/)[0]
+      const links = new Map()
+      for (const a of this.article.querySelectorAll('a[href]')) {
+        let url
+        try {
+          url = new URL(a.getAttribute('href'), location.href)
+        } catch {
+          continue
+        }
+        const target = url.href.split(/[?#]/)[0]
+        if (url.protocol !== 'file:' || url.host || target === here) continue
+        if (!links.has(target)) links.set(target, [])
+        links.get(target).push(a)
+      }
+      if (!links.size || !Markloupe.alive()) return
+      let res
+      try {
+        res = await chrome.runtime.sendMessage({ type: 'check-links', urls: [...links.keys()] })
+      } catch {
+        return
+      }
+      if (gen !== this.linkGen || res?.status !== 'ok') return
+      for (const url of res.missing) {
+        for (const a of links.get(url) || []) {
+          // 原本的 title 記下來，匯出時還原
+          a.dataset.mlTitle = a.getAttribute('title') ?? ''
+          a.classList.add('ml-link-broken')
+          a.title = a.dataset.mlTitle ? `${a.dataset.mlTitle}\n${t('linkBroken')}` : t('linkBroken')
+        }
+      }
     }
 
     /* ---------- 標出改動 ---------- */

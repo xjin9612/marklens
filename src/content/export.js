@@ -65,6 +65,13 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       delete el.dataset.mlFold
     }
     for (const el of clone.querySelectorAll('.ml-folded')) el.classList.remove('ml-folded')
+    for (const a of clone.querySelectorAll('a.ml-link-broken')) {
+      a.classList.remove('ml-link-broken')
+      if (!a.classList.length) a.removeAttribute('class')
+      if (a.dataset.mlTitle) a.title = a.dataset.mlTitle
+      else a.removeAttribute('title')
+      delete a.dataset.mlTitle
+    }
     for (const el of clone.querySelectorAll('.ml-changed, .ml-changed-del, .ml-changed-del-end')) {
       el.classList.remove(...Markloupe.CHANGE_CLASSES)
       if (!el.classList.length) el.removeAttribute('class')

@@ -3063,6 +3063,58 @@ try {
     }
   })
 
+  await check('失效連結：本機文件中指向不存在的檔案或資料夾的相對連結加上標示，建立檔案後自動更新會取消；匯出不帶標示', async () => {
+    const dir = join(work, 'links')
+    mkdirSync(join(dir, 'sub'), { recursive: true })
+    writeFileSync(join(dir, 'exists.md'), '# x\n')
+    writeFileSync(join(dir, 'sub', 'inner.md'), '# x\n')
+    const doc = [
+      '# 連結檢查', '',
+      '[存在](exists.md) [不存在](missing.md) [子資料夾](sub/inner.md) [子資料夾中不存在](sub/none.md)',
+      '[不存在的資料夾](nodir/x.md) [上一層](../links/exists.md) [資料夾](sub/) [錨點](exists.md#x) [本頁](#連結檢查)',
+      '[網址](https://example.com/none.md) [[missing note]] [大小寫](EXISTS.md) [有標題](gone.md "原標題")', '',
+    ].join('\n')
+    const file = join(dir, 'doc.md')
+    writeFileSync(file, doc)
+    const broken = pg => pg.$$eval('.markdown-body a.ml-link-broken', els => els.map(a => [a.textContent, a.title]))
+    // Windows 與 macOS 的檔案系統不分大小寫
+    const caseBroken = process.platform === 'linux' ? [['大小寫', '找不到這個檔案']] : []
+    const want = [
+      ['不存在', '找不到這個檔案'],
+      ['子資料夾中不存在', '找不到這個檔案'],
+      ['不存在的資料夾', '找不到這個檔案'],
+      ['missing note', '找不到這個檔案'],
+      ...caseBroken,
+      ['有標題', '原標題\n找不到這個檔案'],
+    ]
+    const lp = await openDoc(pathToFileURL(file).href)
+    try {
+      await lp.bringToFront()
+      await until(async () => (await broken(lp)).length === want.length, 5000).catch(() => {})
+      assert.deepEqual(await broken(lp), want)
+      const { html } = await exportFrom(lp)
+      assert.ok(!/class="[^"]*ml-link-broken/.test(html))
+      assert.ok(!html.includes('找不到這個檔案'))
+      assert.match(html, /title="原標題"/)
+      writeFileSync(join(dir, 'missing.md'), '# x\n')
+      writeFileSync(file, doc + '\n已建立 missing.md\n')
+      await pageUntil(lp, () => document.body.innerText.includes('已建立 missing.md'), 8000)
+      await until(async () => (await broken(lp)).length === want.length - 1, 5000).catch(() => {})
+      assert.deepEqual(await broken(lp), want.slice(1))
+    } finally {
+      await lp.close()
+    }
+    await sw.evaluate(() => Markloupe.saveSettings({ linkCheck: false }))
+    const off = await openDoc(pathToFileURL(file).href)
+    try {
+      await new Promise(r => setTimeout(r, 500))
+      assert.deepEqual(await broken(off), [])
+    } finally {
+      await off.close()
+      await sw.evaluate(() => Markloupe.saveSettings({ linkCheck: true }))
+    }
+  })
+
   // Windows 的剪貼簿會把 \n 存成 \r\n，讀回時統一換行再比對
   const clip = pg => pg.evaluate(() => navigator.clipboard.readText()).then(t => t.replace(/\r\n/g, '\n'))
   async function copyVia(pg, button, item) {
