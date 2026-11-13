@@ -93,13 +93,17 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
   /**
    * 套用到擴充功能自己的頁面（popup、授權頁、引導頁）
    * data-i18n：純文字；data-i18n-html：含 <b>、<code> 等標記（訊息由擴充功能自帶，不含外部輸入）；
-   * data-i18n-title／data-i18n-placeholder：屬性
+   * data-i18n-title／data-i18n-placeholder：屬性；data-i18n-label：沒有可見文字的控制項，同時設定 aria-label 與 title
    */
   Markloupe.localize = function (root = document) {
     for (const el of root.querySelectorAll('[data-i18n]')) el.textContent = Markloupe.t(el.dataset.i18n)
     for (const el of root.querySelectorAll('[data-i18n-html]')) el.innerHTML = Markloupe.t(el.dataset.i18nHtml)
     for (const el of root.querySelectorAll('[data-i18n-title]')) el.title = Markloupe.t(el.dataset.i18nTitle)
     for (const el of root.querySelectorAll('[data-i18n-placeholder]')) el.placeholder = Markloupe.t(el.dataset.i18nPlaceholder)
+    for (const el of root.querySelectorAll('[data-i18n-label]')) {
+      el.title = Markloupe.t(el.dataset.i18nLabel)
+      el.setAttribute('aria-label', el.title)
+    }
     document.documentElement.lang = Markloupe.uiLanguage()
   }
 })()

@@ -40,23 +40,32 @@
         <option value="custom" data-i18n="paletteCustom"></option>
       </select>
     </label>
-    <!-- 自訂配色：取色器在部分平台會讓 popup 關閉，所以另有色碼欄位 -->
+    <!-- 自訂配色：調色區塊放在 popup 裡；瀏覽器原生的取色器會超出 popup 邊界，部分平台還會讓 popup 關閉 -->
     <div id="custom-colors" class="custom-colors" hidden>
       <div class="cc-row cc-head"><span></span><span data-i18n="themeLight"></span><span data-i18n="themeDark"></span></div>
       <div class="cc-row">
         <span data-i18n="colorBg"></span>
-        <span class="cc-cell"><input type="color" data-cc="light.bg"><input type="text" data-cc="light.bg" maxlength="7" spellcheck="false"></span>
-        <span class="cc-cell"><input type="color" data-cc="dark.bg"><input type="text" data-cc="dark.bg" maxlength="7" spellcheck="false"></span>
+        <span class="cc-cell"><button type="button" class="cc-swatch" data-swatch="light.bg" aria-expanded="false"></button><input type="text" data-cc="light.bg" maxlength="7" spellcheck="false"></span>
+        <span class="cc-cell"><button type="button" class="cc-swatch" data-swatch="dark.bg" aria-expanded="false"></button><input type="text" data-cc="dark.bg" maxlength="7" spellcheck="false"></span>
       </div>
       <div class="cc-row">
         <span data-i18n="colorFg"></span>
-        <span class="cc-cell"><input type="color" data-cc="light.fg"><input type="text" data-cc="light.fg" maxlength="7" spellcheck="false"></span>
-        <span class="cc-cell"><input type="color" data-cc="dark.fg"><input type="text" data-cc="dark.fg" maxlength="7" spellcheck="false"></span>
+        <span class="cc-cell"><button type="button" class="cc-swatch" data-swatch="light.fg" aria-expanded="false"></button><input type="text" data-cc="light.fg" maxlength="7" spellcheck="false"></span>
+        <span class="cc-cell"><button type="button" class="cc-swatch" data-swatch="dark.fg" aria-expanded="false"></button><input type="text" data-cc="dark.fg" maxlength="7" spellcheck="false"></span>
       </div>
       <div class="cc-row">
         <span data-i18n="colorAccent"></span>
-        <span class="cc-cell"><input type="color" data-cc="light.accent"><input type="text" data-cc="light.accent" maxlength="7" spellcheck="false"></span>
-        <span class="cc-cell"><input type="color" data-cc="dark.accent"><input type="text" data-cc="dark.accent" maxlength="7" spellcheck="false"></span>
+        <span class="cc-cell"><button type="button" class="cc-swatch" data-swatch="light.accent" aria-expanded="false"></button><input type="text" data-cc="light.accent" maxlength="7" spellcheck="false"></span>
+        <span class="cc-cell"><button type="button" class="cc-swatch" data-swatch="dark.accent" aria-expanded="false"></button><input type="text" data-cc="dark.accent" maxlength="7" spellcheck="false"></span>
+      </div>
+      <div id="cc-picker" class="cc-picker" hidden>
+        <strong id="cc-picker-name"></strong>
+        <div class="cc-sv" tabindex="0" role="slider" data-i18n-label="colorSv"><span class="cc-sv-thumb"></span></div>
+        <input type="range" class="cc-hue" min="0" max="359" step="1" data-i18n-label="colorHue">
+        <div class="cc-picker-actions">
+          <button type="button" id="cc-cancel" data-i18n="colorCancel"></button>
+          <button type="button" id="cc-done" data-i18n="colorDone"></button>
+        </div>
       </div>
       <p id="cc-warning" class="hint cc-warning" hidden></p>
       <button type="button" id="cc-reset" data-i18n="colorReset"></button>
