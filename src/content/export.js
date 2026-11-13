@@ -38,8 +38,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     }
   }
 
-  // 與匯出檔名使用同一份副檔名清單，改寫後的連結才對得上匯出的檔名
-  const MD_EXT = /\.(md|markdown|mkd|mdx)$/i
+  const { MD_EXT } = Markloupe
 
   /** 路徑部分是 Markdown 檔時，副檔名改成 .html；query、錨點與原文的編碼不變 */
   function mdToHtml(href) {
@@ -214,20 +213,8 @@ ${css}
    */
   Markloupe.exportHtml = async function (article, opts) {
     const { html, missed, needsWebAccess } = await Markloupe.buildExportHtml(article, opts)
-    let base = location.pathname.split('/').pop() || 'document'
-    try {
-      base = decodeURIComponent(base)
-    } catch {
-      // 不合法的 % 編碼：沿用原字串
-    }
-    base = base.replace(MD_EXT, '')
-    const name = `${base}.html`
-    const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }))
-    const a = Markloupe.h('a', { href: url, download: name })
-    document.body.append(a)
-    a.click()
-    a.remove()
-    setTimeout(() => URL.revokeObjectURL(url), 10000)
+    const name = `${Markloupe.docBaseName()}.html`
+    Markloupe.downloadBlob(new Blob([html], { type: 'text/html;charset=utf-8' }), name)
     return { name, missed, needsWebAccess }
   }
 })()

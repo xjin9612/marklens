@@ -252,8 +252,17 @@
   "tableFilter": {
     "message": "筛选"
   },
+  "tableCopyTsv": {
+    "message": "复制为 TSV（可直接粘贴到电子表格）"
+  },
+  "tableCopyMd": {
+    "message": "复制为 Markdown"
+  },
+  "tableDownloadCsv": {
+    "message": "下载 CSV"
+  },
   "tableCopyTitle": {
-    "message": "复制为 TSV（可直接贴到 Excel），应用当前排序与筛选"
+    "message": "复制或下载表格，应用当前的排序与筛选"
   },
   "tableRows": {
     "message": "$1 行"

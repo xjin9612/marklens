@@ -79,6 +79,30 @@ Markloupe.loadImages = function (root, ms = 5000) {
   return Promise.race([Promise.all(waits), new Promise(r => setTimeout(r, ms))])
 }
 
+/** 下載產生的檔案（匯出 HTML、表格 CSV） */
+Markloupe.downloadBlob = function (blob, name) {
+  const url = URL.createObjectURL(blob)
+  const a = Markloupe.h('a', { href: url, download: name })
+  document.body.append(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 10000)
+}
+
+// Markdown 副檔名：匯出的檔名與匯出檔裡改寫的 .md 連結共用，兩者才對得上
+Markloupe.MD_EXT = /\.(md|markdown|mkd|mdx)$/i
+
+/** 文件的檔名，不含 Markdown 副檔名（匯出與下載的預設檔名） */
+Markloupe.docBaseName = function () {
+  let base = location.pathname.split('/').pop() || 'document'
+  try {
+    base = decodeURIComponent(base)
+  } catch {
+    // 不合法的 % 編碼：沿用原字串
+  }
+  return base.replace(Markloupe.MD_EXT, '')
+}
+
 /** 複製文字；非安全環境（一般 http）退回 execCommand */
 Markloupe.copyText = async function (text) {
   try {

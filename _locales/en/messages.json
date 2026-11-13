@@ -252,8 +252,17 @@
   "tableFilter": {
     "message": "Filter"
   },
+  "tableCopyTsv": {
+    "message": "Copy as TSV (pastes into spreadsheets)"
+  },
+  "tableCopyMd": {
+    "message": "Copy as Markdown"
+  },
+  "tableDownloadCsv": {
+    "message": "Download CSV"
+  },
   "tableCopyTitle": {
-    "message": "Copy as TSV (paste into Excel), using the current sort and filter"
+    "message": "Copy or download the table, as currently sorted and filtered"
   },
   "tableRows": {
     "message": "$1 rows"

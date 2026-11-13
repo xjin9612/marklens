@@ -332,6 +332,59 @@ try {
     assert.equal(await bar.evaluate(el => getComputedStyle(el).opacity), '1')
     assert.equal(await page.locator('.ml-table').nth(1).locator('.ml-table-filter').count(), 0)
   })
+  await check('表格複製選單：TSV、Markdown（沿用原文的列）、下載 CSV，都套用目前的篩選', async () => {
+    await ctx.grantPermissions(['clipboard-read', 'clipboard-write'])
+    const md = [
+      '# 匯出表格',
+      '前言',
+      '',
+      '> | 項目 | 金額 |',
+      '> |:---|---:|',
+      '> | **粗體** [連結](https://example.com) | 1,200 |',
+      '> | =1+1 | -5 |',
+      '> | -x | "引號" |',
+      '> | @SUM(A1) | a,b |',
+      '> | 其他 | 0 |',
+      '',
+    ].join('\n')
+    const file = join(work, 'table-copy.md')
+    writeFileSync(file, md)
+    const tp = await openDoc(pathToFileURL(file).href)
+    const tbl = tp.locator('.ml-table').first()
+    const pick = async label => {
+      // 外框佔滿整欄，窄表格靠左：滑鼠要停在表格本身，工具列才會出現
+      await tbl.locator('table').hover()
+      await tbl.locator('.ml-table-bar button:text-is("複製")').click()
+      await tp.click(`.ml-menu-item:has-text("${label}")`)
+    }
+    const clipIs = want => until(async () => (await tp.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/g, '\n') === want)
+    const src = md.split('\n').filter(l => l.startsWith('> ')).map(l => l.slice(2))
+    try {
+      await tp.bringToFront()
+      await pick('複製為 TSV')
+      await clipIs('項目\t金額\n粗體 連結\t1,200\n=1+1\t-5\n-x\t"引號"\n@SUM(A1)\ta,b\n其他\t0')
+      // Markdown 取原文的列：保留格式，去掉引用的 >
+      await pick('複製為 Markdown')
+      await clipIs(src.join('\n'))
+      // 篩選後只輸出看得到的列
+      await tbl.locator('table').hover()
+      await tbl.locator('.ml-table-filter').fill('1')
+      await pick('複製為 Markdown')
+      await clipIs([src[0], src[1], src[2], src[3], src[5]].join('\n'))
+      // CSV：BOM、CRLF；公式開頭的儲存格前面加 '，負數不加
+      await tbl.locator('.ml-table-filter').fill('')
+      const [dl] = await Promise.all([tp.waitForEvent('download'), pick('下載 CSV')])
+      assert.equal(dl.suggestedFilename(), '匯出表格.csv')
+      const csvFile = join(work, `table-${Date.now()}.csv`)
+      await dl.saveAs(csvFile)
+      assert.equal(
+        readFileSync(csvFile, 'utf8'),
+        '﻿項目,金額\r\n粗體 連結,"1,200"\r\n\'=1+1,-5\r\n\'-x,"""引號"""\r\n\'@SUM(A1),"a,b"\r\n其他,0\r\n',
+      )
+    } finally {
+      await tp.close()
+    }
+  })
   await check('排序圖示平常隱藏', async () => {
     await page.mouse.move(5, 500)
     await page.waitForTimeout(100)

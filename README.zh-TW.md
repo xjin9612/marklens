@@ -86,7 +86,7 @@ Markloupe 支援 Windows、macOS、Linux 上的 Chrome 與 Edge。
 - 拖拉調整欄寬（雙擊把手自動配合內容）、點表頭排序（第三次點擊恢復原順序）
 - 篩選資料列（5 列以上的表格）、換行切換、全螢幕（表頭固定）
 - 比文字欄寬的表格在欄內橫向捲動，還有內容的一側顯示陰影
-- 複製為以 Tab 分隔的文字，可直接貼到試算表
+- 複製為以 Tab 分隔的文字（可直接貼到試算表），或保留原文格式的 Markdown；下載為 CSV。三者都套用目前的排序與篩選
 
 **Markdown**
 - CommonMark 與 GitHub Flavored Markdown：表格、任務清單、腳註、自動連結

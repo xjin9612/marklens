@@ -414,7 +414,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       Markloupe.renderMath(this.article, this.settings.math)
       Markloupe.processImages(this.article)
       Markloupe.processLinks(this.article, this.settings.linkNewTab)
-      this.tables = Array.from(this.article.querySelectorAll('table'), t => Markloupe.enhanceTable(t, this.settings))
+      this.tables = Array.from(this.article.querySelectorAll('table'), t => Markloupe.enhanceTable(t, this.settings, this.lines()))
 
       this.toc.build(headings, this.settings.tocDepth)
       this.toc.setStats(Markloupe.readingStats(this.article))
