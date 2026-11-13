@@ -89,7 +89,7 @@ Add `lang` to the front matter (for example `lang: zh-TW`) to set the document l
 - Copy as tab-separated text that pastes into a spreadsheet, or as Markdown that keeps the original formatting; download as CSV. All three follow the current sort and filter
 
 **Markdown**
-- CommonMark and GitHub Flavored Markdown: tables, task lists, footnotes, autolinks
+- CommonMark and GitHub Flavored Markdown: tables, task lists, footnotes (hover a footnote mark to read it in place), autolinks
 - GitHub alerts (`> [!NOTE]`), `==highlight==`, emoji shortcodes (`:tada:`), collapsible front matter (its `lang` sets the document language)
 - Docs-site containers (`::: tip`, `::: warning`, `::: details`, Docusaurus `:::note`) and definition lists
 - Syntax highlighting with a language label, copy button and wrap toggle

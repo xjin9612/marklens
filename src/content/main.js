@@ -113,6 +113,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       Markloupe.bindFoldSearch(this.article)
       this.bindTaskClicks()
       this.bindSelection()
+      Markloupe.bindFootnotes(this.article)
       this.article.addEventListener('markloupe:fold', () => {
         this.toc.syncFold()
         this.onScroll()

@@ -280,6 +280,81 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     viewer.lastChild.focus()
   }
 
+  /* ---------- 腳註預覽：滑過或聚焦上標時，在旁邊顯示腳註內容，不必跳到文末 ---------- */
+  const FN_SHOW_DELAY = 250 // 滑鼠只是經過時不跳出
+  const FN_HIDE_DELAY = 200 // 留時間讓滑鼠移進預覽框，才能點裡面的連結
+
+  Markloupe.bindFootnotes = function (article) {
+    let pop = null
+    let ref = null
+    let timer = 0
+
+    const target = a => {
+      try {
+        return document.getElementById(decodeURIComponent(a.hash.slice(1)))
+      } catch {
+        return null
+      }
+    }
+
+    function hide() {
+      clearTimeout(timer)
+      ref?.removeAttribute('aria-describedby')
+      pop?.remove()
+      pop = ref = null
+    }
+
+    function show(a) {
+      const note = target(a)
+      if (!note) return
+      hide()
+      const body = note.cloneNode(true)
+      for (const el of body.querySelectorAll('.footnote-backref, [id]')) {
+        if (el.classList.contains('footnote-backref')) el.remove()
+        else el.removeAttribute('id') // 複製出來的內容不能和原本的腳註重複 id
+      }
+      pop = h('div', { class: 'ml-fn-pop markdown-body', attrs: { role: 'tooltip', id: 'ml-fn-pop' } }, [...body.childNodes])
+      pop.addEventListener('mouseenter', () => clearTimeout(timer))
+      pop.addEventListener('mouseleave', () => later(hide, FN_HIDE_DELAY))
+      document.body.append(pop)
+      ref = a
+      a.setAttribute('aria-describedby', 'ml-fn-pop')
+      // 預設在上標下方，下方放不下時改到上方；左右不超出視窗
+      const r = a.getBoundingClientRect()
+      const x = Math.max(8, Math.min(r.left - 16, innerWidth - pop.offsetWidth - 8))
+      const below = r.bottom + 6 + pop.offsetHeight <= innerHeight - 8
+      pop.style.left = `${x}px`
+      pop.style.top = `${below ? r.bottom + 6 : Math.max(8, r.top - 6 - pop.offsetHeight)}px`
+    }
+
+    const later = (fn, ms) => {
+      clearTimeout(timer)
+      timer = setTimeout(fn, ms)
+    }
+    const refOf = e => e.target.closest?.('sup.footnote-ref a[href^="#"]')
+
+    article.addEventListener('mouseover', e => {
+      const a = refOf(e)
+      if (a && a !== ref) later(() => show(a), FN_SHOW_DELAY)
+      else if (a) clearTimeout(timer)
+    })
+    article.addEventListener('mouseout', e => {
+      if (refOf(e) && !refOf(e).contains(e.relatedTarget)) later(hide, FN_HIDE_DELAY)
+    })
+    article.addEventListener('focusin', e => {
+      const a = refOf(e)
+      if (a) show(a)
+    })
+    article.addEventListener('focusout', e => {
+      if (refOf(e)) hide()
+    })
+    // 點上標照常跳到文末；捲動、按 Esc 或自動更新換掉上標時收起
+    article.addEventListener('click', e => refOf(e) && hide())
+    addEventListener('scroll', () => pop && hide(), { passive: true })
+    addEventListener('keydown', e => e.key === 'Escape' && pop && hide())
+    new MutationObserver(() => ref && !ref.isConnected && hide()).observe(article, { childList: true, subtree: true })
+  }
+
   /* ---------- 外部連結：開新分頁，不離開目前文件 ---------- */
   // 只處理不同來源的 http(s) 連結；錨點、相對路徑的 .md、同站連結維持原本行為
   Markloupe.processLinks = function (article, newTab) {
