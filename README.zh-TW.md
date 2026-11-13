@@ -93,7 +93,7 @@ Markloupe 支援 Windows、macOS、Linux 上的 Chrome 與 Edge。
 - GitHub 提示框（`> [!NOTE]`）、`==螢光標記==`、Emoji 短碼（`:tada:`）、可收合的 front matter（其中的 `lang` 設定文件語言）
 - 文件網站的容器區塊（`::: tip`、`::: warning`、`::: details`、Docusaurus 的 `:::note`）與定義清單
 - 程式碼語法高亮，附語言標籤、複製按鈕與換行切換
-- KaTeX 數學公式（`$…$`、`$$…$$`、`` $`…`$ ``、` ```math `），網頁上也能繪製
+- KaTeX 數學公式（`$…$`、`$$…$$`、`` $`…`$ ``、` ```math `），網頁上也能繪製；點公式即可複製 LaTeX 原文
 - Mermaid 圖表；圖表跟隨主題，也能切回原始碼
 - 圖表可全螢幕檢視：滾輪縮放、拖曳移動、雙擊重設
 - 圖片捲到時才載入，點擊放大

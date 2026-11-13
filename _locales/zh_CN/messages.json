@@ -132,6 +132,12 @@
   "selectCopyLocation": {
     "message": "复制位置"
   },
+  "mathCopyTitle": {
+    "message": "点击复制 LaTeX"
+  },
+  "mathCopied": {
+    "message": "已复制 LaTeX"
+  },
   "mdCopied": {
     "message": "已复制 Markdown"
   },

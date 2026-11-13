@@ -972,6 +972,7 @@ html.markloupe .markdown-body .ml-mermaid-error pre { padding: 8px 0 0; backgrou
 /* 外距只設上下：左右維持文字欄的置中（.markdown-body > *） */
 html.markloupe .markdown-body .math-display { display: block; overflow-x: auto; overflow-y: hidden; text-align: center; margin-block: 0 16px; }
 html.markloupe .markdown-body .math-display .katex-display { margin: .5em 0; }
+html.markloupe .markdown-body .ml-math-copy { cursor: copy; }
 html.markloupe .markdown-body .katex { font-size: 1.1em; }
 html.markloupe .markdown-body .katex-error { color: var(--danger); }
 

@@ -83,12 +83,16 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       box.disabled = true
       box.removeAttribute('title')
     })
-    // 匯出的檔案沒有放大功能：圖片不再是按鈕；表頭不再可聚焦排序
+    // 匯出的檔案沒有放大與複製功能：圖片不再是按鈕；表頭不再可聚焦排序；公式不再點一下複製
     for (const img of clone.querySelectorAll('img.ml-zoomable')) {
       img.classList.remove('ml-zoomable')
       for (const a of ['tabindex', 'role', 'aria-label']) img.removeAttribute(a)
     }
     for (const th of clone.querySelectorAll('th.ml-sortable')) th.removeAttribute('tabindex')
+    for (const el of clone.querySelectorAll('.ml-math-copy')) {
+      el.classList.remove('ml-math-copy')
+      el.removeAttribute('title')
+    }
     // 絕對網址讓檔案搬到別處後仍有效；頁內錨點維持原樣
     const rewrite = (el, attr) => {
       const raw = el.getAttribute(attr)
