@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-11-14
+
 ### Added
 - **Soft green** and **Graphite** palettes (popup → **Colors**), for both light and dark themes. The dark Graphite is based on the colors of JetBrains Islands Dark
 - **Custom** colors: pick the background, text and accent colors for the light and dark themes (popup → **Colors** → *Custom*). Markloupe works out the other colors, and warns when the text or accent color has less than 4.5:1 contrast. Open reading pages preview the colors while you adjust them; click **Done** to keep them
@@ -202,7 +204,8 @@ First public release.
 ### Security
 - Allow-list HTML sanitizer, minimal permissions (`storage` only), no remote code
 
-[Unreleased]: https://github.com/xjin9612/markloupe/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/xjin9612/markloupe/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/xjin9612/markloupe/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/xjin9612/markloupe/compare/v1.7.1...v1.8.0
 [1.7.1]: https://github.com/xjin9612/markloupe/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/xjin9612/markloupe/compare/v1.6.0...v1.7.0
