@@ -1,5 +1,5 @@
 'use strict'
-// markdown-it 設定與自訂語法：==mark==、GitHub Alert、容器區塊、定義清單、數學公式、GitHub 式自動連結、任務清單行號、front matter
+// markdown-it 設定與自訂語法：==mark==、GitHub Alert 與 Obsidian callout、Obsidian wikilink、容器區塊、定義清單、數學公式、GitHub 式自動連結、任務清單行號、front matter
 var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
 
 ;(() => {
@@ -70,28 +70,115 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     md.inline.ruler2.before('emphasis', 'mark', markPostProcess)
   }
 
-  /* ---------- GitHub Alert：> [!NOTE] ---------- */
-  const ALERT_RE = /^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*(?:\n|$)/i
+  /* ---------- 提示框：GitHub Alert（> [!NOTE]）與 Obsidian callout（> [!faq]- 標題） ---------- */
+  // Obsidian 的類型套用最接近的 GitHub 樣式；不認得的類型照 Obsidian 的做法當成 note
+  const CALLOUT_KIND = {
+    note: 'note', tip: 'tip', important: 'important', warning: 'warning', caution: 'caution',
+    abstract: 'note', summary: 'note', tldr: 'note', info: 'note', todo: 'note', question: 'note', help: 'note', faq: 'note',
+    example: 'note', quote: 'note', cite: 'note',
+    hint: 'tip', success: 'tip', check: 'tip', done: 'tip',
+    attention: 'warning',
+    failure: 'caution', fail: 'caution', missing: 'caution', danger: 'caution', error: 'caution', bug: 'caution',
+  }
+  // 類型後的 + 或 - 表示可摺疊（預設展開或收合），之後到行尾為自訂標題
+  const ALERT_RE = /^\[!([\w-]+)\]([+-]?)[ \t]*([^\n]*?)[ \t]*(?:\n|$)/
+
+  /** 預設標題：類型名稱首字大寫（Obsidian 的做法） */
+  Markloupe.calloutTitle = type => type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()
 
   function alertPlugin(md) {
-    // 在 inline 解析前處理，只需改 inline token 的 content
+    // 在 inline 解析前處理，只需改 inline token 的 content；插入的標題 inline token 也會在之後解析
     md.core.ruler.after('block', 'markloupe_alert', state => {
       const tokens = state.tokens
       for (let i = 0; i < tokens.length - 2; i++) {
-        if (tokens[i].type !== 'blockquote_open') continue
+        const open = tokens[i]
+        if (open.type !== 'blockquote_open') continue
         const para = tokens[i + 1]
         const inline = tokens[i + 2]
         if (para.type !== 'paragraph_open' || inline.type !== 'inline') continue
         const m = ALERT_RE.exec(inline.content)
         if (!m) continue
-        const kind = m[1].toLowerCase()
-        tokens[i].attrJoin('class', `markdown-alert markdown-alert-${kind}`)
+        const [, type, fold, title] = m
+        const kind = CALLOUT_KIND[type.toLowerCase()] || 'note'
+        open.attrJoin('class', `markdown-alert markdown-alert-${kind}`)
         inline.content = inline.content.slice(m[0].length)
-        if (inline.content.trim() === '') {
-          // 標記獨佔一段：移除這個空段落
-          tokens.splice(i + 1, 3)
+        // 標記獨佔一段：移除這個空段落
+        if (inline.content.trim() === '') tokens.splice(i + 1, 3)
+        const tag = fold ? 'summary' : 'p'
+        const head = new state.Token('paragraph_open', tag, 1)
+        head.attrSet('class', 'markdown-alert-title')
+        head.block = true
+        head.map = open.map && [open.map[0], open.map[0] + 1]
+        head.level = open.level + 1
+        const text = new state.Token('inline', '', 0)
+        text.content = title || Markloupe.calloutTitle(type)
+        text.children = []
+        text.map = head.map
+        text.level = head.level + 1
+        const close = new state.Token('paragraph_close', tag, -1)
+        close.block = true
+        close.level = head.level
+        tokens.splice(i + 1, 0, head, text, close)
+        if (!fold) continue
+        // 可摺疊的提示框輸出成 <details>，標題為 <summary>
+        open.tag = 'details'
+        if (fold === '+') open.attrSet('open', '')
+        for (let j = i + 1; j < tokens.length; j++) {
+          if (tokens[j].type === 'blockquote_close' && tokens[j].level === open.level) {
+            tokens[j].tag = 'details'
+            break
+          }
         }
       }
+    })
+  }
+  /* ---------- Obsidian 的 [[wikilink]] 與 ![[圖片]] ---------- */
+  // 連到目前文件所在資料夾的相對路徑。Markloupe 不讀其他檔案，無法像 Obsidian 在整個資料夾找同名檔案
+  const IMAGE_EXT = /\.(?:png|jpe?g|gif|svg|webp|avif|bmp)$/i
+  // 有這些副檔名時照原樣連結，其他一律視為筆記補上 .md（筆記名稱可能含有點）
+  const FILE_EXT = /\.(?:md|markdown|mdown|mkd|txt|pdf|html?|canvas|png|jpe?g|gif|svg|webp|avif|bmp|mp3|mp4|webm|ogg|wav|m4a)$/i
+  const SIZE_RE = /^(\d+)(?:x(\d+))?$/
+
+  function wikilinkPlugin(md) {
+    md.inline.ruler.before('link', 'markloupe_wikilink', (state, silent) => {
+      const src = state.src
+      const embed = src.charCodeAt(state.pos) === 0x21 /* ! */
+      const start = state.pos + (embed ? 1 : 0)
+      if (!src.startsWith('[[', start)) return false
+      const end = src.indexOf(']]', start + 2)
+      if (end < 0) return false
+      const body = src.slice(start + 2, end)
+      if (!body.trim() || /[[\]\n]/.test(body)) return false
+      if (silent) {
+        state.pos = end + 2
+        return true
+      }
+      const bar = body.indexOf('|')
+      // 表格裡要寫成 \| 才不會被當成分欄
+      const target = (bar < 0 ? body : body.slice(0, bar)).replace(/\\$/, '').trim()
+      const alias = bar < 0 ? '' : body.slice(bar + 1).trim()
+      const hash = target.indexOf('#')
+      const path = hash < 0 ? target : target.slice(0, hash).trim()
+      const heading = hash < 0 ? '' : target.slice(hash + 1).trim()
+      let href = path && path.split('/').map(encodeURIComponent).join('/') + (FILE_EXT.test(path) ? '' : '.md')
+      // 區塊參照（#^id）沒有對應的錨點，只連到檔案
+      if (heading && !heading.startsWith('^')) href += `#${encodeURIComponent(Markloupe.slugify(heading))}`
+      const size = SIZE_RE.exec(alias)
+      if (embed && IMAGE_EXT.test(path)) {
+        const img = state.push('image', 'img', 0)
+        img.attrs = [['src', href], ['alt', '']]
+        if (size) img.attrs.push(['width', size[1]], ...(size[2] ? [['height', size[2]]] : []))
+        const alt = new state.Token('text', '', 0)
+        alt.content = size ? path : alias || path
+        img.children = [alt]
+        img.content = alt.content
+      } else {
+        state.push('link_open', 'a', 1).attrs = [['href', href || '#']]
+        state.push('text', '', 0).content = alias || [path, heading].filter(Boolean).join(' > ')
+        state.push('link_close', 'a', -1)
+      }
+      state.pos = end + 2
+      return true
     })
   }
 
@@ -333,6 +420,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     md.use(containerPlugin)
     md.use(markPlugin)
     md.use(alertPlugin)
+    md.use(wikilinkPlugin)
     md.use(gfmAutolinkPlugin)
     md.use(mathPlugin)
     md.markloupeNonce = Array.from(crypto.getRandomValues(new Uint8Array(8)), b => b.toString(16).padStart(2, '0')).join('')

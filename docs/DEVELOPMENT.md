@@ -65,7 +65,7 @@ src/
     menu.js              下拉選單（工具列寬度／主題／字級、檔案分頁資料夾選單）與鍵盤操作
     fonts.js             程式碼區塊中英字寬對齊
     sanitize.js          HTML 白名單過濾
-    markdown.js          markdown-it 設定、==mark==、Alert、front matter、數學公式標記
+    markdown.js          markdown-it 設定、==mark==、Alert 與 callout、wikilink、front matter、數學公式標記
     enhance.js           標題錨點與摺疊、行內內容歸組、任務清單、程式碼區塊、圖片、字數
     mermaid.js           Mermaid 圖表（依需載入）
     math.js              KaTeX 數學公式（依需載入）

@@ -615,6 +615,9 @@ html.markloupe .hljs-deletion { color: var(--hl-deletion); background: var(--hl-
 html.markloupe .markdown-body .markdown-alert { color: inherit; padding: 8px 16px; }
 html.markloupe .markdown-body .markdown-alert > :last-child { margin-bottom: 0; }
 html.markloupe .markdown-body .markdown-alert-title { font-weight: 600; margin-bottom: 4px !important; }
+/* 可摺疊的提示框（Obsidian 的 > [!note]-）：<details> 套用引用的左框線，顏色沿用下方各類型 */
+html.markloupe .markdown-body details.markdown-alert { border-left-width: .25em; border-left-style: solid; }
+html.markloupe .markdown-body details.markdown-alert:not([open]) > .markdown-alert-title { margin-bottom: 0 !important; }
 html.markloupe .markdown-body .markdown-alert-note { border-left-color: var(--alert-note); }
 html.markloupe .markdown-body .markdown-alert-note .markdown-alert-title { color: var(--alert-note); }
 html.markloupe .markdown-body .markdown-alert-tip { border-left-color: var(--alert-tip); }

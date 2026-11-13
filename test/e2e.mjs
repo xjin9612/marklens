@@ -2465,6 +2465,9 @@ try {
       '> [!WARNING]',
       '> 小心',
       '',
+      '> [!bug]- 收合的提示',
+      '> 收合的內容',
+      '',
       '```js',
       'const a = 1',
       '\tif (a) {}',
@@ -2512,6 +2515,8 @@ try {
       // 引用與提示框：左側框線，提示框的標題用對應的顏色
       assert.match(doc, /<w:left w:val="single" w:sz="18" w:space="8" w:color="D0D7DE"\/>/)
       assert.match(doc, /<w:color w:val="9A6700"\/><\/w:rPr><w:t xml:space="preserve">Warning/)
+      assert.match(doc, /<w:color w:val="CF222E"\/><\/w:rPr><w:t xml:space="preserve">收合的提示/, '可摺疊的提示框照提示框匯出')
+      assert.match(doc, /收合的內容/)
       // 表格：表頭列、靠右對齊、每一欄各宣告一次欄寬
       assert.match(doc, /<w:tblHeader\/>/)
       assert.match(doc, /<w:tblGrid>(<w:gridCol w:w="\d+"\/>){2}<\/w:tblGrid>/)
@@ -2971,6 +2976,48 @@ try {
       assert.deepEqual(await ep.$$eval('.markdown-body dl > *', els => els.map(el => el.tagName)), ['DT', 'DD', 'DT', 'DD', 'DD'])
     } finally {
       await ep.close()
+    }
+  })
+
+  await check('Obsidian 語法：[[wikilink]] 連到同資料夾的筆記與標題，![[圖片]] 顯示圖片，提示框可摺疊與自訂標題', async () => {
+    const dir = join(work, 'obsidian')
+    mkdirSync(dir, { recursive: true })
+    copyFileSync(join(root, 'test/fixtures/obsidian.md'), join(dir, 'obsidian.md'))
+    writeFileSync(join(dir, 'pic.png'), PNG)
+    const op = await openDoc(pathToFileURL(join(dir, 'obsidian.md')).href)
+    try {
+      const links = await op.$$eval('.markdown-body :is(p, td) > a:not(.ml-anchor)', els => els.map(a => [a.getAttribute('href'), a.textContent]))
+      assert.deepEqual(links, [
+        ['Other%20Note.md', 'Other Note'],
+        ['Folder/Sub%20Note.md', '別名'],
+        ['Other%20Note.md#some-heading', 'Other Note > Some Heading'],
+        [`#${encodeURIComponent('本頁標題')}`, '本頁標題'],
+        ['Other%20Note.md', 'Other Note > ^abc123'],
+        ['report.pdf', 'report.pdf'],
+        ['v1.2%20notes.md', 'v1.2 notes'],
+        ['Embedded%20Note.md', 'Embedded Note'],
+        ['Other%20Note.md', '表格別名'],
+      ])
+      assert.equal(await op.textContent('.markdown-body p code'), '[[不是連結]]')
+      assert.ok((await op.textContent('.markdown-body')).includes('與 [[跳脫]] 保持原文'))
+      assert.deepEqual(await op.$eval('.markdown-body img', img => [img.getAttribute('src'), img.getAttribute('width'), img.naturalWidth]), ['pic.png', '120', 1])
+      const callouts = () =>
+        op.$$eval('.markdown-body .markdown-alert', els =>
+          els.map(el => [el.tagName, el.className.replace('markdown-alert ', ''), el.querySelector('.markdown-alert-title').innerHTML, el.open ?? null]),
+        )
+      assert.deepEqual(await callouts(), [
+        ['DETAILS', 'markdown-alert-note', '可以收合嗎？', false],
+        ['DETAILS', 'markdown-alert-tip', '預設展開', true],
+        ['BLOCKQUOTE', 'markdown-alert-caution', '自訂 <strong>標題</strong>', null],
+        ['BLOCKQUOTE', 'markdown-alert-note', 'Custom', null],
+        ['BLOCKQUOTE', 'markdown-alert-note', 'Note', null],
+      ])
+      assert.equal(await op.locator('.markdown-body p:text-is("收合的內容")').isVisible(), false)
+      await op.click('summary:has-text("可以收合嗎")')
+      assert.equal(await op.locator('.markdown-body p:text-is("收合的內容")').isVisible(), true)
+      await op.screenshot({ path: join(shotDir, 'ml-obsidian.png'), fullPage: true })
+    } finally {
+      await op.close()
     }
   })
 

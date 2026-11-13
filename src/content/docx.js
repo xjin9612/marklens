@@ -349,6 +349,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
               : this.flow(c, { ...ctx, indent: (ctx.indent || 0) + INDENT * 2 }),
           )
         case 'DETAILS': {
+          if (el.classList.contains('markdown-alert')) return this.quote(el, ctx)
           const summary = el.querySelector(':scope > summary')
           const head = summary ? [this.para([...summary.childNodes].map(n => this.inline(n, { b: true })).join(''), ctx)] : []
           return [...head, ...this.flow(el, ctx)]

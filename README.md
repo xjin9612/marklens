@@ -115,6 +115,7 @@ Add `lang` to the front matter (for example `lang: zh-TW`) to set the document l
 - CommonMark and GitHub Flavored Markdown: tables, task lists, footnotes (hover a footnote mark to read it in place), autolinks
 - GitHub alerts (`> [!NOTE]`), `==highlight==`, emoji shortcodes (`:tada:`), collapsible front matter, shown as a key–value list when it has only simple `key: value` lines (its `lang` sets the document language)
 - Docs-site containers (`::: tip`, `::: warning`, `::: details`, Docusaurus `:::note`) and definition lists
+- Obsidian wikilinks (`[[Note]]`, `[[Note#Heading|text]]`), image embeds (`![[pic.png]]`) and callouts with custom titles that can fold (`> [!faq]- Title`). A wikilink points to the file in the same folder as the document; Markloupe does not search other folders for it. Other `![[…]]` embeds show as links
 - Syntax highlighting with a language label, copy button and wrap toggle
 - KaTeX math (`$…$`, `$$…$$`, `` $`…`$ ``, ` ```math `), on web pages too; click a formula to copy its LaTeX
 - Mermaid diagrams; they follow the theme and can be switched back to source. **Image** copies a diagram as PNG or downloads it as PNG or SVG, always in light colors
