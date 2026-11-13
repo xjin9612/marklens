@@ -7,14 +7,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 - **Soft green** and **Graphite** palettes (popup → **Colors**), for both light and dark themes. The dark Graphite is based on the colors of JetBrains Islands Dark
-- **Custom** colors: pick the background, text and accent colors for the light and dark themes (popup → **Colors** → *Custom*). Markloupe works out the other colors, and warns when the text or accent color has less than 4.5:1 contrast
+- **Custom** colors: pick the background, text and accent colors for the light and dark themes (popup → **Colors** → *Custom*). Markloupe works out the other colors, and warns when the text or accent color has less than 4.5:1 contrast. Open reading pages preview the colors while you adjust them; click **Done** to keep them
+- Click a formula to copy its LaTeX source
+- `n` / `p` jump to the next / previous heading, skipping folded sections
+- The table **Copy** button is now a menu: copy as TSV, copy as Markdown that keeps the original formatting, or download a CSV file. All three follow the current sort and filter
 
 ### Changed
 - MarkLens is now **Markloupe**, because other Markdown extensions in the Chrome Web Store already use the name MarkLens. The repository moves to `xjin9612/markloupe`; old GitHub links redirect. Settings, synced settings and authorized folders carry over when you update
 - The store description now leads with what sets Markloupe apart: tables you can sort, filter and resize, and tasks you check off in the file itself
+- The popup lists the settings you change most often first. Reading options such as Mermaid and math are in a new collapsible **Reading** section, **Help** and **Shortcut settings** are icons at the top, and the **Raw text** button is gone (use the toolbar button or `r`)
 
 ### Fixed
 - Some code colors and alert titles in the GitHub, sepia and high-contrast light palettes are darker, so they reach 4.5:1 contrast
+- **Copy location** for a selection that starts at a task checkbox (for example, triple-clicking a task) gave an end line of `NaN`
+- On a table narrower than its toolbar, the toolbar no longer sticks out past the left edge of the text column
 
 ## [1.8.0] - 2026-11-12
 
