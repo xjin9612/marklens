@@ -217,7 +217,27 @@ try {
   await check('front matter 顯示為預設收合的區塊', async () => {
     assert.equal(await page.$eval('.ml-frontmatter', el => el.tagName), 'DETAILS')
     assert.equal(await page.$eval('.ml-frontmatter', el => el.open), false, '預設收合')
-    assert.ok((await page.textContent('.ml-frontmatter pre')).includes('title: Markloupe 測試文件'))
+    // 單層的 key: value 以兩欄顯示；行內清單攤平
+    const pairs = await page.$$eval('.ml-fm-list > *', els => els.map(e => e.textContent))
+    assert.deepEqual(pairs, ['title', 'Markloupe 測試文件', 'tags', 'markdown, test'])
+    assert.equal(await page.locator('.ml-frontmatter .ml-table').count(), 0, '不是文件裡的表格，沒有表格工具列')
+  })
+  await check('front matter：引號、行尾註解與空值；有巢狀結構時照原文顯示', async () => {
+    const show = async (name, fm) => {
+      const file = join(work, name)
+      writeFileSync(file, `---\n${fm}\n---\n\n# 標題\n`)
+      const fp = await openDoc(pathToFileURL(file).href)
+      const r = await fp.evaluate(() => ({
+        pairs: [...document.querySelectorAll('.ml-fm-list > *')].map(e => e.textContent),
+        pre: document.querySelector('.ml-frontmatter pre')?.textContent ?? null,
+      }))
+      await fp.close()
+      return r
+    }
+    const flat = await show('fm-flat.md', 'title: "引號: 冒號" # 註解\ndraft:\n# 整行註解\nlist: [ "a", b ]')
+    assert.deepEqual(flat, { pairs: ['title', '引號: 冒號', 'draft', '', 'list', 'a, b'], pre: null })
+    const nested = 'author:\n  name: 某人\nsummary: |\n  多行'
+    assert.deepEqual(await show('fm-nested.md', nested), { pairs: [], pre: nested })
   })
   await check('刪除線與表格對齊', async () => {
     assert.equal(await page.textContent('.markdown-body s'), '刪除線')
@@ -925,11 +945,11 @@ try {
     const sizes = p =>
       p.evaluate(() => {
         const px = sel => getComputedStyle(document.querySelector(`.markdown-body ${sel}`)).fontSize
-        return { p: px('p'), h1: px('h1'), pre: px('.ml-code pre'), fm: px('.ml-frontmatter pre'), td: px('td') }
+        return { p: px('p'), h1: px('h1'), pre: px('.ml-code pre'), fm: px('.ml-frontmatter dd'), td: px('td') }
       })
     const fontSize = async () => (await sw.evaluate(() => Markloupe.loadSettings())).fontSize
     try {
-      assert.deepEqual(await sizes(page), { p: '16px', h1: '32px', pre: '13.6px', fm: '13.6px', td: '16px' })
+      assert.deepEqual(await sizes(page), { p: '16px', h1: '32px', pre: '13.6px', fm: '13px', td: '16px' })
       assert.equal(await page.textContent('.ml-tool-font'), '字級：100%')
       const btn = page.locator('.ml-tool-font')
       await btn.click()
@@ -939,7 +959,7 @@ try {
       assert.deepEqual(radios.find(([, c]) => c === 'true'), ['16 px（100%）', 'true'])
       await page.click('.ml-menu-item:has-text("20 px")')
       // 內文、標題、程式碼、表格以同一比例放大（1.25 倍）
-      assert.deepEqual(await sizes(page), { p: '20px', h1: '40px', pre: '17px', fm: '17px', td: '20px' })
+      assert.deepEqual(await sizes(page), { p: '20px', h1: '40px', pre: '17px', fm: '16.25px', td: '20px' })
       assert.equal(await page.textContent('.ml-tool-font'), '字級：125%')
       for (let i = 0; i < 20 && (await fontSize()) !== 20; i++) await page.waitForTimeout(50)
       assert.equal(await fontSize(), 20)
@@ -953,7 +973,7 @@ try {
       await page.keyboard.press('-')
       assert.equal(await page.textContent('.ml-tool-font'), '字級：113%')
       await page.keyboard.press('0')
-      assert.deepEqual(await sizes(page), { p: '16px', h1: '32px', pre: '13.6px', fm: '13.6px', td: '16px' })
+      assert.deepEqual(await sizes(page), { p: '16px', h1: '32px', pre: '13.6px', fm: '13px', td: '16px' })
       // 寫入設定是非同步的：等全域設定回到 16
       for (let i = 0; i < 20 && (await fontSize()) !== 16; i++) await page.waitForTimeout(50)
       assert.equal(await fontSize(), 16)

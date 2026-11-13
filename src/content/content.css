@@ -545,6 +545,9 @@ html.markloupe .markdown-body .ml-frontmatter {
   color: var(--muted);
 }
 html.markloupe .markdown-body .ml-frontmatter pre { margin: 8px 0 4px; }
+html.markloupe .markdown-body .ml-fm-list { display: grid; grid-template-columns: max-content 1fr; gap: 2px 16px; margin: 8px 0 4px; }
+html.markloupe .markdown-body .ml-fm-list dt { margin: 0; font-weight: 600; color: var(--fg); font-style: normal; }
+html.markloupe .markdown-body .ml-fm-list dd { margin: 0; padding: 0; color: var(--fg); overflow-wrap: anywhere; }
 
 /* 行內程式碼 */
 html.markloupe .markdown-body code {

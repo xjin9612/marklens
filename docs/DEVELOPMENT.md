@@ -191,7 +191,7 @@ npm test
 
 以 Chromium 載入擴充功能，開啟本機與 http 的測試文件。push 到 `main` 與 pull request 時由 CI 在 Linux、macOS、Windows 上執行。截圖輸出到 `SHOT_DIR`，預設為系統暫存目錄。涵蓋：
 
-- 渲染：GFM、任務清單（緊湊／鬆散清單）、腳註（滑過或聚焦上標時預覽，Esc 收起）、Alert、front matter、程式碼高亮、Emoji 短碼、比照 GitHub 的自動連結
+- 渲染：GFM、任務清單（緊湊／鬆散清單）、腳註（滑過或聚焦上標時預覽，Esc 收起）、Alert、front matter（單層 key: value 以鍵值清單顯示，巢狀時顯示原文）、程式碼高亮、Emoji 短碼、比照 GitHub 的自動連結
 - 載入：換檔時保留舊畫面到新頁排好版、載入中背景沿用上次的主題、停用 Markloupe 時原文照常顯示、非 Markdown 網址不接管
 - 安全：script、事件屬性、`javascript:` 連結、style 屬性過濾；`test/fixtures/security.md` 攻擊樣本（危險標籤與網址、編碼繞過、DOM clobbering、偽造介面、檔名、Mermaid）
 - 版面：文字欄寬度、寬表格超出文字欄、小表格在各種寬度下不出現捲軸、窄螢幕抽屜側邊欄、寬視窗下數學公式與 Mermaid 錯誤訊息對齊文字欄、回到頂部按鈕出現時其他按鈕不位移

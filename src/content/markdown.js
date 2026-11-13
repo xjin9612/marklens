@@ -350,6 +350,30 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     return { frontMatter: m[1], body: src.slice(m[0].length) }
   }
 
+  /** YAML 純量：去掉行尾註解與成對的引號 */
+  const scalar = v => {
+    const s = v.replace(/(^|[ \t])#.*$/, '').trim()
+    return /^(["'])(.*)\1$/.exec(s)?.[2] ?? s
+  }
+
+  /**
+   * 只有單層 key: value 的 front matter 拆成 [鍵, 值]；行內清單 [a, b] 的值是 "a, b"
+   * 有巢狀、多行值（| 或 >）或其他寫法時回傳 null，照原文顯示
+   */
+  Markloupe.frontMatterEntries = function (frontMatter) {
+    const entries = []
+    for (const line of (frontMatter || '').split(/\r?\n/)) {
+      if (!line.trim() || /^#/.test(line)) continue
+      const m = /^([\w][\w.-]*)[ \t]*:(?:[ \t]+(.*))?$/.exec(line)
+      if (!m) return null
+      const raw = (m[2] || '').trim()
+      if (/^[|>]/.test(raw)) return null
+      const list = /^\[(.*)\]$/.exec(scalar(raw))
+      entries.push([m[1], list ? list[1].split(',').map(scalar).filter(Boolean).join(', ') : scalar(raw)])
+    }
+    return entries.length ? entries : null
+  }
+
   /** front matter 最上層的 lang 欄位，去掉引號與行尾註解；沒有或不是語言代碼時回傳空字串 */
   Markloupe.frontMatterLang = function (frontMatter) {
     const m = /^lang[ \t]*:[ \t]*(.*)$/m.exec(frontMatter || '')
