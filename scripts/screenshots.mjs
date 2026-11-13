@@ -34,7 +34,8 @@ const LANGS = [
       '2-outline-tasks': 'Check off tasks in local .md files — saved straight back to the file',
       '3-files': 'Browse every Markdown file in a folder, free',
       '4-dark-mermaid': 'Mermaid diagrams, math and a dark theme',
-      '5-table-fullscreen': 'Fullscreen tables that filter as you type',
+      '5-palettes': 'Six palettes, light or dark — or pick your own colors',
+      '6-table-fullscreen': 'Fullscreen tables that filter as you type',
     },
   },
   {
@@ -50,7 +51,8 @@ const LANGS = [
       '2-outline-tasks': '勾選本機 .md 檔的任務，直接存回檔案',
       '3-files': '瀏覽整個資料夾的 Markdown 檔案，完全免費',
       '4-dark-mermaid': 'Mermaid 圖表、數學公式與深色主題',
-      '5-table-fullscreen': '表格全螢幕，邊打字邊篩選',
+      '5-palettes': '六種配色，淺色深色皆可，也能自訂顏色',
+      '6-table-fullscreen': '表格全螢幕，邊打字邊篩選',
     },
   },
 ]
@@ -117,6 +119,35 @@ function marqueeHtml({ tagline, note }, frontBase64, backBase64) {
   <div class="shot front"></div>`
 }
 
+/*
+ * 配色一覽：每種配色的示範文件縮成 1/3 排成 3×2，下方標上配色名稱（取自語系檔）。
+ * 石墨與自訂配色以深色主題呈現；自訂配色用 README 範例的三色示範推算的效果
+ */
+const PALETTE_SHOTS = [
+  { palette: 'github', theme: 'light', key: 'paletteGithub' },
+  { palette: 'sepia', theme: 'light', key: 'paletteSepia' },
+  { palette: 'contrast', theme: 'light', key: 'paletteContrast' },
+  { palette: 'green', theme: 'light', key: 'paletteGreen' },
+  { palette: 'graphite', theme: 'dark', key: 'paletteGraphite' },
+  { palette: 'custom', theme: 'dark', key: 'paletteCustom' },
+]
+const CUSTOM_DEMO = { light: { bg: '#fbf7f0', fg: '#3b3530', accent: '#b4532a' }, dark: { bg: '#1e1e2e', fg: '#cdd6f4', accent: '#89b4fa' } }
+
+function palettesHtml(tiles) {
+  const tile = ({ label, b64 }) =>
+    `<figure><div class="shot" style="background-image:url(data:image/png;base64,${b64})"></div><figcaption>${label}</figcaption></figure>`
+  return `<!doctype html><meta charset="utf-8"><style>
+    * { box-sizing: border-box; margin: 0; }
+    /* 稍微偏上：商店版上方加說明色帶時，底部會被截掉 CAPTION_HEIGHT */
+    body { width: ${WIDTH}px; height: ${HEIGHT}px; overflow: hidden; display: grid; place-content: center; padding-bottom: 50px;
+      font-family: "Segoe UI", "Microsoft JhengHei UI", "Microsoft JhengHei", sans-serif; background: #eef0f4; }
+    main { display: grid; grid-template-columns: repeat(3, 384px); gap: 28px 24px; }
+    .shot { width: 384px; height: 240px; border-radius: 8px; background: no-repeat 0 0 / 384px 240px;
+      box-shadow: 0 6px 18px rgba(20, 24, 40, .18), 0 0 0 1px rgba(20, 24, 40, .12); }
+    figcaption { margin-top: 10px; text-align: center; font-size: 18px; font-weight: 600; color: #1f2328; }
+  </style><main>${tiles.map(tile).join('')}</main>`
+}
+
 const CAPTION_HEIGHT = 100
 
 /** 商店截圖：上方是品牌色的說明色帶，下方接原始截圖（不縮放，底部被截掉 CAPTION_HEIGHT） */
@@ -158,9 +189,9 @@ for (const { lang, dir, demo, table: tableDoc, readme, text, promoText, captions
   // 每張都從文件頂端開始，不受前一張的閱讀位置影響
   await sw.evaluate(() => Markloupe.saveSettings({ rememberScroll: false }))
 
-  /** 以指定主題開啟文件，等字型、Mermaid、公式都畫完 */
-  async function open(url, theme) {
-    await sw.evaluate(t => Markloupe.saveSettings({ theme: t }), theme)
+  /** 以指定主題與配色開啟文件，等字型、Mermaid、公式都畫完 */
+  async function open(url, theme, palette = 'github') {
+    await sw.evaluate(([t, p, c]) => Markloupe.saveSettings({ theme: t, palette: p, customColors: c }), [theme, palette, CUSTOM_DEMO])
     const page = await ctx.newPage()
     await page.goto(url)
     await page.waitForSelector('#ml-root .markdown-body h1')
@@ -207,8 +238,22 @@ for (const { lang, dir, demo, table: tableDoc, readme, text, promoText, captions
       await scrollToHeading(p, text.flow)
       return p
     },
+    // 配色一覽：六種配色的同一份文件
+    '5-palettes': async () => {
+      const labels = JSON.parse(readFileSync(join(root, '_locales', dir.replace('-', '_'), 'messages.json'), 'utf8'))
+      const tiles = []
+      for (const { palette, theme, key } of PALETTE_SHOTS) {
+        const p = await open(doc(demo), theme, palette)
+        tiles.push({ label: labels[key].message, b64: (await p.screenshot()).toString('base64') })
+        await p.close()
+      }
+      const p = await ctx.newPage()
+      await p.setContent(palettesHtml(tiles))
+      await p.evaluate(() => document.fonts.ready)
+      return p
+    },
     // 表格全螢幕：24 列的大表格依 p95 由大到小排序，篩選出亞洲區域（ap-）
-    '5-table-fullscreen': async () => {
+    '6-table-fullscreen': async () => {
       const p = await open(doc(tableDoc), 'light')
       const table = p.locator('.ml-table').first()
       const th = table.locator('th', { hasText: 'p95' })

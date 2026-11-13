@@ -64,6 +64,12 @@ Markloupe 支援 Windows、macOS、Linux 上的 Chrome 與 Edge。
 
 ![深色主題下的 Mermaid 流程圖、數學公式與框線字元表格](docs/screenshots/zh-TW/4-dark-mermaid.png)
 
+### 配色
+
+六種配色都能搭配淺色與深色主題：GitHub、米色、高對比、護眼綠、石墨與自訂。選「自訂」時，挑選背景、文字與強調色，其餘顏色由 Markloupe 推算。
+
+![同一份文件在六種配色下的樣子](docs/screenshots/zh-TW/5-palettes.png)
+
 ### 列印、PDF、匯出 HTML 與 Word
 
 「列印／PDF」以淺色印出整份文件，所有段落都會展開。頁邊只印頁碼。「匯出」把目前的畫面存成 HTML 檔或 Word 文件。選「單一檔」會內嵌圖片，分享時只要給一個檔案。選「圖片保留連結」，檔案比較小。

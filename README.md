@@ -64,6 +64,12 @@ The sidebar outline highlights the section you're reading. Fold any section, or 
 
 ![Dark theme with a Mermaid flowchart, a formula and a box-drawing table](docs/screenshots/en/4-dark-mermaid.png)
 
+### Colors
+
+Six palettes work with both the light and dark themes: GitHub, sepia, high contrast, soft green, graphite and custom. With *Custom*, you pick the background, text and accent colors, and Markloupe works out the rest.
+
+![The same document in the six palettes](docs/screenshots/en/5-palettes.png)
+
 ### Print, PDF, HTML and Word export
 
 **Print / PDF** prints the whole document in light colors, with every section expanded. The margins show only a page number. **Export** saves what you see as an HTML file or a Word document. **Single file** embeds the images, so the file works on its own when you share it. **Link to images** keeps the file small.
