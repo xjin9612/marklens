@@ -93,7 +93,7 @@ Add `lang` to the front matter (for example `lang: zh-TW`) to set the document l
 - GitHub alerts (`> [!NOTE]`), `==highlight==`, emoji shortcodes (`:tada:`), collapsible front matter (its `lang` sets the document language)
 - Docs-site containers (`::: tip`, `::: warning`, `::: details`, Docusaurus `:::note`) and definition lists
 - Syntax highlighting with a language label, copy button and wrap toggle
-- KaTeX math (`$…$`, `$$…$$`, `` $`…`$ ``, ` ```math `), on web pages too
+- KaTeX math (`$…$`, `$$…$$`, `` $`…`$ ``, ` ```math `), on web pages too; click a formula to copy its LaTeX
 - Mermaid diagrams; they follow the theme and can be switched back to source
 - View a diagram fullscreen: scroll to zoom, drag to move, double-click to reset
 - Images load as you scroll; click to zoom

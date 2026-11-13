@@ -1602,6 +1602,28 @@ try {
     assert.equal(r.code, '$x$')
     await mt.waitForFunction(() => document.fonts.check('16px KaTeX_Main') && [...document.fonts].some(f => f.family === 'KaTeX_Main' && f.status === 'loaded'), null, { timeout: 5000 })
   })
+  await check('數學公式：點一下複製 LaTeX 原文，選取文字時不複製', async () => {
+    await ctx.grantPermissions(['clipboard-read', 'clipboard-write'])
+    const copied = async sel => {
+      await mt.evaluate(() => document.querySelector('.ml-toast')?.classList.remove('show'))
+      // 頁首的工具列會蓋住捲到頂端的公式
+      await mt.locator(sel).evaluate(el => el.scrollIntoView({ block: 'center' }))
+      await mt.click(sel)
+      await mt.waitForSelector('.ml-toast.show')
+      return mt.evaluate(() => navigator.clipboard.readText())
+    }
+    // 點公式看得到的部分；外框的中心點可能落在隱藏的 MathML 上
+    assert.equal(await copied('.math-inline >> nth=0 >> .katex-html'), 'E = mc^2')
+    assert.equal(await copied('.math-display >> nth=0 >> .katex-html'), '\\int_0^1 x^2\\,dx = \\frac{1}{3}')
+    assert.equal(await mt.getAttribute('.math-inline >> nth=0', 'title'), '點一下複製 LaTeX')
+    // 有選取文字時是在選字，不是要複製公式
+    await mt.evaluate(() => navigator.clipboard.writeText('原本的內容'))
+    await mt.evaluate(() => getSelection().selectAllChildren(document.querySelector('.math-inline')))
+    await mt.locator('.math-inline >> nth=0').evaluate(el => el.scrollIntoView({ block: 'center' }))
+    await mt.click('.math-inline >> nth=0 >> .katex-html', { modifiers: ['Shift'] })
+    assert.equal(await mt.evaluate(() => navigator.clipboard.readText()), '原本的內容')
+    await mt.evaluate(() => getSelection().removeAllRanges())
+  })
   await check('數學公式：自動更新時同步重繪，不閃爍', async () => {
     writeFileSync(mathFile, readFileSync(join(root, 'test/fixtures/math.md'), 'utf8') + '\n新增 $y^2$\n')
     const res = await mt.waitForFunction(
@@ -1970,6 +1992,7 @@ try {
     const { file, html } = await exportFrom(mt)
     assert.ok(html.includes('data:font/woff2;base64,'))
     assert.ok(!/url\(fonts\//.test(html), '不應留下相對路徑的字型')
+    assert.ok(!/class="[^"]*ml-math-copy|title="點一下複製/.test(html), '匯出檔沒有點公式複製的功能，不留提示')
     const xp = await ctx.newPage()
     await xp.goto(pathToFileURL(file).href)
     await xp.waitForFunction(() => [...document.fonts].some(f => f.family === 'KaTeX_Main' && f.status === 'loaded'), null, { timeout: 5000 })

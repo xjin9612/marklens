@@ -53,6 +53,21 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       maxSize: 50,
       output: 'htmlAndMathml',
     })
+    el.classList.add('ml-math-copy')
+    el.title = Markloupe.t('mathCopyTitle')
+  }
+
+  /** 點公式複製 LaTeX 原文（不含 $ 等分隔符號）；選取文字時不觸發，才能照常選取 */
+  const bound = new WeakSet()
+  function bindCopy(article) {
+    if (bound.has(article)) return
+    bound.add(article)
+    article.addEventListener('click', async e => {
+      const el = e.target.closest?.('.ml-math-copy')
+      if (!el || String(getSelection())) return
+      const ok = await Markloupe.copyText(el.dataset.mlTex.trim())
+      Markloupe.toast(Markloupe.t(ok ? 'mathCopied' : 'mdCopyFailed'), [], 1500)
+    })
   }
 
   /** 不繪製時補回 $ 符號，讓讀者看到的是原始寫法 */
@@ -79,6 +94,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
         return showSource(els)
       }
     }
+    bindCopy(article)
     for (const el of els) {
       if (el.isConnected) draw(el)
     }
