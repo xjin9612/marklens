@@ -620,7 +620,9 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
         text = this.lines().slice(range[0], range[1]).join('').trimEnd() + '\n'
         nodes = this.sectionNodes(heading)
       }
-      const ok = await Markloupe.copyRich(text, Markloupe.staticHtml(nodes))
+      // 有剪貼簿 API 時圖表換成圖片；一般 http 網頁只能同步複製，等不了轉圖，維持原樣
+      const canWait = !!navigator.clipboard?.write && typeof ClipboardItem === 'function'
+      const ok = await Markloupe.copyRich(text, canWait ? Markloupe.clipboardHtml(nodes) : Markloupe.staticHtml(nodes))
       Markloupe.toast(t(ok ? 'mdCopied' : 'mdCopyFailed'))
     }
 

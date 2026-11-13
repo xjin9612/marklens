@@ -2838,6 +2838,44 @@ try {
     await pg.click(`.ml-menu-item:has-text("${item}")`)
     await pg.waitForSelector('.ml-toast.show')
   }
+  await check('複製內容：HTML 裡的 Mermaid 圖換成淺色 PNG，語法錯誤的保留原始碼，純文字仍是 Markdown', async () => {
+    await ctx.grantPermissions(['clipboard-read', 'clipboard-write'])
+    const before = (await sw.evaluate(() => Markloupe.loadSettings())).theme
+    const cp = await openDoc(pathToFileURL(localMermaid).href)
+    try {
+      await cp.bringToFront()
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'dark' }))
+      const themes = () => cp.$$eval('.ml-mermaid', els => els.map(el => el.dataset.mlMermaidTheme ?? 'none'))
+      await until(async () => (await themes()).filter(x => x.startsWith('dark')).length === 2, 15000).catch(async e => {
+        throw new Error(`${e.message}：${JSON.stringify(await themes())} ${await cp.evaluate(() => document.documentElement.dataset.mlTheme)}`)
+      })
+      await copyVia(cp, cp.locator('.ml-tool-copy'), '複製內容')
+      assert.equal(await clip(cp), readFileSync(localMermaid, 'utf8'))
+      const html = await cp.evaluate(async () => {
+        const [item] = await navigator.clipboard.read()
+        return (await item.getType('text/html')).text()
+      })
+      const imgs = [...html.matchAll(/<img [^>]*src="(data:image\/png;base64,[^"]+)"[^>]*>/g)]
+      assert.equal(imgs.length, 2, '兩張畫好的圖換成 PNG')
+      assert.ok(!html.includes('<svg'), '不含 SVG')
+      // 文件裡有 3 個 mermaid 區塊與 1 個一般程式碼區塊：剩下的 <pre> 是語法錯誤圖表的錯誤訊息與原始碼、一般程式碼
+      assert.equal((html.match(/<pre[\s>]/g) || []).length, 3, '畫好的圖不附原始碼')
+      assert.ok(html.includes('未關閉的括號'), '語法錯誤的圖表保留原始碼')
+      assert.match(imgs[0][0], /width="\d+" height="\d+"/)
+      const corner = await cp.evaluate(async url => {
+        const bmp = await createImageBitmap(await (await fetch(url)).blob())
+        const c = new OffscreenCanvas(bmp.width, bmp.height)
+        const g = c.getContext('2d')
+        g.drawImage(bmp, 0, 0)
+        return [...g.getImageData(2, 2, 1, 1).data]
+      }, imgs[0][1])
+      assert.ok(corner[0] > 240 && corner[1] > 240 && corner[2] > 240, `淺色底：${corner}`)
+      assert.equal(await cp.evaluate(() => document.documentElement.dataset.mlTheme), 'dark', '複製後還原深色')
+    } finally {
+      await sw.evaluate(t => Markloupe.saveSettings({ theme: t }), before)
+      await cp.close()
+    }
+  })
   await check('複製：工具列與章節的選單，複製內容附 HTML 格式，複製位置為路徑與行號', async () => {
     await ctx.grantPermissions(['clipboard-read', 'clipboard-write'])
     const cp = await openDoc()

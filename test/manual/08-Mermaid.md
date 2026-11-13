@@ -14,6 +14,7 @@
 - [ ] 深色主題下按圖表的「圖片」→「下載 PNG」：圖是淺色、白底、四周留白；畫面短暫變淺色後回到深色
 - [ ] 「下載 SVG」：用瀏覽器開啟下載的檔案，圖與文字完整
 - [ ] 「複製為 PNG」後貼到 Word、小畫家或聊天軟體，貼出的是圖片
+- [ ] 工具列「複製」→「複製內容」後貼到 Word 與 Google Docs：圖表是淺色圖片，不是原始碼
 - [ ] 開啟 GitHub 上的 [demo.md](https://raw.githubusercontent.com/xjin9612/markloupe/main/docs/demo.md)：圖表有畫出來，跟隨主題
 - [ ] popup →「版面預設值」取消「繪製 Mermaid 圖表」，重新整理後只剩程式碼；測完記得勾回來
 - [ ] 開一份沒有 mermaid 的檔案（例如 [05-清單與表格.md](./05-清單與表格.md)），F12 → Network 篩選 `mermaid`，應該沒有任何請求

@@ -151,11 +151,47 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     return s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
   }
 
-  /** 部分內容（例如一個章節）整理成靜態 HTML，供複製到剪貼簿 */
-  Markloupe.staticHtml = function (nodes) {
+  function staticNodes(nodes) {
     const box = document.createElement('article')
     for (const n of nodes) box.append(n.cloneNode(true))
-    return staticArticle(box).innerHTML
+    return staticArticle(box)
+  }
+
+  /** 部分內容（例如一個章節）整理成靜態 HTML，供複製到剪貼簿 */
+  Markloupe.staticHtml = nodes => staticNodes(nodes).innerHTML
+
+  const dataUrl = blob =>
+    new Promise((resolve, reject) => {
+      const r = new FileReader()
+      r.onload = () => resolve(r.result)
+      r.onerror = () => reject(r.error)
+      r.readAsDataURL(blob)
+    })
+
+  /**
+   * 複製到剪貼簿的 HTML：畫好的 Mermaid 圖換成淺色 PNG 的 <img>。
+   * Word、Google Docs 不收內嵌的 SVG，也不套用頁面的 CSS，留著 SVG 只會貼出原本藏起來的原始碼
+   */
+  Markloupe.clipboardHtml = async function (nodes) {
+    const wraps = nodes.flatMap(n =>
+      n.nodeType !== Node.ELEMENT_NODE ? [] : [...(n.matches('.ml-mermaid') ? [n] : []), ...n.querySelectorAll('.ml-mermaid')],
+    )
+    const images = wraps.length ? await Markloupe.mermaidImages(wraps) : new Map()
+    const box = staticNodes(nodes)
+    // 複製出來的圖表與原本的順序相同
+    const copies = box.querySelectorAll('.ml-mermaid')
+    for (const [i, wrap] of wraps.entries()) {
+      const png = images.get(wrap)
+      if (!png || !copies[i]) continue
+      const img = Markloupe.h('img', {
+        src: await dataUrl(png.blob),
+        alt: (wrap.dataset.mlMermaidCode || '').trim().split('\n')[0] || 'Mermaid',
+        width: Math.round(png.width),
+        height: Math.round(png.height),
+      })
+      copies[i].replaceWith(Markloupe.h('p', {}, [img]))
+    }
+    return box.innerHTML
   }
 
   /**

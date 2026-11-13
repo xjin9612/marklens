@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 - **Image** on a Mermaid diagram copies it as a PNG, or downloads it as a PNG or SVG file. Images always use light colors, like Word export, and the PNG has a solid background. Copying needs an https page or a local file
+- **Copy content** puts Mermaid diagrams on the clipboard as light-colored PNG images, so they show up when you paste into Word or Google Docs instead of the diagram source. On plain http pages the copied HTML keeps the diagram as before
 
 ## [1.9.0] - 2026-11-14
 

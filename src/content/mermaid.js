@@ -244,15 +244,40 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
    */
   const IMAGE_PADDING = 16
 
-  function imageOf(wrap, kind) {
-    const make = async () => {
+  const inLight = fn => (Markloupe.withLightTheme ? Markloupe.withLightTheme(fn) : fn())
+
+  /**
+   * 多張圖表一起畫成淺色 PNG，只切換一次主題
+   * @returns {Promise<Map<HTMLElement, {blob: Blob, width: number, height: number}>>} 沒有圖（語法錯誤、還沒畫好）或轉檔失敗的略過
+   */
+  Markloupe.mermaidImages = function (wraps) {
+    return inLight(async () => {
+      const out = new Map()
+      const background = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()
+      for (const wrap of wraps) {
+        const svg = wrap.querySelector('.ml-mermaid-view svg')
+        if (!svg) continue
+        try {
+          out.set(wrap, await Markloupe.mermaidPng(svg, { background, padding: IMAGE_PADDING }))
+        } catch {
+          // 轉不了的圖表維持原樣
+        }
+      }
+      return out
+    })
+  }
+
+  async function imageOf(wrap, kind) {
+    if (kind === 'png') {
+      const png = (await Markloupe.mermaidImages([wrap])).get(wrap)
+      if (!png) throw new Error('no diagram')
+      return png.blob
+    }
+    return inLight(async () => {
       const svg = wrap.querySelector('.ml-mermaid-view svg')
       if (!svg) throw new Error('no diagram')
-      if (kind === 'svg') return new Blob([Markloupe.mermaidSvgFile(svg)], { type: 'image/svg+xml' })
-      const background = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()
-      return (await Markloupe.mermaidPng(svg, { background, padding: IMAGE_PADDING })).blob
-    }
-    return Markloupe.withLightTheme ? Markloupe.withLightTheme(make) : make()
+      return new Blob([Markloupe.mermaidSvgFile(svg)], { type: 'image/svg+xml' })
+    })
   }
 
   function imageMenu(wrap) {
