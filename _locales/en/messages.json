@@ -213,6 +213,18 @@
   "docxPaper": {
     "message": "Paper"
   },
+  "bodyFont": {
+    "message": "Body font"
+  },
+  "bodyFontSans": {
+    "message": "System (sans-serif)"
+  },
+  "bodyFontSerif": {
+    "message": "Serif"
+  },
+  "bodyFontName": {
+    "message": "Font names, separated by commas"
+  },
   "exportLinked": {
     "message": "HTML, link to images"
   },

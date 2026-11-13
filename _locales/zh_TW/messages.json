@@ -213,6 +213,18 @@
   "docxPaper": {
     "message": "紙張"
   },
+  "bodyFont": {
+    "message": "內文字型"
+  },
+  "bodyFontSans": {
+    "message": "系統預設（無襯線）"
+  },
+  "bodyFontSerif": {
+    "message": "襯線（明體）"
+  },
+  "bodyFontName": {
+    "message": "字型名稱，可用逗號列出多個"
+  },
   "exportLinked": {
     "message": "HTML（圖片保留連結）"
   },
