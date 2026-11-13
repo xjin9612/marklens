@@ -73,8 +73,9 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
 
   /**
    * 增強單一表格，回傳控制器 { getState, setState }，供自動更新後還原狀態
+   * @param {string[]} [source] 原文的每一行：複製成 Markdown 時沿用原文的列，保留粗體、連結等格式
    */
-  Markloupe.enhanceTable = function (table, settings) {
+  Markloupe.enhanceTable = function (table, settings, source) {
     const head = headerRow(table)
     const ths = head ? Array.from(head.cells) : []
     // 有合併儲存格的表頭無法對應欄位，只提供複製與換行等基本功能
@@ -104,9 +105,21 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
           })
         : null
     const btn = (text, title, fn) => h('button', { class: 'ml-btn', text, title, on: { click: fn } })
-    const copyBtn = btn(t('copy'), t('tableCopyTitle'), async () => {
-      Markloupe.flash(copyBtn, t((await Markloupe.copyText(toTSV())) ? 'copied' : 'failed'))
+    const copy = async text => Markloupe.flash(copyBtn, t((await Markloupe.copyText(text)) ? 'copied' : 'failed'))
+    const copyBtn = btn(t('copy'), t('tableCopyTitle'), () => {
+      if (Markloupe.menuOpenFor(copyBtn)) return Markloupe.closeMenu()
+      Markloupe.openMenu({
+        anchor: copyBtn,
+        label: t('copy'),
+        items: [
+          { label: t('tableCopyTsv'), fn: () => copy(toTSV()) },
+          { label: t('tableCopyMd'), fn: () => copy(toMarkdown()) },
+          { label: t('tableDownloadCsv'), fn: downloadCsv },
+        ],
+      })
     })
+    copyBtn.setAttribute('aria-haspopup', 'menu')
+    copyBtn.setAttribute('aria-expanded', 'false')
     const fullBtn = btn(t('tableFullscreen'), t('tableFullscreenTitle'), () => toggleFull())
     const title = h('span', { class: 'ml-table-title' })
     const bar = h('div', { class: 'ml-table-bar' }, [
@@ -133,12 +146,17 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     ro.observe(scroller)
     ro.observe(table)
 
-    /** 全螢幕標題：表格所在章節的標題與列數 */
-    function fullTitle() {
+    /** 表格所在章節的標題文字；沒有標題時是文件標題 */
+    function sectionTitle() {
       let n = wrap
       while (n.parentElement && !n.parentElement.classList.contains('markdown-body')) n = n.parentElement
       while ((n = n.previousElementSibling) && !/^H[1-6]$/.test(n.tagName));
-      return `${n?.dataset.mlText || document.title} · ${t('tableRows', String(rowCount))}`
+      return n?.dataset.mlText || document.title
+    }
+
+    /** 全螢幕標題：表格所在章節的標題與列數 */
+    function fullTitle() {
+      return `${sectionTitle()} · ${t('tableRows', String(rowCount))}`
     }
 
     function applyFilter() {
@@ -154,14 +172,62 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       wrap.classList.toggle('ml-filtered', !!q)
     }
 
+    /* 複製與下載都套用目前的排序與篩選：只輸出看得到的列，依畫面上的順序 */
+    const shownRows = () => bodyRows(table, head).filter(r => !r.hidden)
+
     function toTSV() {
       const clean = c => c.innerText.replace(/[\t\r\n]+/g, ' ').trim()
-      const lines = []
-      if (head) lines.push(Array.from(head.cells).map(clean).join('\t'))
-      for (const r of bodyRows(table, head)) {
-        if (!r.hidden) lines.push(Array.from(r.cells).map(clean).join('\t'))
+      return [head, ...shownRows()]
+        .filter(Boolean)
+        .map(r => Array.from(r.cells).map(clean).join('\t'))
+        .join('\n')
+    }
+
+    /**
+     * 原文的表頭、分隔列與每一列；對不上時回傳 null（以 HTML 寫的表格、列數與原文行數不同）
+     * 表格在引用或清單裡時，去掉每行前面相同的 > 與縮排
+     */
+    function sourceRows() {
+      const start = Number(table.dataset.mlLine)
+      const end = Number(table.dataset.mlEnd)
+      const rows = [...original.values()].flat().filter(r => r !== head)
+      if (!source || !head || table.dataset.mlLine == null || end - start - 2 !== rows.length) return null
+      const lines = source.slice(start, end)
+      const prefix = /^[ \t>]*/.exec(lines[0])[0]
+      if (!lines.every(l => l.startsWith(prefix) && l.includes('|'))) return null
+      const strip = l => l.slice(prefix.length).trimEnd()
+      return { head: strip(lines[0]), delim: strip(lines[1]), rows: new Map(rows.map((r, i) => [r, strip(lines[i + 2])])) }
+    }
+
+    function toMarkdown() {
+      const src = sourceRows()
+      if (src) return [src.head, src.delim, ...shownRows().map(r => src.rows.get(r))].join('\n')
+      // 沒有原文：由畫面上的文字產生，格式只剩純文字
+      const cell = c => c.innerText.replace(/\s*\n\s*/g, ' ').trim().replace(/\|/g, '\\|')
+      const line = cells => `| ${cells.join(' | ')} |`
+      const first = head || shownRows()[0]
+      if (!first) return ''
+      const align = c => ({ left: ':---', center: ':---:', right: '---:' })[c.style.textAlign] || '---'
+      const rows = shownRows().filter(r => r !== first)
+      return [line([...first.cells].map(cell)), line([...first.cells].map(align)), ...rows.map(r => line([...r.cells].map(cell)))].join('\n')
+    }
+
+    /**
+     * CSV：加上 BOM，Excel 才會以 UTF-8 開啟；換行用 CRLF
+     * 以 = + @ 開頭（或 - 後面不是數字）的儲存格前面加 '，Excel 開啟時才不會把文件內容當成公式執行
+     */
+    function toCSV() {
+      const field = c => {
+        let v = c.innerText.trim()
+        if (/^[=+@\t\r]|^-(?![\d.])/.test(v)) v = `'${v}`
+        return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v
       }
-      return lines.join('\n')
+      const lines = [head, ...shownRows()].filter(Boolean).map(r => Array.from(r.cells).map(field).join(','))
+      return `\ufeff${lines.join('\r\n')}\r\n`
+    }
+
+    function downloadCsv() {
+      Markloupe.downloadBlob(new Blob([toCSV()], { type: 'text/csv;charset=utf-8' }), `${sectionTitle() || Markloupe.docBaseName()}.csv`)
     }
 
     function toggleFull(force) {

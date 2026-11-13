@@ -252,8 +252,17 @@
   "tableFilter": {
     "message": "篩選"
   },
+  "tableCopyTsv": {
+    "message": "複製為 TSV（可直接貼到試算表）"
+  },
+  "tableCopyMd": {
+    "message": "複製為 Markdown"
+  },
+  "tableDownloadCsv": {
+    "message": "下載 CSV"
+  },
   "tableCopyTitle": {
-    "message": "複製為 TSV（可直接貼到 Excel），套用目前排序與篩選"
+    "message": "複製或下載表格，套用目前的排序與篩選"
   },
   "tableRows": {
     "message": "$1 列"

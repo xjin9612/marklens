@@ -86,7 +86,7 @@ Add `lang` to the front matter (for example `lang: zh-TW`) to set the document l
 - Drag to resize columns (double-click the handle to fit), click headers to sort (a third click restores the original order)
 - Filter rows (tables with 5+ rows), wrap toggle, fullscreen with a sticky header
 - Tables wider than the text column scroll sideways, with a shadow on the side that has more
-- Copy as tab-separated text that pastes into a spreadsheet
+- Copy as tab-separated text that pastes into a spreadsheet, or as Markdown that keeps the original formatting; download as CSV. All three follow the current sort and filter
 
 **Markdown**
 - CommonMark and GitHub Flavored Markdown: tables, task lists, footnotes, autolinks
