@@ -210,8 +210,8 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     function toMarkdown() {
       const src = sourceRows()
       if (src) return [src.head, src.delim, ...shownRows().map(r => src.rows.get(r))].join('\n')
-      // 沒有原文：由畫面上的文字產生，格式只剩純文字
-      const cell = c => c.innerText.replace(/\s*\n\s*/g, ' ').trim().replace(/\|/g, '\\|')
+      // 沒有原文：由畫面上的文字產生，格式只剩純文字；反斜線也要跳脫，否則文字裡的 \| 會被當成跳脫的 |，切錯欄
+      const cell = c => c.innerText.replace(/\s*\n\s*/g, ' ').trim().replace(/[\\|]/g, '\\$&')
       const line = cells => `| ${cells.join(' | ')} |`
       const first = head || shownRows()[0]
       if (!first) return ''

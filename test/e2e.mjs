@@ -441,6 +441,23 @@ try {
       await tp.close()
     }
   })
+  await check('表格複製為 Markdown：以 HTML 寫的表格由畫面文字產生，反斜線與 | 都跳脫', async () => {
+    await ctx.grantPermissions(['clipboard-read', 'clipboard-write'])
+    const file = join(work, 'table-html.md')
+    writeFileSync(file, '# HTML 表格\n\n<table><tr><th>路徑</th><th>說明</th></tr><tr><td>C:\\dir</td><td>a\\|b | c</td></tr></table>\n')
+    const hp = await openDoc(pathToFileURL(file).href)
+    try {
+      await hp.bringToFront()
+      const tbl = hp.locator('.ml-table').first()
+      await tbl.locator('table').hover()
+      await tbl.locator('.ml-table-bar button:text-is("複製")').click()
+      await hp.click('.ml-menu-item:has-text("複製為 Markdown")')
+      const want = '| 路徑 | 說明 |\n| --- | --- |\n| C:\\\\dir | a\\\\\\|b \\| c |'
+      await until(async () => (await hp.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/g, '\n') === want)
+    } finally {
+      await hp.close()
+    }
+  })
   await check('表格工具列：欄寬比工具列窄時換行，不撐出頁面', async () => {
     // 多層清單把欄寬壓到比工具列窄，表格本身也很窄
     const indent = n => ' '.repeat(2 * n)
