@@ -2091,6 +2091,11 @@ try {
       assert.ok(await inView('填充段落 45 改'))
       await cp.click('.ml-tool-changes')
       assert.ok(await inView('尾段 D'))
+      assert.equal(await cp.textContent('.ml-changed-current'), '尾段 D。')
+      // 尾段在文件結尾捲不到中間，再按要回到第一處，而不是停在原地
+      await cp.click('.ml-tool-changes')
+      assert.equal(await cp.textContent('.ml-changed-current'), '填充段落 45 改。')
+      assert.ok(await inView('填充段落 45 改'))
       await pageUntil(cp, () => document.querySelector('.ml-tool-changes').hidden, 10000)
       assert.equal(await cp.locator('.ml-changed').count(), 0)
     })

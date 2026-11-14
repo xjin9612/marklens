@@ -83,6 +83,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       this.changeState = { base: raw, seen: Markloupe.noChanges() } // 見 Markloupe.trackChanges
       this.changeMarks = new Map() // 標出改動的元素 → 它代表的改動（目前原文的行號）
       this.changeSeen = null
+      this.changeVisible = new Set() // 在畫面中、還沒開始計時的改動標記
       this.linkGen = 0 // 每次渲染加一；檢查連結的結果回來時已重新渲染就丟棄
       this.darkQuery = matchMedia('(prefers-color-scheme: dark)')
       // Mermaid 圖表另存圖片時暫時改用淺色（同列印與匯出 Word），取完圖再還原
@@ -153,6 +154,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       this.darkQuery.addEventListener('change', () => this.applyLive())
       // Ctrl+P 也改用淺色列印；圖表來不及重繪，列印按鈕才會等圖表重繪完
       addEventListener('beforeprint', () => this.setPrinting(true))
+      for (const type of ['focus', 'pointermove', 'wheel', 'keydown']) addEventListener(type, () => this.armChanges(true), { passive: true })
       addEventListener('afterprint', () => this.setPrinting(false))
 
       // 只有外觀設定即時同步；其餘設定是新分頁的預設值
@@ -520,16 +522,27 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       const marks = Markloupe.markChanges(this.article, changes, this.lines())
       this.changeMarks = marks
       if (!marks.size) this.restartChanges()
-      // 進入畫面幾秒後移除標記，視為已看過
+      this.changeVisible = new Set()
       this.changeSeen = new IntersectionObserver(entries => {
-        for (const e of entries) {
-          if (!e.isIntersecting) continue
-          this.changeSeen.unobserve(e.target)
-          setTimeout(() => this.fadeChange(e.target), CHANGE_SEEN_MS)
-        }
+        for (const e of entries) this.changeVisible[e.isIntersecting ? 'add' : 'delete'](e.target)
+        this.armChanges()
       })
       for (const el of marks.keys()) this.changeSeen.observe(el)
       this.syncChangeCount()
+    }
+
+    /**
+     * 畫面中的標記開始計時，CHANGE_SEEN_MS 後移除，視為已看過。
+     * 只在使用者看著這頁時計時（視窗有焦點，或剛在頁面上移動滑鼠、捲動、按鍵）：
+     * 在編輯器存檔時焦點還在編輯器，標記要留到回到閱讀頁
+     */
+    armChanges(active = document.hasFocus()) {
+      if (!active || !this.changeVisible.size) return
+      for (const el of this.changeVisible) {
+        this.changeSeen.unobserve(el)
+        setTimeout(() => this.fadeChange(el), CHANGE_SEEN_MS)
+      }
+      this.changeVisible.clear()
     }
 
     fadeChange(el) {
@@ -573,14 +586,19 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
         while (block?.dataset.mlFold) block = block.previousElementSibling
         return (block || el).getBoundingClientRect().top + 1
       }
-      // 跳過去的元素會置中；捲不到中間（接近文件結尾）時，再按一次要換下一處
-      let i = els.findIndex(el => y(el) > innerHeight / 2 + 1)
-      if (i < 0) i = 0
-      if (els[i] === this.lastChange?.el && Math.abs(y(els[i]) - this.lastChange.y) < 2) i = (i + 1) % els.length
+      // 上次跳到的元素還在、之後沒捲動過：直接換下一處（接近文件結尾捲不到中間時，靠位置找會一直找到同一處）
+      const last = this.lastChange
+      let i = last && Math.abs(scrollY - last.scroll) < 2 ? els.indexOf(last.el) : -1
+      if (i >= 0) i = (i + 1) % els.length
+      else i = Math.max(0, els.findIndex(el => y(el) > innerHeight / 2 + 1))
       const target = els[i]
       Markloupe.revealElement(this.article, target)
       target.scrollIntoView({ block: 'center', behavior: 'instant' })
-      this.lastChange = { el: target, y: y(target) }
+      this.lastChange = { el: target, scroll: scrollY }
+      // 短暫加框，同一畫面有好幾處時看得出跳到哪一處
+      for (const el of this.article.querySelectorAll('.ml-changed-current')) el.classList.remove('ml-changed-current')
+      target.classList.add('ml-changed-current')
+      setTimeout(() => target.classList.remove('ml-changed-current'), 1200)
     }
 
     /* ---------- 設定 ---------- */

@@ -72,7 +72,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       else a.removeAttribute('title')
       delete a.dataset.mlTitle
     }
-    for (const el of clone.querySelectorAll('.ml-changed, .ml-changed-del, .ml-changed-del-end')) {
+    for (const el of clone.querySelectorAll('.ml-changed, .ml-changed-del, .ml-changed-del-end, .ml-changed-current')) {
       el.classList.remove(...Markloupe.CHANGE_CLASSES)
       if (!el.classList.length) el.removeAttribute('class')
     }

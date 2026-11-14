@@ -6,7 +6,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
   // 新增加刪除超過這個行數就不比對，視為整份檔案被換掉
   const MAX_EDITS = 500
 
-  Markloupe.CHANGE_CLASSES = ['ml-changed', 'ml-changed-del', 'ml-changed-del-end']
+  Markloupe.CHANGE_CLASSES = ['ml-changed', 'ml-changed-del', 'ml-changed-del-end', 'ml-changed-current']
 
   Markloupe.noChanges = () => ({ lines: new Set(), dels: new Set() })
 
