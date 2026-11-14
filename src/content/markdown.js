@@ -235,20 +235,23 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
   function wrapLines(html, marked) {
     const lines = []
     let cur = ''
+    let hasText = false
     const open = []
     for (const [t] of html.matchAll(/<span[^>]*>|<\/span>|\n|[^<\n]+/g)) {
       if (t === '\n') {
         lines.push(cur + '</span>'.repeat(open.length))
         cur = open.join('')
+        hasText = false
       } else {
         if (t === '</span>') open.pop()
         else if (t.startsWith('<span')) open.push(t)
+        else hasText = true
         cur += t
       }
     }
     const line = (l, i) => `<span class="code-line${marked.has(i + 1) ? ' code-line-hl' : ''}">${l}</span>`
     // 最後一行沒有換行字元（檔案結尾沒有關閉的 ```）時照樣不加
-    const tail = cur.replace(/<[^>]*>/g, '') ? line(cur, lines.length) : ''
+    const tail = hasText ? line(cur, lines.length) : ''
     return lines.map((l, i) => `${line(l, i)}\n`).join('') + tail
   }
 
