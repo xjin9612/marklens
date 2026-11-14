@@ -47,14 +47,16 @@ READ AND NAVIGATE
 • Sidebar outline with the current section highlighted and heading search
 • Fold any section; fold or unfold everything at once
 • Files tab: browse the Markdown files and subfolders next to the document, free
-• Live reload for local files that keeps your scroll position, folds and table state
+• Links to missing local files get a wavy underline
+• Live reload for local files that keeps your scroll position, folds and table state, and highlights what changed
 • Open the file in VS Code at the section you're reading
 • Text width, font size and line height; light, dark or follow the system
 
 MARKDOWN SUPPORT
 • CommonMark and GitHub Flavored Markdown: tables, task lists, footnotes, GitHub alerts (> [!NOTE]), emoji shortcodes, ==highlight==
 • Containers from docs sites (::: tip, ::: details, Docusaurus :::note) and definition lists
-• Syntax highlighting with a copy button for code blocks
+• Obsidian wikilinks ([[Note]]), image embeds and foldable callouts (> [!faq]-)
+• Syntax highlighting with a copy button for code blocks, optional line numbers and highlighted lines ({1,3-5})
 • KaTeX math and Mermaid diagrams, in local files and on web pages
 • Box-drawing tables in code blocks stay aligned with Chinese, Japanese and Korean text
 • Export the current view as HTML to share: one self-contained file with the images embedded, or a file that links to them. Or print it / save it as a PDF with every section expanded
@@ -95,14 +97,16 @@ Markloupe 把你在瀏覽器中開啟的 Markdown 檔案變成清楚好讀的頁
 • 側邊欄目錄：標示目前章節，可搜尋標題
 • 任何段落都能摺疊，也能一次全部摺疊或展開
 • 檔案分頁：瀏覽同一資料夾中的 Markdown 檔案與子資料夾，完全免費
-• 本機檔案自動更新，保留捲動位置、摺疊狀態與表格設定
+• 指向不存在本機檔案的連結加上波浪底線
+• 本機檔案自動更新，保留捲動位置、摺疊狀態與表格設定，並標出改動
 • 以 VS Code 開啟檔案並跳到目前閱讀的段落
 • 可調整文字寬度、字體大小與行高；淺色、深色或跟隨系統
 
 Markdown 支援
 • CommonMark 與 GitHub Flavored Markdown：表格、任務清單、腳註、GitHub 提示框（> [!NOTE]）、Emoji 短碼、==螢光標記==
 • 文件網站的容器區塊（::: tip、::: details、Docusaurus 的 :::note）與定義清單
-• 程式碼語法高亮，附複製按鈕
+• Obsidian 的 wikilink（[[筆記]]）、圖片嵌入與可摺疊的提示框（> [!faq]-）
+• 程式碼語法高亮，附複製按鈕，可顯示行號與標示指定行（{1,3-5}）
 • KaTeX 數學公式與 Mermaid 圖表，本機檔案與網頁上都能繪製
 • 程式碼區塊中的框線字元表格，中日韓文字也能對齊
 • 把目前畫面匯出成 HTML 方便分享：內嵌圖片的單一檔，或保留圖片連結；也能列印／存成 PDF，摺疊的段落會全部展開
@@ -145,14 +149,16 @@ Markloupe 把你在浏览器中打开的 Markdown 文件变成清晰易读的页
 • 侧边栏目录：标出当前章节，可搜索标题
 • 任何段落都能折叠，也能一次全部折叠或展开
 • “文件”标签：浏览同一文件夹中的 Markdown 文件与子文件夹，完全免费
-• 本机文件自动更新，保留滚动位置、折叠状态与表格设置
+• 指向不存在本地文件的链接加上波浪下划线
+• 本机文件自动更新，保留滚动位置、折叠状态与表格设置，并标出改动
 • 以 VS Code 打开文件并跳到当前阅读的段落
 • 可调整文本宽度、字体大小与行高；浅色、深色或跟随系统
 
 Markdown 支持
 • CommonMark 与 GitHub Flavored Markdown：表格、任务清单、脚注、GitHub 提示框（> [!NOTE]）、Emoji 短码、==高亮标记==
 • 文档网站的容器块（::: tip、::: details、Docusaurus 的 :::note）与定义列表
-• 代码语法高亮，附复制按钮
+• Obsidian 的 wikilink（[[笔记]]）、图片嵌入与可折叠的提示框（> [!faq]-）
+• 代码语法高亮，附复制按钮，可显示行号与标示指定行（{1,3-5}）
 • KaTeX 数学公式与 Mermaid 图表，本机文件与网页上都能绘制
 • 代码块中的框线字符表格，中日韩文字也能对齐
 • 把当前画面导出为 HTML 方便分享：内嵌图片的单个文件，或保留图片链接；也能打印／存成 PDF，折叠的段落会全部展开

@@ -195,6 +195,134 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     return [fullBtn, ...zoomBtns]
   }
 
+  /** 圖表的大小（CSS px）：取自 viewBox，沒有時取 width／height 屬性 */
+  function svgSize(svg) {
+    const box = svg.viewBox?.baseVal
+    return {
+      w: box?.width || Number.parseFloat(svg.getAttribute('width')) || 600,
+      h: box?.height || Number.parseFloat(svg.getAttribute('height')) || 400,
+    }
+  }
+
+  /** 可獨立開啟的 SVG：寫明寬高，拿掉頁面上用來縮放的 style */
+  function svgMarkup(svg) {
+    const { w, h } = svgSize(svg)
+    const copy = svg.cloneNode(true)
+    copy.setAttribute('width', w)
+    copy.setAttribute('height', h)
+    copy.removeAttribute('style')
+    return new XMLSerializer().serializeToString(copy)
+  }
+
+  /**
+   * 圖表畫成 PNG；文字標籤是 SVG 文字、沒有 foreignObject，畫到 canvas 不會被汙染
+   * @param {{scale?: number, background?: string, padding?: number}} [opts] background 省略時透明；padding 以 CSS px 計
+   * @returns {Promise<{blob: Blob, width: number, height: number}>} width、height 是乘上 scale 之前的大小（含 padding）
+   */
+  Markloupe.mermaidPng = async function (svg, { scale = 2, background, padding = 0 } = {}) {
+    const { w, h } = svgSize(svg)
+    const img = new Image()
+    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgMarkup(svg))}`
+    await img.decode()
+    const [width, height] = [w + padding * 2, h + padding * 2]
+    const canvas = new OffscreenCanvas(Math.max(1, Math.round(width * scale)), Math.max(1, Math.round(height * scale)))
+    const g = canvas.getContext('2d')
+    if (background) {
+      g.fillStyle = background
+      g.fillRect(0, 0, canvas.width, canvas.height)
+    }
+    g.drawImage(img, padding * scale, padding * scale, w * scale, h * scale)
+    return { blob: await canvas.convertToBlob({ type: 'image/png' }), width, height }
+  }
+
+  /** 圖表存成 .svg 檔的內容 */
+  Markloupe.mermaidSvgFile = svg => `<?xml version="1.0" encoding="UTF-8"?>\n${svgMarkup(svg)}\n`
+
+  /*
+   * 圖表另存成圖片：一律用淺色（和匯出 Word 相同），PNG 以頁面底色為背景、四周留白。
+   * 深色主題時由 main.js 提供的 withLightTheme 暫時切到淺色、重繪後再取圖
+   */
+  const IMAGE_PADDING = 16
+
+  const inLight = fn => (Markloupe.withLightTheme ? Markloupe.withLightTheme(fn) : fn())
+
+  /**
+   * 多張圖表一起畫成淺色 PNG，只切換一次主題
+   * @returns {Promise<Map<HTMLElement, {blob: Blob, width: number, height: number}>>} 沒有圖（語法錯誤、還沒畫好）或轉檔失敗的略過
+   */
+  Markloupe.mermaidImages = function (wraps) {
+    return inLight(async () => {
+      const out = new Map()
+      const background = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()
+      for (const wrap of wraps) {
+        const svg = wrap.querySelector('.ml-mermaid-view svg')
+        if (!svg) continue
+        try {
+          out.set(wrap, await Markloupe.mermaidPng(svg, { background, padding: IMAGE_PADDING }))
+        } catch {
+          // 轉不了的圖表維持原樣
+        }
+      }
+      return out
+    })
+  }
+
+  async function imageOf(wrap, kind) {
+    if (kind === 'png') {
+      const png = (await Markloupe.mermaidImages([wrap])).get(wrap)
+      if (!png) throw new Error('no diagram')
+      return png.blob
+    }
+    return inLight(async () => {
+      const svg = wrap.querySelector('.ml-mermaid-view svg')
+      if (!svg) throw new Error('no diagram')
+      return new Blob([Markloupe.mermaidSvgFile(svg)], { type: 'image/svg+xml' })
+    })
+  }
+
+  function imageMenu(wrap) {
+    const name = () => Markloupe.sectionTitle(wrap) || Markloupe.docBaseName()
+    const download = async kind => {
+      try {
+        Markloupe.downloadBlob(await imageOf(wrap, kind), `${name()}.${kind}`)
+      } catch {
+        Markloupe.toast(t('imageFailed'))
+      }
+    }
+    const copy = async () => {
+      try {
+        // 圖片以 Promise 交給剪貼簿：等重繪與轉檔的期間不會失去使用者操作的授權
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': imageOf(wrap, 'png') })])
+        Markloupe.toast(t('imageCopied'))
+      } catch {
+        Markloupe.toast(t('imageFailed'))
+      }
+    }
+    const btn = h('button', {
+      class: 'ml-btn ml-mermaid-image',
+      text: t('mermaidImage'),
+      title: t('mermaidImageTitle'),
+      attrs: { 'aria-haspopup': 'menu', 'aria-expanded': 'false' },
+      on: {
+        click: () => {
+          if (Markloupe.menuOpenFor(btn)) return Markloupe.closeMenu()
+          // 一般 http 網頁沒有剪貼簿 API，無法寫入圖片
+          const canCopy = !!navigator.clipboard?.write && typeof ClipboardItem === 'function'
+          Markloupe.openMenu({
+            anchor: btn,
+            label: t('mermaidImage'),
+            items: [
+              { label: t('imageCopyPng'), fn: copy, disabled: canCopy ? undefined : t('imageCopyUnavailable') },
+              { label: t('imageDownloadPng'), fn: () => download('png') },
+              { label: t('imageDownloadSvg'), fn: () => download('svg') },
+            ],
+          })
+        },
+      },
+    })
+    return btn
+  }
+
   /** 顯示圖或原始碼 */
   function showSource(wrap, on) {
     wrap.classList.toggle('ml-mermaid-source', on)
@@ -241,6 +369,8 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       const { svg } = await mermaid.render(id, code)
       remember(key, svg)
       if (wrap.isConnected) setSvg(wrap, svg, theme)
+      // 繪製期間主題變了：rethemeMermaid 只重繪已畫好的圖，這張要自己再排一次
+      if (wrap.isConnected && themeNow() !== theme) enqueue(wrap)
     } catch (err) {
       if (wrap.isConnected) setError(wrap, err)
     } finally {
@@ -278,7 +408,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       const lang = wrap.querySelector('.ml-code-lang')
       if (lang) lang.after(toggle)
       else wrap.querySelector('.ml-code-bar').prepend(toggle)
-      toggle.after(...fullscreenControls(wrap))
+      toggle.after(...fullscreenControls(wrap), imageMenu(wrap))
       wrap.insertBefore(view, wrap.querySelector('pre'))
       showSource(wrap, false)
       const key = `${themeNow()}\n${wrap.dataset.mlMermaidCode}`

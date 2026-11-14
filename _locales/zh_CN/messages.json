@@ -333,6 +333,30 @@
   "mermaidFullscreenTitle": {
     "message": "全屏查看：滚轮缩放、拖动移动、双击重置（Esc 离开）"
   },
+  "mermaidImage": {
+    "message": "图片"
+  },
+  "mermaidImageTitle": {
+    "message": "把图表复制或下载为图片（浅色）"
+  },
+  "imageCopyPng": {
+    "message": "复制为 PNG"
+  },
+  "imageDownloadPng": {
+    "message": "下载 PNG"
+  },
+  "imageDownloadSvg": {
+    "message": "下载 SVG"
+  },
+  "imageCopied": {
+    "message": "已复制图表图片"
+  },
+  "imageFailed": {
+    "message": "无法生成图片"
+  },
+  "imageCopyUnavailable": {
+    "message": "复制图片需要 https 网页或本地文件，请改用下载 PNG"
+  },
   "zoomIn": {
     "message": "放大"
   },
@@ -507,11 +531,20 @@
   "optCodeWrap": {
     "message": "代码自动换行"
   },
+  "optCodeLineNumbers": {
+    "message": "代码块显示行号"
+  },
   "optRememberScroll": {
     "message": "记住阅读位置"
   },
   "optLinkNewTab": {
     "message": "外部链接在新标签页打开"
+  },
+  "optLinkCheck": {
+    "message": "标出指向不存在本地文件的链接"
+  },
+  "linkBroken": {
+    "message": "找不到这个文件"
   },
   "optMermaid": {
     "message": "绘制 Mermaid 图表"
@@ -578,6 +611,15 @@
   },
   "refreshInterval": {
     "message": "检查间隔 (ms)"
+  },
+  "optRefreshHighlight": {
+    "message": "自动更新后标出改动"
+  },
+  "changesCount": {
+    "message": "$1 处改动"
+  },
+  "changesCountTitle": {
+    "message": "跳到下一处改动"
   },
   "shortcutSettings": {
     "message": "快捷键设置"

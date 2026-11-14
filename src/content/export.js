@@ -65,6 +65,17 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
       delete el.dataset.mlFold
     }
     for (const el of clone.querySelectorAll('.ml-folded')) el.classList.remove('ml-folded')
+    for (const a of clone.querySelectorAll('a.ml-link-broken')) {
+      a.classList.remove('ml-link-broken')
+      if (!a.classList.length) a.removeAttribute('class')
+      if (a.dataset.mlTitle) a.title = a.dataset.mlTitle
+      else a.removeAttribute('title')
+      delete a.dataset.mlTitle
+    }
+    for (const el of clone.querySelectorAll('.ml-changed, .ml-changed-del, .ml-changed-del-end, .ml-changed-current')) {
+      el.classList.remove(...Markloupe.CHANGE_CLASSES)
+      if (!el.classList.length) el.removeAttribute('class')
+    }
     // 全螢幕中的圖表回到文件裡，縮放與位移不帶進匯出檔
     for (const el of clone.querySelectorAll('.ml-mermaid-full')) {
       el.classList.remove('ml-mermaid-full')
@@ -151,11 +162,47 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     return s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
   }
 
-  /** 部分內容（例如一個章節）整理成靜態 HTML，供複製到剪貼簿 */
-  Markloupe.staticHtml = function (nodes) {
+  function staticNodes(nodes) {
     const box = document.createElement('article')
     for (const n of nodes) box.append(n.cloneNode(true))
-    return staticArticle(box).innerHTML
+    return staticArticle(box)
+  }
+
+  /** 部分內容（例如一個章節）整理成靜態 HTML，供複製到剪貼簿 */
+  Markloupe.staticHtml = nodes => staticNodes(nodes).innerHTML
+
+  const dataUrl = blob =>
+    new Promise((resolve, reject) => {
+      const r = new FileReader()
+      r.onload = () => resolve(r.result)
+      r.onerror = () => reject(r.error)
+      r.readAsDataURL(blob)
+    })
+
+  /**
+   * 複製到剪貼簿的 HTML：畫好的 Mermaid 圖換成淺色 PNG 的 <img>。
+   * Word、Google Docs 不收內嵌的 SVG，也不套用頁面的 CSS，留著 SVG 只會貼出原本藏起來的原始碼
+   */
+  Markloupe.clipboardHtml = async function (nodes) {
+    const wraps = nodes.flatMap(n =>
+      n.nodeType !== Node.ELEMENT_NODE ? [] : [...(n.matches('.ml-mermaid') ? [n] : []), ...n.querySelectorAll('.ml-mermaid')],
+    )
+    const images = wraps.length ? await Markloupe.mermaidImages(wraps) : new Map()
+    const box = staticNodes(nodes)
+    // 複製出來的圖表與原本的順序相同
+    const copies = box.querySelectorAll('.ml-mermaid')
+    for (const [i, wrap] of wraps.entries()) {
+      const png = images.get(wrap)
+      if (!png || !copies[i]) continue
+      const img = Markloupe.h('img', {
+        src: await dataUrl(png.blob),
+        alt: (wrap.dataset.mlMermaidCode || '').trim().split('\n')[0] || 'Mermaid',
+        width: Math.round(png.width),
+        height: Math.round(png.height),
+      })
+      copies[i].replaceWith(Markloupe.h('p', {}, [img]))
+    }
+    return box.innerHTML
   }
 
   /**

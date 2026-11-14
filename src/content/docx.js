@@ -240,8 +240,9 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
         add(img, got, w, attrW ? (got.h * attrW) / got.w : got.h)
       }
       for (const svg of root.querySelectorAll('.ml-mermaid .ml-mermaid-view svg')) {
-        const got = await rasterizeSvg(svg).catch(() => null)
-        if (got) add(svg, got, got.w / 2, got.h / 2) // 以兩倍解析度繪製，顯示原尺寸
+        const got = await Markloupe.mermaidPng(svg).catch(() => null)
+        // 以兩倍解析度繪製，顯示原尺寸
+        if (got) add(svg, { ext: 'png', bytes: new Uint8Array(await got.blob.arrayBuffer()) }, got.width, got.height)
       }
     }
 
@@ -348,6 +349,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
               : this.flow(c, { ...ctx, indent: (ctx.indent || 0) + INDENT * 2 }),
           )
         case 'DETAILS': {
+          if (el.classList.contains('markdown-alert')) return this.quote(el, ctx)
           const summary = el.querySelector(':scope > summary')
           const head = summary ? [this.para([...summary.childNodes].map(n => this.inline(n, { b: true })).join(''), ctx)] : []
           return [...head, ...this.flow(el, ctx)]
@@ -620,7 +622,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
   const decode = (bytes, mime) => createImageBitmap(new Blob([bytes], { type: mime }))
   const fromBase64 = b64 => Uint8Array.from(atob(b64), c => c.charCodeAt(0))
 
-  /** 畫到 canvas 後存成 PNG：Word 不支援的格式（WebP、SVG 等）與 Mermaid 圖表 */
+  /** 畫到 canvas 後存成 PNG：Word 不支援的圖片格式（WebP、SVG 等） */
   async function toPng(source, w, h) {
     const canvas = new OffscreenCanvas(Math.max(1, Math.round(w)), Math.max(1, Math.round(h)))
     canvas.getContext('2d').drawImage(source, 0, 0, canvas.width, canvas.height)
@@ -643,22 +645,6 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     const bmp = await decode(bytes, mime)
     if (WORD_IMAGE[mime]) return { ext: WORD_IMAGE[mime], bytes, w: bmp.width, h: bmp.height }
     return toPng(bmp, bmp.width, bmp.height)
-  }
-
-  /** Mermaid 圖表（SVG 文字標籤，沒有 foreignObject，畫到 canvas 不會被汙染）轉成兩倍解析度的 PNG */
-  async function rasterizeSvg(svg) {
-    const box = svg.viewBox?.baseVal
-    const w = box?.width || Number.parseFloat(svg.getAttribute('width')) || 600
-    const h = box?.height || Number.parseFloat(svg.getAttribute('height')) || 400
-    const copy = svg.cloneNode(true)
-    copy.setAttribute('width', w)
-    copy.setAttribute('height', h)
-    copy.removeAttribute('style')
-    const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(new XMLSerializer().serializeToString(copy))}`
-    const img = new Image()
-    img.src = url
-    await img.decode()
-    return toPng(img, w * 2, h * 2)
   }
 
   const BLOCK_TAGS = new Set([

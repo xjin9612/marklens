@@ -103,6 +103,14 @@ Markloupe.docBaseName = function () {
   return base.replace(Markloupe.MD_EXT, '')
 }
 
+/** 元素所在章節的標題文字（往前找文章最上層的標題）；沒有標題時是文件標題 */
+Markloupe.sectionTitle = function (el) {
+  let n = el
+  while (n.parentElement && !n.parentElement.classList.contains('markdown-body')) n = n.parentElement
+  while ((n = n.previousElementSibling) && !/^H[1-6]$/.test(n.tagName));
+  return n?.dataset.mlText || document.title
+}
+
 /** 複製文字；非安全環境（一般 http）退回 execCommand */
 Markloupe.copyText = async function (text) {
   try {
@@ -121,17 +129,19 @@ Markloupe.copyText = async function (text) {
 /**
  * 複製純文字並附上 HTML：支援格式的程式貼上時取 HTML，純文字輸入框取純文字
  * 一般 http 網頁沒有 Clipboard API，改在 copy 事件裡寫入兩種格式
+ * @param {string | Promise<string>} html 需要時間產生時傳 Promise，交給剪貼簿等待，不會失去使用者操作的授權
  */
 Markloupe.copyRich = async function (text, html) {
   try {
     await navigator.clipboard.write([
       new ClipboardItem({
         'text/plain': new Blob([text], { type: 'text/plain' }),
-        'text/html': new Blob([html], { type: 'text/html' }),
+        'text/html': Promise.resolve(html).then(s => new Blob([s], { type: 'text/html' })),
       }),
     ])
     return true
   } catch {
+    html = await html
     const onCopy = e => {
       e.clipboardData.setData('text/plain', text)
       e.clipboardData.setData('text/html', html)

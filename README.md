@@ -63,6 +63,8 @@ Click a task checkbox in a local `.md` file. Markloupe saves `[ ]` / `[x]` strai
 
 Save the file in your editor and the page updates. Your scroll position, folded sections and table state stay as they were.
 
+Changed blocks get a colored bar, and a line marks where text was removed. Click **N changes** in the toolbar to jump to the next one. A mark goes away a few seconds after it scrolls into view while you are on the page, so saving from your editor keeps the marks until you come back. Turn this off in the popup → **Auto refresh**.
+
 ![Typing in an editor; the reading page updates after each save](docs/screenshots/liveReload.gif)
 
 ### Outline, folding and folders
@@ -98,9 +100,10 @@ Add `lang` to the front matter (for example `lang: zh-TW`) to set the document l
 **Reading**
 - Sidebar outline that highlights the section you're reading, with heading search (`/`), word count, reading time and how many tasks each section has done (3/8)
 - Fold any section, or fold and unfold everything at once; Ctrl+F still finds text in folded sections
-- Live reload for local files that keeps your scroll position, folds and table state
+- Live reload for local files that keeps your scroll position, folds and table state, and highlights what changed
 - Remembers where you stopped reading each file
 - Relative `.md` links open in the reader; external links open in a new tab (can be turned off)
+- In local documents, links to files or folders that do not exist get a wavy underline (can be turned off). Markloupe checks only the file names in the linked folders
 - Raw source view, one key away, with line numbers; click one to copy that line's location
 
 **Tables**
@@ -113,9 +116,10 @@ Add `lang` to the front matter (for example `lang: zh-TW`) to set the document l
 - CommonMark and GitHub Flavored Markdown: tables, task lists, footnotes (hover a footnote mark to read it in place), autolinks
 - GitHub alerts (`> [!NOTE]`), `==highlight==`, emoji shortcodes (`:tada:`), collapsible front matter, shown as a key–value list when it has only simple `key: value` lines (its `lang` sets the document language)
 - Docs-site containers (`::: tip`, `::: warning`, `::: details`, Docusaurus `:::note`) and definition lists
-- Syntax highlighting with a language label, copy button and wrap toggle
+- Obsidian wikilinks (`[[Note]]`, `[[Note#Heading|text]]`), image embeds (`![[pic.png]]`) and callouts with custom titles that can fold (`> [!faq]- Title`). A wikilink points to the file in the same folder as the document; Markloupe does not search other folders for it. Other `![[…]]` embeds show as links
+- Syntax highlighting with a language label, copy button and wrap toggle. Line numbers can be turned on in the popup → **Layout defaults**. ```` ```js {1,3-5} ```` highlights lines, and `showLineNumbers` or `:line-numbers` after the language shows line numbers for that block
 - KaTeX math (`$…$`, `$$…$$`, `` $`…`$ ``, ` ```math `), on web pages too; click a formula to copy its LaTeX
-- Mermaid diagrams; they follow the theme and can be switched back to source
+- Mermaid diagrams; they follow the theme and can be switched back to source. **Image** copies a diagram as PNG or downloads it as PNG or SVG, always in light colors
 - View a diagram fullscreen: scroll to zoom, drag to move, double-click to reset
 - Images load as you scroll; click to zoom
 

@@ -107,6 +107,8 @@ const ctx = await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), 'm
     `--load-extension=${extDir}`,
     '--disable-extensions-file-access-check', // 等同使用者開啟「允許存取檔案網址」
     '--lang=zh-TW', // 介面語言；以下檢查以繁體中文文字為準，英文另有一組檢查
+    // 127.0.0.1 算安全環境；以這個名稱連到測試伺服器，才是一般網站那種不安全的 http 頁面
+    '--host-resolver-rules=MAP insecure.test 127.0.0.1',
   ],
   viewport: { width: 1700, height: 950 },
 })
@@ -265,19 +267,13 @@ try {
   await check('程式碼區塊中英對齊（框線字元表格每列等寬）', async () => {
     await pageUntil(page, () => document.documentElement.dataset.mlCodeFont)
     const info = JSON.parse(await page.evaluate(() => document.documentElement.dataset.mlCodeFont))
-    const widths = await page.$eval('.ml-code code.language-text', code => {
-      const node = code.firstChild
-      const lines = node.textContent.split('\n').filter(Boolean)
-      let pos = 0
-      return lines.map(line => {
-        const start = node.textContent.indexOf(line, pos)
-        pos = start + line.length
+    const widths = await page.$eval('.ml-code code.language-text', code =>
+      [...code.querySelectorAll('.code-line')].map(line => {
         const r = document.createRange()
-        r.setStart(node, start)
-        r.setEnd(node, pos)
+        r.selectNodeContents(line)
         return r.getBoundingClientRect().width
-      })
-    })
+      }),
+    )
     const spread = Math.max(...widths) - Math.min(...widths)
     assert.ok(spread < 0.5, `各列寬度差 ${spread.toFixed(2)}px：${widths.map(w => w.toFixed(1)).join(', ')}；${JSON.stringify(info)}`)
   })
@@ -1513,6 +1509,95 @@ try {
       })
     }
   })
+  await check('Mermaid：圖片選單在深色主題下也輸出淺色的 PNG 與 SVG，可複製 PNG，完成後還原深色', async () => {
+    await ctx.grantPermissions(['clipboard-read', 'clipboard-write'])
+    const before = (await sw.evaluate(() => Markloupe.loadSettings())).theme
+    const wrap = mp.locator('.ml-mermaid').first()
+    const pick = async label => {
+      await wrap.hover()
+      await wrap.locator('.ml-mermaid-image').click()
+      await mp.click(`.ml-menu-item:has-text("${label}")`)
+    }
+    try {
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'dark' }))
+      await mp.waitForFunction(() => document.querySelector('.ml-mermaid').dataset.mlMermaidTheme === 'dark')
+      assert.equal(await mp.locator('.ml-mermaid').nth(2).locator('.ml-mermaid-image').isVisible(), false, '語法錯誤的圖表沒有圖片選單')
+      const size = await wrap.evaluate(el => {
+        const box = el.querySelector('.ml-mermaid-view svg').viewBox.baseVal
+        return { w: box.width, h: box.height }
+      })
+
+      const [png] = await Promise.all([mp.waitForEvent('download'), pick('下載 PNG')])
+      assert.match(png.suggestedFilename(), /\.png$/)
+      const pngFile = join(work, `diagram-${Date.now()}.png`)
+      await png.saveAs(pngFile)
+      const bytes = readFileSync(pngFile)
+      assert.equal(bytes.subarray(1, 4).toString(), 'PNG')
+      // 兩倍解析度、四周各留白 16px
+      assert.equal(bytes.readUInt32BE(16), Math.round((size.w + 32) * 2))
+      assert.equal(bytes.readUInt32BE(20), Math.round((size.h + 32) * 2))
+      const corner = await mp.evaluate(async b64 => {
+        const bmp = await createImageBitmap(await (await fetch(`data:image/png;base64,${b64}`)).blob())
+        const c = new OffscreenCanvas(bmp.width, bmp.height)
+        const g = c.getContext('2d')
+        g.drawImage(bmp, 0, 0)
+        return [...g.getImageData(2, 2, 1, 1).data]
+      }, bytes.toString('base64'))
+      assert.ok(corner[0] > 240 && corner[1] > 240 && corner[2] > 240 && corner[3] === 255, `背景應是不透明的淺色：${corner}`)
+      assert.equal(await mp.evaluate(() => document.documentElement.dataset.mlTheme), 'dark', '取完圖還原深色')
+
+      const [svg] = await Promise.all([mp.waitForEvent('download'), pick('下載 SVG')])
+      assert.match(svg.suggestedFilename(), /\.svg$/)
+      const svgFile = join(work, `diagram-${Date.now()}.svg`)
+      await svg.saveAs(svgFile)
+      const text = readFileSync(svgFile, 'utf8')
+      assert.ok(text.startsWith('<?xml') && text.includes('<svg') && text.includes('載入程式庫'))
+      assert.ok(!/<script|foreignObject/i.test(text), 'SVG 不含腳本與 HTML')
+
+      await pick('複製為 PNG')
+      await mp.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent.includes('已複製圖表圖片'))
+      assert.ok((await mp.evaluate(async () => (await navigator.clipboard.read())[0].types)).includes('image/png'))
+      await mp.waitForFunction(() => document.querySelector('.ml-mermaid').dataset.mlMermaidTheme === 'dark')
+    } finally {
+      await sw.evaluate(t => Markloupe.saveSettings({ theme: t }), before)
+      await mp.waitForFunction(() => document.querySelector('.ml-mermaid').dataset.mlMermaidTheme !== 'dark' || document.documentElement.dataset.mlTheme === 'dark')
+    }
+  })
+  await check('Mermaid：圖表還在繪製時切換主題，畫完後依新主題重繪', async () => {
+    const before = (await sw.evaluate(() => Markloupe.loadSettings())).theme
+    const light = before === 'dark' ? 'light' : before
+    await sw.evaluate(t => Markloupe.saveSettings({ theme: t }), light)
+    const rp = await openDoc(pathToFileURL(localMermaid).href)
+    try {
+      // 開頁後立刻切換：第一張圖多半還在繪製
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'dark' }))
+      const themes = () => rp.$$eval('.ml-mermaid', els => els.map(el => el.dataset.mlMermaidTheme ?? 'none'))
+      await until(async () => (await themes()).filter(x => x.startsWith('dark')).length === 2, 15000).catch(async e => {
+        throw new Error(`${e.message}：${JSON.stringify(await themes())}`)
+      })
+    } finally {
+      await sw.evaluate(t => Markloupe.saveSettings({ theme: t }), before)
+      await rp.close()
+    }
+  })
+  await check('Mermaid：一般 http 網頁不能複製圖片，選單說明原因', async () => {
+    const hp = await openDoc(`http://insecure.test:${port}/docs/mermaid.md`)
+    try {
+      assert.equal(await hp.evaluate(() => isSecureContext), false, '測試的前提：不安全的 http 頁面')
+      await hp.waitForSelector('.ml-mermaid-view svg', { timeout: 15000 })
+      const wrap = hp.locator('.ml-mermaid').first()
+      await wrap.hover()
+      await wrap.locator('.ml-mermaid-image').click()
+      const item = hp.locator('.ml-menu-item:has-text("複製為 PNG")')
+      assert.equal(await item.getAttribute('aria-disabled'), 'true')
+      // Playwright 不點 aria-disabled 的元素；用鍵盤選取，與使用者以鍵盤操作相同
+      await item.focus()
+      await hp.keyboard.press('Enter')
+      await hp.waitForFunction(() => document.querySelector('.ml-toast.show')?.textContent.includes('https'))
+    } finally {
+      await hp.close()
+    }
+  })
   await check('配色：米色、高對比、護眼綠、石墨套用到閱讀頁，Mermaid 依配色重繪，GitHub 不設屬性', async () => {
     const bg = () => mp.evaluate(() => getComputedStyle(document.body).backgroundColor)
     const apply = async (theme, palette) => {
@@ -1902,6 +1987,155 @@ try {
   })
   await mt.screenshot({ path: join(shotDir, 'ml-math.png'), fullPage: true })
 
+  /* ---------- 自動更新標出改動 ---------- */
+  {
+    const filler = Array.from({ length: 60 }, (_, i) => `填充段落 ${i + 1}。\n`).join('\n')
+    const base = [
+      '# 改動標示', '', '第一段。', '', '第二段', '有兩行。', '',
+      '- 項目 A', '  - 子項目 A1', '  - 子項目 A2', '- 項目 B', '',
+      '| 名稱 | 數量 |', '|---|---|', '| 甲 | 1 |', '| 乙 | 2 |', '| 丙 | 3 |', '',
+      '```js', 'const a = 1', 'const b = 2', '```', '',
+      '$$', 'x^2', '$$', '',
+      '[ref]: https://example.com/', '',
+      '最後一段。', '', filler, '尾段。', '',
+    ].join('\n')
+    const file = join(work, 'changes.md')
+    writeFileSync(file, base)
+    const cp = await openDoc(pathToFileURL(file).href)
+    /** 寫入新內容並等畫面出現 sentinel；回傳標出的區塊 */
+    const edit = async (text, sentinel) => {
+      writeFileSync(file, text)
+      await cp.waitForFunction(s => document.querySelector('.markdown-body').textContent.includes(s), sentinel, { timeout: 8000 })
+      return cp.evaluate(() =>
+        Array.from(document.querySelectorAll('.ml-changed, .ml-changed-del, .ml-changed-del-end'), el => ({
+          tag: el.tagName,
+          cls: [...el.classList].filter(c => c.startsWith('ml-changed')).join(' '),
+          text: el.textContent.trim().split('\n')[0],
+        })),
+      )
+    }
+    const reset = async () => {
+      writeFileSync(file, base)
+      await cp.reload()
+      await cp.waitForSelector('#ml-root .markdown-body h1')
+      await cp.bringToFront()
+    }
+    const count = () => cp.evaluate(() => {
+      const b = document.querySelector('.ml-tool-changes')
+      return b.hidden ? 0 : Number(b.textContent.match(/\d+/)[0])
+    })
+
+    await check('自動更新標出改動：段落、巢狀清單只標子項、表格標到列', async () => {
+      await cp.bringToFront()
+      const marks = await edit(base.replace('第一段。', '第一段改了。').replace('子項目 A2', '子項目 A2 改').replace('| 乙 | 2 |', '| 乙 | 20 |'), '第一段改了')
+      assert.deepEqual(marks, [
+        { tag: 'P', cls: 'ml-changed', text: '第一段改了。' },
+        { tag: 'LI', cls: 'ml-changed', text: '子項目 A2 改' },
+        { tag: 'TR', cls: 'ml-changed', text: '乙' },
+      ])
+      assert.equal(await count(), 3)
+      await cp.screenshot({ path: join(shotDir, 'ml-changes.png') })
+    })
+
+    await check('自動更新標出改動：程式碼區塊與數學公式標整個區塊；連結定義不標', async () => {
+      await reset()
+      await edit(base.replace('const b = 2', 'const b = 3').replace('x^2', 'x^3').replace('example.com/', 'example.org/'), 'const b = 3')
+      const marks = await cp.evaluate(() =>
+        Array.from(document.querySelectorAll('.markdown-body .ml-changed'), el => ({ code: !!el.querySelector('code') && el.textContent.includes('const a = 1'), math: !!el.querySelector('.katex') })),
+      )
+      assert.deepEqual(marks, [{ code: true, math: false }, { code: false, math: true }])
+    })
+
+    await check('自動更新標出改動：只刪除時標在下一個區塊上緣，刪除緊鄰修改時只標修改', async () => {
+      await reset()
+      let marks = await edit(base.replace('最後一段。\n\n', '').replace('尾段。', '尾段 A。'), '尾段 A')
+      assert.deepEqual(marks, [
+        { tag: 'P', cls: 'ml-changed-del', text: '填充段落 1。' },
+        { tag: 'P', cls: 'ml-changed', text: '尾段 A。' },
+      ])
+      await reset()
+      marks = await edit(base.replace('第二段\n有兩行。\n\n', '').replace('第一段。', '第一段 B。'), '第一段 B')
+      assert.deepEqual(marks, [{ tag: 'P', cls: 'ml-changed', text: '第一段 B。' }])
+      await reset()
+      marks = await edit(base.replace('填充段落 60。\n\n', '').replace('尾段。', '尾段 C。'), '尾段 C')
+      assert.deepEqual(marks, [{ tag: 'P', cls: 'ml-changed', text: '尾段 C。' }])
+    })
+
+    await check('自動更新標出改動：沒看過的改動跨次更新保留，改回原樣就消失；換行改成 CRLF 不算改動', async () => {
+      await reset()
+      await cp.evaluate(() => scrollTo(0, 0))
+      const v1 = base.replace('填充段落 40。', '填充段落 40 改。')
+      let marks = await edit(v1, '填充段落 40 改')
+      assert.equal(marks.length, 1)
+      marks = await edit(v1.replace('填充段落 50。', '填充段落 50 改。'), '填充段落 50 改')
+      assert.deepEqual(marks.map(m => m.text), ['填充段落 40 改。', '填充段落 50 改。'])
+      marks = await edit(v1.replace('填充段落 50。', '填充段落 50 改。').replace(/\n/g, '\r\n').replace('填充段落 30。', '填充段落 30 改。'), '填充段落 30 改')
+      assert.deepEqual(marks.map(m => m.text), ['填充段落 30 改。', '填充段落 40 改。', '填充段落 50 改。'])
+      marks = await edit(base.replace('填充段落 30。', '填充段落 30 改。'), '填充段落 50。')
+      assert.deepEqual(marks.map(m => m.text), ['填充段落 30 改。'])
+      assert.equal(await count(), 1)
+    })
+
+    await check('自動更新標出改動：工具列按鈕跳到下一處、展開摺疊；看過幾秒後移除標記', async () => {
+      await reset()
+      await cp.evaluate(() => scrollTo(0, 0))
+      await edit(base.replace('填充段落 45。', '填充段落 45 改。').replace('尾段。', '尾段 D。'), '尾段 D')
+      assert.equal(await count(), 2)
+      assert.equal(await cp.textContent('.ml-tool-changes'), '2 處改動')
+      const inView = text => cp.evaluate(t => {
+        const el = [...document.querySelectorAll('.ml-changed')].find(e => e.textContent.includes(t))
+        const r = el.getBoundingClientRect()
+        return r.top >= 0 && r.bottom <= innerHeight
+      }, text)
+      await cp.click('.ml-tool-changes')
+      assert.ok(await inView('填充段落 45 改'))
+      await cp.click('.ml-tool-changes')
+      assert.ok(await inView('尾段 D'))
+      assert.equal(await cp.textContent('.ml-changed-current'), '尾段 D。')
+      // 尾段在文件結尾捲不到中間，再按要回到第一處，而不是停在原地
+      await cp.click('.ml-tool-changes')
+      assert.equal(await cp.textContent('.ml-changed-current'), '填充段落 45 改。')
+      assert.ok(await inView('填充段落 45 改'))
+      await pageUntil(cp, () => document.querySelector('.ml-tool-changes').hidden, 10000)
+      assert.equal(await cp.locator('.ml-changed').count(), 0)
+    })
+
+    await check('自動更新標出改動：摺疊章節內的改動，按鈕會展開', async () => {
+      const doc = '# 標題\n\n開頭。\n\n## 章節\n\n章節內容。\n\n' + filler
+      writeFileSync(file, doc)
+      await cp.reload()
+      await cp.waitForSelector('#ml-root .markdown-body h1')
+      await cp.bringToFront()
+      await cp.click('.markdown-body h2 .ml-fold')
+      await edit(doc.replace('填充段落 20。', '填充段落 20 改。'), '填充段落 20 改')
+      assert.equal(await count(), 1)
+      await cp.click('.ml-tool-changes')
+      assert.ok(await cp.evaluate(() => {
+        const el = document.querySelector('.ml-changed')
+        const r = el.getBoundingClientRect()
+        return !el.closest('[hidden]') && r.height > 0 && r.top >= 0 && r.bottom <= innerHeight
+      }))
+    })
+
+    await check('自動更新標出改動：匯出不帶標記；設定關閉時不標', async () => {
+      await reset()
+      await edit(base.replace('第一段。', '第一段 E。'), '第一段 E')
+      const { html } = await exportFrom(cp)
+      assert.ok(html.includes('第一段 E'))
+      assert.ok(!/class="[^"]*ml-changed/.test(html))
+      await sw.evaluate(() => Markloupe.saveSettings({ refreshHighlight: false }))
+      try {
+        await reset()
+        const marks = await edit(base.replace('第一段。', '第一段 F。'), '第一段 F')
+        assert.deepEqual(marks, [])
+        assert.equal(await count(), 0)
+      } finally {
+        await sw.evaluate(() => Markloupe.saveSettings({ refreshHighlight: true }))
+      }
+    })
+    await cp.close()
+  }
+
   /* ---------- 匯出 HTML ---------- */
   /** 按工具列的匯出並選擇模式，回傳下載的 HTML 內容與存檔路徑 */
   async function exportFrom(pg, mode = '圖片保留連結') {
@@ -2230,6 +2464,9 @@ try {
       '> [!WARNING]',
       '> 小心',
       '',
+      '> [!bug]- 收合的提示',
+      '> 收合的內容',
+      '',
       '```js',
       'const a = 1',
       '\tif (a) {}',
@@ -2277,6 +2514,8 @@ try {
       // 引用與提示框：左側框線，提示框的標題用對應的顏色
       assert.match(doc, /<w:left w:val="single" w:sz="18" w:space="8" w:color="D0D7DE"\/>/)
       assert.match(doc, /<w:color w:val="9A6700"\/><\/w:rPr><w:t xml:space="preserve">Warning/)
+      assert.match(doc, /<w:color w:val="CF222E"\/><\/w:rPr><w:t xml:space="preserve">收合的提示/, '可摺疊的提示框照提示框匯出')
+      assert.match(doc, /收合的內容/)
       // 表格：表頭列、靠右對齊、每一欄各宣告一次欄寬
       assert.match(doc, /<w:tblHeader\/>/)
       assert.match(doc, /<w:tblGrid>(<w:gridCol w:w="\d+"\/>){2}<\/w:tblGrid>/)
@@ -2739,6 +2978,148 @@ try {
     }
   })
 
+  await check('Obsidian 語法：[[wikilink]] 連到同資料夾的筆記與標題，![[圖片]] 顯示圖片，提示框可摺疊與自訂標題', async () => {
+    const dir = join(work, 'obsidian')
+    mkdirSync(dir, { recursive: true })
+    copyFileSync(join(root, 'test/fixtures/obsidian.md'), join(dir, 'obsidian.md'))
+    writeFileSync(join(dir, 'pic.png'), PNG)
+    const op = await openDoc(pathToFileURL(join(dir, 'obsidian.md')).href)
+    try {
+      const links = await op.$$eval('.markdown-body :is(p, td) > a:not(.ml-anchor)', els => els.map(a => [a.getAttribute('href'), a.textContent]))
+      assert.deepEqual(links, [
+        ['Other%20Note.md', 'Other Note'],
+        ['Folder/Sub%20Note.md', '別名'],
+        ['Other%20Note.md#some-heading', 'Other Note > Some Heading'],
+        [`#${encodeURIComponent('本頁標題')}`, '本頁標題'],
+        ['Other%20Note.md', 'Other Note > ^abc123'],
+        ['report.pdf', 'report.pdf'],
+        ['v1.2%20notes.md', 'v1.2 notes'],
+        ['Embedded%20Note.md', 'Embedded Note'],
+        ['Other%20Note.md', '表格別名'],
+      ])
+      assert.equal(await op.textContent('.markdown-body p code'), '[[不是連結]]')
+      assert.ok((await op.textContent('.markdown-body')).includes('與 [[跳脫]] 保持原文'))
+      assert.deepEqual(await op.$eval('.markdown-body img', img => [img.getAttribute('src'), img.getAttribute('width'), img.naturalWidth]), ['pic.png', '120', 1])
+      const callouts = () =>
+        op.$$eval('.markdown-body .markdown-alert', els =>
+          els.map(el => [el.tagName, el.className.replace('markdown-alert ', ''), el.querySelector('.markdown-alert-title').innerHTML, el.open ?? null]),
+        )
+      assert.deepEqual(await callouts(), [
+        ['DETAILS', 'markdown-alert-note', '可以收合嗎？', false],
+        ['DETAILS', 'markdown-alert-tip', '預設展開', true],
+        ['BLOCKQUOTE', 'markdown-alert-caution', '自訂 <strong>標題</strong>', null],
+        ['BLOCKQUOTE', 'markdown-alert-note', 'Custom', null],
+        ['BLOCKQUOTE', 'markdown-alert-note', 'Note', null],
+      ])
+      assert.equal(await op.locator('.markdown-body p:text-is("收合的內容")').isVisible(), false)
+      await op.click('summary:has-text("可以收合嗎")')
+      assert.equal(await op.locator('.markdown-body p:text-is("收合的內容")').isVisible(), true)
+      await op.screenshot({ path: join(shotDir, 'ml-obsidian.png'), fullPage: true })
+    } finally {
+      await op.close()
+    }
+  })
+
+  await check('程式碼行號：{2,4-5} 標示指定行、跨行的語法標色每行各自完整；行號依設定與區塊標記顯示，複製不含行號', async () => {
+    const md = [
+      '# 程式碼行號', '',
+      '```js {2,4-5}', 'const a = 1', 'const b = 2', '/* 跨行', '註解 */', 'const c = 3', '```', '',
+      '```py showLineNumbers', 'print(1)', '```', '',
+      '```txt :no-line-numbers', 'x', '```', '',
+      '    indented', '    code', '',
+      '```', ...Array.from({ length: 1000 }, (_, i) => `line ${i + 1}`), '```', '',
+    ].join('\n')
+    const file = join(work, 'code-lines.md')
+    writeFileSync(file, md)
+    const numbers = pg => pg.$$eval('.markdown-body pre > code', els => els.map(c => getComputedStyle(c.querySelector('.code-line'), '::before').content !== 'none'))
+    let lp = await openDoc(pathToFileURL(file).href)
+    try {
+      const first = await lp.$eval('.markdown-body pre > code', c => ({
+        text: c.textContent,
+        lines: c.querySelectorAll(':scope > .code-line').length,
+        hl: [...c.querySelectorAll(':scope > .code-line')].flatMap((l, i) => (l.classList.contains('code-line-hl') ? [i + 1] : [])),
+        comments: [...c.querySelectorAll(':scope > .code-line')].map(l => l.querySelector('.hljs-comment')?.textContent ?? null),
+      }))
+      assert.deepEqual(first, {
+        text: 'const a = 1\nconst b = 2\n/* 跨行\n註解 */\nconst c = 3\n',
+        lines: 5,
+        hl: [2, 4, 5],
+        comments: [null, null, '/* 跨行', '註解 */', null],
+      })
+      assert.ok(await lp.$eval('.markdown-body pre > code', c => c.classList.contains('language-js')), '語言後的 {…} 不影響語言辨識')
+      assert.deepEqual(await numbers(lp), [false, true, false, false, false])
+      assert.ok(await lp.$eval('.markdown-body .ml-code:last-of-type code', c => c.classList.contains('code-digits-4')))
+      await ctx.grantPermissions(['clipboard-read', 'clipboard-write'])
+      await lp.bringToFront()
+      await lp.click('.ml-code >> nth=0 >> .ml-btn:has-text("複製")')
+      await until(async () => (await lp.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/g, '\n') === 'const a = 1\nconst b = 2\n/* 跨行\n註解 */\nconst c = 3\n')
+    } finally {
+      await lp.close()
+    }
+    await sw.evaluate(() => Markloupe.saveSettings({ codeLineNumbers: true }))
+    lp = await openDoc(pathToFileURL(file).href)
+    try {
+      assert.deepEqual(await numbers(lp), [true, true, false, true, true])
+      const gutter = await lp.$$eval('.markdown-body pre > code', els => els.map(c => getComputedStyle(c).getPropertyValue('--ml-gutter').trim()))
+      assert.equal(gutter[4], '4ch')
+    } finally {
+      await lp.close()
+      await sw.evaluate(() => Markloupe.saveSettings({ codeLineNumbers: false }))
+    }
+  })
+
+  await check('失效連結：本機文件中指向不存在的檔案或資料夾的相對連結加上標示，建立檔案後自動更新會取消；匯出不帶標示', async () => {
+    const dir = join(work, 'links')
+    mkdirSync(join(dir, 'sub'), { recursive: true })
+    writeFileSync(join(dir, 'exists.md'), '# x\n')
+    writeFileSync(join(dir, 'sub', 'inner.md'), '# x\n')
+    const doc = [
+      '# 連結檢查', '',
+      '[存在](exists.md) [不存在](missing.md) [子資料夾](sub/inner.md) [子資料夾中不存在](sub/none.md)',
+      '[不存在的資料夾](nodir/x.md) [上一層](../links/exists.md) [資料夾](sub/) [錨點](exists.md#x) [本頁](#連結檢查)',
+      '[網址](https://example.com/none.md) [[missing note]] [大小寫](EXISTS.md) [有標題](gone.md "原標題")', '',
+    ].join('\n')
+    const file = join(dir, 'doc.md')
+    writeFileSync(file, doc)
+    const broken = pg => pg.$$eval('.markdown-body a.ml-link-broken', els => els.map(a => [a.textContent, a.title]))
+    // Windows 與 macOS 的檔案系統不分大小寫
+    const caseBroken = process.platform === 'linux' ? [['大小寫', '找不到這個檔案']] : []
+    const want = [
+      ['不存在', '找不到這個檔案'],
+      ['子資料夾中不存在', '找不到這個檔案'],
+      ['不存在的資料夾', '找不到這個檔案'],
+      ['missing note', '找不到這個檔案'],
+      ...caseBroken,
+      ['有標題', '原標題\n找不到這個檔案'],
+    ]
+    const lp = await openDoc(pathToFileURL(file).href)
+    try {
+      await lp.bringToFront()
+      await until(async () => (await broken(lp)).length === want.length, 5000).catch(() => {})
+      assert.deepEqual(await broken(lp), want)
+      const { html } = await exportFrom(lp)
+      assert.ok(!/class="[^"]*ml-link-broken/.test(html))
+      assert.ok(!html.includes('找不到這個檔案'))
+      assert.match(html, /title="原標題"/)
+      writeFileSync(join(dir, 'missing.md'), '# x\n')
+      writeFileSync(file, doc + '\n已建立 missing.md\n')
+      await pageUntil(lp, () => document.body.innerText.includes('已建立 missing.md'), 8000)
+      await until(async () => (await broken(lp)).length === want.length - 1, 5000).catch(() => {})
+      assert.deepEqual(await broken(lp), want.slice(1))
+    } finally {
+      await lp.close()
+    }
+    await sw.evaluate(() => Markloupe.saveSettings({ linkCheck: false }))
+    const off = await openDoc(pathToFileURL(file).href)
+    try {
+      await new Promise(r => setTimeout(r, 500))
+      assert.deepEqual(await broken(off), [])
+    } finally {
+      await off.close()
+      await sw.evaluate(() => Markloupe.saveSettings({ linkCheck: true }))
+    }
+  })
+
   // Windows 的剪貼簿會把 \n 存成 \r\n，讀回時統一換行再比對
   const clip = pg => pg.evaluate(() => navigator.clipboard.readText()).then(t => t.replace(/\r\n/g, '\n'))
   async function copyVia(pg, button, item) {
@@ -2747,6 +3128,44 @@ try {
     await pg.click(`.ml-menu-item:has-text("${item}")`)
     await pg.waitForSelector('.ml-toast.show')
   }
+  await check('複製內容：HTML 裡的 Mermaid 圖換成淺色 PNG，語法錯誤的保留原始碼，純文字仍是 Markdown', async () => {
+    await ctx.grantPermissions(['clipboard-read', 'clipboard-write'])
+    const before = (await sw.evaluate(() => Markloupe.loadSettings())).theme
+    const cp = await openDoc(pathToFileURL(localMermaid).href)
+    try {
+      await cp.bringToFront()
+      await sw.evaluate(() => Markloupe.saveSettings({ theme: 'dark' }))
+      const themes = () => cp.$$eval('.ml-mermaid', els => els.map(el => el.dataset.mlMermaidTheme ?? 'none'))
+      await until(async () => (await themes()).filter(x => x.startsWith('dark')).length === 2, 15000).catch(async e => {
+        throw new Error(`${e.message}：${JSON.stringify(await themes())} ${await cp.evaluate(() => document.documentElement.dataset.mlTheme)}`)
+      })
+      await copyVia(cp, cp.locator('.ml-tool-copy'), '複製內容')
+      assert.equal(await clip(cp), readFileSync(localMermaid, 'utf8'))
+      const html = await cp.evaluate(async () => {
+        const [item] = await navigator.clipboard.read()
+        return (await item.getType('text/html')).text()
+      })
+      const imgs = [...html.matchAll(/<img [^>]*src="(data:image\/png;base64,[^"]+)"[^>]*>/g)]
+      assert.equal(imgs.length, 2, '兩張畫好的圖換成 PNG')
+      assert.ok(!html.includes('<svg'), '不含 SVG')
+      // 文件裡有 3 個 mermaid 區塊與 1 個一般程式碼區塊：剩下的 <pre> 是語法錯誤圖表的錯誤訊息與原始碼、一般程式碼
+      assert.equal((html.match(/<pre[\s>]/g) || []).length, 3, '畫好的圖不附原始碼')
+      assert.ok(html.includes('未關閉的括號'), '語法錯誤的圖表保留原始碼')
+      assert.match(imgs[0][0], /width="\d+" height="\d+"/)
+      const corner = await cp.evaluate(async url => {
+        const bmp = await createImageBitmap(await (await fetch(url)).blob())
+        const c = new OffscreenCanvas(bmp.width, bmp.height)
+        const g = c.getContext('2d')
+        g.drawImage(bmp, 0, 0)
+        return [...g.getImageData(2, 2, 1, 1).data]
+      }, imgs[0][1])
+      assert.ok(corner[0] > 240 && corner[1] > 240 && corner[2] > 240, `淺色底：${corner}`)
+      assert.equal(await cp.evaluate(() => document.documentElement.dataset.mlTheme), 'dark', '複製後還原深色')
+    } finally {
+      await sw.evaluate(t => Markloupe.saveSettings({ theme: t }), before)
+      await cp.close()
+    }
+  })
   await check('複製：工具列與章節的選單，複製內容附 HTML 格式，複製位置為路徑與行號', async () => {
     await ctx.grantPermissions(['clipboard-read', 'clipboard-write'])
     const cp = await openDoc()

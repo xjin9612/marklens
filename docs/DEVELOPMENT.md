@@ -65,7 +65,7 @@ src/
     menu.js              下拉選單（工具列寬度／主題／字級、檔案分頁資料夾選單）與鍵盤操作
     fonts.js             程式碼區塊中英字寬對齊
     sanitize.js          HTML 白名單過濾
-    markdown.js          markdown-it 設定、==mark==、Alert、front matter、數學公式標記
+    markdown.js          markdown-it 設定、==mark==、Alert 與 callout、wikilink、front matter、數學公式標記
     enhance.js           標題錨點與摺疊、行內內容歸組、任務清單、程式碼區塊、圖片、字數
     mermaid.js           Mermaid 圖表（依需載入）
     math.js              KaTeX 數學公式（依需載入）
@@ -77,6 +77,7 @@ src/
     toc.js               側邊欄：目錄／檔案分頁、搜尋、目前章節高亮
     files.js             檔案分頁：資料夾清單、子資料夾依需讀取
     source.js            渲染結果對應回原文：區塊與章節的行號範圍、位置文字（複製位置、複製原文）
+    changes.js           自動更新時逐行比對原文，標出改動的區塊
     main.js              進入點：版面組裝、工具列、快捷鍵、分頁狀態、自動更新、勾選寫回、列印
     content.css          所有樣式（限定在 html.markloupe 底下）
   popup/                 設定面板
@@ -192,7 +193,7 @@ flowchart LR
 npm test
 ```
 
-以 Chromium 載入擴充功能，開啟本機與 http 的測試文件。push 到 `main` 與 pull request 時由 CI 在 Linux、macOS、Windows 上執行。截圖輸出到 `SHOT_DIR`，預設為系統暫存目錄。涵蓋：
+以 Chromium 載入擴充功能，開啟本機與 http 的測試文件。pull request 時由 CI 在 Linux、macOS、Windows 上執行；push 到 `main` 與發版時只在 Linux 上執行（main 只能經由 PR 合併，合併前要與 main 同步）。截圖輸出到 `SHOT_DIR`，預設為系統暫存目錄。涵蓋：
 
 - 渲染：GFM、任務清單（緊湊／鬆散清單）、腳註（滑過或聚焦上標時預覽，Esc 收起）、Alert、front matter（單層 key: value 以鍵值清單顯示，巢狀時顯示原文）、程式碼高亮、Emoji 短碼、比照 GitHub 的自動連結
 - 載入：換檔時保留舊畫面到新頁排好版、載入中背景沿用上次的主題、停用 Markloupe 時原文照常顯示、非 Markdown 網址不接管
@@ -208,9 +209,9 @@ npm test
 - 連結：外部連結開新分頁（含關閉設定）、編輯器按鈕與網址範本的限制
 - 無障礙：每個按鈕都有可念的名稱、鍵盤焦點外框、點擊範圍至少 24×24、用鍵盤排序表格與放大圖片
 - 勾選寫回：寫入正確的行（含 front matter、單獨的 `\r` 換行）、引用區塊與有序清單、復原、衝突偵測、保留 CRLF 與 BOM、未授權、只授權了別處的同名檔案、關閉功能、非 UTF-8 檔案（含手動測試的真實 Big5 文件）。資料夾授權以瀏覽器私有檔案系統（OPFS）模擬，資料夾選擇視窗需手動測試
-- 複製：工具列與章節的選單、附 HTML 格式、位置的路徑與行號、引用中的標題與章節範圍、選取文字（含從任務勾選框開始的選取）、原始文字的行號
+- 複製：工具列與章節的選單、附 HTML 格式（Mermaid 圖換成淺色 PNG、語法錯誤的保留原始碼）、位置的路徑與行號、引用中的標題與章節範圍、選取文字（含從任務勾選框開始的選取）、原始文字的行號
 - 網站權限：manifest 只固定注入本機檔案、安裝時沒有權限警告、授予後註冊的腳本與 manifest 相同、popup 開關反映權限。Chrome 的權限對話框無法自動化，測試載入一份把網站權限改成安裝時授予的副本
-- Mermaid（`test/fixtures/mermaid.md`）：沒有圖表時不載入、繪製、語法錯誤、標籤注入與點擊事件、切換原始碼、全螢幕縮放與平移、主題切換重繪、自動更新不閃爍、http 不繪製並說明原因、關閉設定
+- Mermaid（`test/fixtures/mermaid.md`）：沒有圖表時不載入、繪製、語法錯誤、標籤注入與點擊事件、切換原始碼、全螢幕縮放與平移、圖片選單（深色主題下也輸出淺色的 PNG 與 SVG、PNG 尺寸與不透明背景、SVG 不含腳本、複製 PNG、不安全的 http 頁面不能複製）、主題切換重繪、自動更新不閃爍、http 不繪製並說明原因、關閉設定
 - 數學公式（`test/fixtures/math.md`）：行內、獨立、` ```math `、表格內，金額與跳脫不轉換、語法錯誤、點公式複製 LaTeX（選取文字時不複製）、自動更新、http 不繪製並說明原因、關閉設定
 - 匯出與列印：單一檔案不含程式碼、段落展開、樣式與勾選狀態保留、公式字型內嵌，內嵌本機與網路圖片、讀不到或不是圖片的維持原網址、單一檔的本機連結保留相對路徑並改成 .html、front matter 的 lang、網路上的文件不內嵌本機與內網圖片、超過大小上限與連不上的回報；列印樣式展開摺疊、深色主題改用淺色、圖表以淺色重繪後還原；匯出 Word 的每個 XML 都能解析，標題書籤、文字格式、清單（含鬆散清單與起始編號）、程式碼、提示框、表格、連結、圖片與圖表、公式轉成 Word 原生公式（運算子、函數、對齊式；語法錯誤保留原文）、腳註轉成 Word 腳註（重複引用各一份、腳註內的連結與圖片）、HTML 表格的跨列與跨欄儲存格、front matter 的標題區與文件屬性、中日韓文字的東亞字型標記，以及設定的字型、字級與紙張
 - 介面語言：兩份語系檔鍵值一致、指定介面語言、英文介面冒煙測試
@@ -308,7 +309,7 @@ chrome.exe --remote-debugging-port=9222 --user-data-dir="$env:TEMP\markloupe-cdp
 
 1. 確認標籤、`manifest.json`、`package.json`、`CHANGELOG.md` 的版本一致。
 2. 確認名稱與說明符合商店的長度上限。
-3. 跑測試，打包擴充功能的檔案。
+3. 在 Linux 上跑測試（三個平台已在 PR 測過），打包擴充功能的檔案。
 4. 為兩個 zip 產生建置來源證明。
 5. 以該版 CHANGELOG 段落為說明，發布 GitHub Release，附兩個 zip：
    - `markloupe-vX.Y.Z.zip`：內含 `markloupe-vX.Y.Z/` 資料夾，供「載入未封裝項目」使用

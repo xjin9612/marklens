@@ -15,6 +15,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
         .replace(/\s/g, '-') || 'section'
     )
   }
+  Markloupe.slugify = slugify
 
   Markloupe.processHeadings = function (article) {
     const used = new Map()
@@ -390,7 +391,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     }
   }
 
-  /* ---------- Alert 標題 ---------- */
+  /* ---------- 容器區塊（::: tip）沒寫標題時補上預設標題 ---------- */
   const ALERT_TITLE = { note: 'Note', tip: 'Tip', important: 'Important', warning: 'Warning', caution: 'Caution' }
   Markloupe.processAlerts = function (article) {
     for (const bq of article.querySelectorAll('blockquote.markdown-alert')) {

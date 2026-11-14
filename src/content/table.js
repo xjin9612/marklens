@@ -154,13 +154,7 @@ var Markloupe = globalThis.Markloupe || (globalThis.Markloupe = {})
     ro.observe(table)
     ro.observe(bar)
 
-    /** 表格所在章節的標題文字；沒有標題時是文件標題 */
-    function sectionTitle() {
-      let n = wrap
-      while (n.parentElement && !n.parentElement.classList.contains('markdown-body')) n = n.parentElement
-      while ((n = n.previousElementSibling) && !/^H[1-6]$/.test(n.tagName));
-      return n?.dataset.mlText || document.title
-    }
+    const sectionTitle = () => Markloupe.sectionTitle(wrap)
 
     /** 全螢幕標題：表格所在章節的標題與列數 */
     function fullTitle() {
